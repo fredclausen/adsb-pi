@@ -42,17 +42,16 @@ The plugin file will start out with the following items:
 | -------- | ----------- | -------- | ---------- |
 | `docker_config_version` | This variable sets the plugin spec version number. For now, only `1.0` is an acceptable value, but in the future if the spec document is changed, this will be used by the parser to determine how to process the plugin | Yes | `Float` |
 | `config_version` | This sets the configuration version of the plugin itself. This is not used for anything in the parser, but can be used by the plugin developer to track additions/changes to their container. | No | `Float`
-| `container_name` | This is the the internal name of the container and will be used by the web front-end as an internal value to reference the container. |
-| `container_display_name` | The friendly name of the container displayed to the user | Yes | `Upper and lower case, ASCII, _ - and spaces` |
-| Yes | `lower-case, ASCII letters, - and _` |
+| `container_name` | This is the the internal name of the container and will be used by the web front-end as an internal value to reference the container. | Yes | `lower-case, ASCII letters, - and _` |
+| `container_display_name` | The friendly name of the container displayed to the user | Yes | `Upper and lower case, ASCII, _ - and spaces` | Yes | `lower-case, ASCII letters, - and _` |
 | `container_image` | The dockerhub, or applicable, path to the image | Yes | `standard formatting for docker-images` |
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
 
-#### Container Config
+### Container Config
 
-##### Recommends and Requirements
+#### Recommends and Requirements
 
-This section of the configuration file is used to define the configuration parameters of a container.
+This section of the configuration file is used to define the parameters of a container.
 
 Example:
 
@@ -60,6 +59,7 @@ Example:
 {
     <snip>
         "container_config": {
+            "description: "value",
             "requires": {
                 "container_1": { "container_name": "name_of_container" },
                 "container_2": { "container_name": "name_of_second_container" }
@@ -76,6 +76,7 @@ Example:
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
+| `description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
 |`requires` | This section describes the containers that are **REQUIRED** to be also installed to run the container being configured. This is used by the web front-end to inform the user about requirements. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the required container |
 |`recommends` | This section describes the containers that are **RECOMMENDED**, but not required, to run the container being configured. This is used by the web front-end to inform the user about suggestion(s) they may also want to install to enhance or improve the container being configured. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the recommended container |
 
@@ -90,6 +91,7 @@ Example:
 ```
 <snip>
                 "section1": {
+                    "description": "value",
                     "depends_on": {
                         "option": "env_name",
                         "option_value": "value",
@@ -109,17 +111,21 @@ Example:
 <snip>
 ```
 
-You have two options to conditionally run a section. You cannot choose both - it is one or the other.
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
 
-The first is `depends_on`. `depends_on` is used if you want to run a section based on the previous user response to an ENV variable. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
+You have two options to conditionally run a section. Neither is required, but if you want to run a section conditonally you cannot choose both `depends_on` or and `run_if` - it is one or the other.
+
+The first conditional execution section is `depends_on`. `depends_on` is used if you want to run a section based a previous user response to an ENV variable. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
-| `depends_on` | If this section is dependent on previous user responses | Include this **OR** `run_if` in the section configuration | None | Blank |
+| `depends_on` | Used to indicate if the section is dependent on previous user responses | No | None | Blank |
 | `env_name` | The name of the option that will trigger this section being included in the docker-compose | Yes, if `depends_on` is included in the section configuraton AND `run_if` is not included | `ENV name of the value being checked to see if the section should be run` | Blank |
 | `env_name_value` | The value that will trigger the section to be run | No | `container's variable spec` | Not `default_value` of the `env_name` variable being checked |
 
-The next conditional execution is the `run_if` and if `run_if` is included, you will need to include the `loops` section. This section will ask the user a question, and then based on their response will configure the options in this section. After that is done, the user is asked the `user_question_after` and based on their response, will run the section again based on the configuration options in the loop section.
+The next conditional execution is the `run_if`, and if `run_if` is included, it is recommended to include the `loops` section. This section will ask the user a question, and then based on their response will configure the options in this section. After that is done, the user is asked the `user_question_after` and based on their response, will run the section again based on the configuration options in the loop section.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
@@ -131,10 +137,10 @@ The next conditional execution is the `run_if` and if `run_if` is included, you 
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
-| `max_loops` | The maximum number of times the loop should be run | No | `Integer number` | `Infinity` |
+| `max_loops` | The maximum number of times the loop should be run | No | `Integer` | `Infinity` |
 | `starting_value` | Each ENV variable/option that is included in the section should include a placeholder (`[]`) that will be incremented for each iteration of the loop. This sets the default value. | No | `Integer` | `0` |
 
-##### Options
+#### Options
 
 Below is the configuration for an environment variable in a section.
 
