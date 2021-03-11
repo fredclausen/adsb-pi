@@ -161,7 +161,7 @@ Below is the configuration for an environment variable in a section.
 | `display_name` | The name of the configuration option displayed to the user | Yes | `ASCII characters` | None |
 | `description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters` | None |
 | `env_name` | The name of the ENV variable that will be in the docker-compose file. If the variable is used for looping (see [section](#section) above), the placeholder `[]` is used for the incrementing character in the variable name. | Yes | `Standard docker ENV naming conventions` | None |
-| `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option | Yes | `Formatting per container spec for the variable` | None |
+| `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
 | `variable_type` | This sets the type of variable. | No | `boolean` or `string` | `string` |
 | `boolean_override_true` and `boolean_override_false` | By default the output for any variable set to boolean will be `TRUE` or `FALSE` depending on what is appropriate. However, if your container uses a different value (ie, a blank string) to represent the `TRUE` and/or `FALSE` state, you can override the output for that selection type. | No | `Formatting per container spec for the variable` | `true` and `false` respectively |
 | `user_required` | This is used to indicate the user is required to provide unique input. | No | `true` or `false` | `false` |
