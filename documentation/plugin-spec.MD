@@ -25,13 +25,13 @@ The plugin file will start out with the following items:
 
 ```
 {
-    docker_config_version: 1.0,
-    container {
-        config_version: 1.0,
-        container_name: "name_of_container",
-        container_display_name: "Name of Container",
-        container_image: "image",
-        container_config {
+    "docker_config_version": 1.0,
+    "container": {
+        "config_version": 1.0,
+        "container_name": "name_of_container",
+        "container_display_name": "Name of Container",
+        "container_image": "image",
+        "container_config": {
 
         }
     }
@@ -50,4 +50,26 @@ The plugin file will start out with the following items:
 
 #### Container Config
 
-This section of the configuration file is used to define the configuration parameters of the 
+This section of the configuration file is used to define the configuration parameters of a container.
+
+Example:
+
+```
+        "container_config": {
+            "requires": {
+                "container_1": { "container_name": "name_of_container" },
+                "container_2": { "container_name": "name_of_second_container" }
+            },
+            "recommends": {
+                "container_1": { "container_name": "name_of_container" },
+                "container_2": { "container_name": "name_of_second_container" }
+            }
+            <snip>
+        }
+```
+
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `requires` | This section describes the containers that are **REQUIRED** to be also installed to run the container being configured. This is used by the web front-end to inform the user about requirements. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the required container |
+| `recommends` | This section describes the containers that are **RECOMMENDED**, but not required, to run the container being configured. This is used by the web front-end to inform the user about suggestion(s) they may also want to install to enhance or improve the container being configured. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the recommended container |
+
