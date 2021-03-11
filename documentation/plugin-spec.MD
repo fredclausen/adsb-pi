@@ -81,7 +81,9 @@ Example:
 
 ##### Sections
 
-The next part we'll define sections of the configuration. This is used to define cohesive container ENV elements that should be grouped together. General useage of this would be to define "global" type configuration options for the container, a group of options that is optional or required based on other options configured, a group of options that may be repeated based on user selections, etc.
+The next part we'll define sections of the configuration. This is used to define cohesive container ENV elements that should be grouped together. General useage of this would be to define "global" type configuration options for the container, a group of options that is optional and/or required based on other options configured, a group of options that may be repeated based on user selections, etc.
+
+Sections are executed in order, and depend on the previous section for certain things.
 
 Example:
 
@@ -89,13 +91,17 @@ Example:
 <snip>
                 "section1": {
                     "depends_on": {
-                        "section": "section2",
                         "option": "env_name",
-                        "loops": {
-                            "should_loop": "true",
-                            
-                        }
-                    }
+                        "option_value": "value",
+                    },
+                    "run_if": {
+                        "user_question": "question",
+                        "user_question_after": "question"
+                    },
+                    "loops": {
+                            "max_loops": 10,
+                            "starting_value": 0,
+                    },
                     "option1": {
                         <snip>
                     }
@@ -103,7 +109,30 @@ Example:
 <snip>
 ```
 
+You have two options to conditionally run a section. You cannot choose both - it is one or the other.
 
+The first is `depends_on`. `depends_on` is used if you want to run a section based on the previous user response to an ENV variable. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `depends_on` | If this section is dependent on previous user responses | Include this **OR** `run_if` in the section configuration | None | Blank |
+| `env_name` | The name of the option that will trigger this section being included in the docker-compose | Yes, if `depends_on` is included in the section configuraton AND `run_if` is not included | `ENV name of the value being checked to see if the section should be run` | Blank |
+| `env_name_value` | The value that will trigger the section to be run | No | `container's variable spec` | Not `default_value` of the `env_name` variable being checked |
+
+The next conditional execution is the `run_if` and if `run_if` is included, you will need to include the `loops` section. This section will ask the user a question, and then based on their response will configure the options in this section. After that is done, the user is asked the `user_question_after` and based on their response, will run the section again based on the configuration options in the loop section.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `run_ if` | If this section should be run based on a user's response to a question (ie, "Do you have another SDR you'd like to set up?"), include this. | Yes, if `run_if` is included and `depends_on` is not included. | None | Blank |
+| `user_question` | The first question that is asked of a user. IE "Would you like to set up an SDR now?" | Yes, if `run_if` section is included | `ASCII text` | Blank |
+| `user_question_after` | The subsequent question asked to the user. IE "Do you have another SDR you'd like to set up?" | No | `ASCII text` | Set to the same value as `user_question` |
+
+`loops` configures how each run of the section is handled and is **recommended** if `run_if` is included. This section is ignored if `run_if` is excluded. The idea here is that the variable names in this section should change in some way, and potentially have a maximum number of times the loop should execute.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `max_loops` | The maximum number of times the loop should be run | No | `Integer number` | `Infinity` |
+| `starting_value` | Each ENV variable/option that is included in the section should include a placeholder (`[]`) that will be incremented for each iteration of the loop. This sets the default value. | No | `Integer` | `0` |
 
 ##### Options
 
