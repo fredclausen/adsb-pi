@@ -1,0 +1,125 @@
+{
+    "docker_config_version": 1.0,
+    "container": {
+        "config_version": 1.0,
+        "container_name": "acars_hub",
+        "container_display_name": "ACARS Hub",
+        "container_image": "fredclausen/acarshub:latest",
+        "container_config": {
+            "description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
+            "section1": {
+                "description": "This first section will define some global configuration parameters for ACARS Hub",
+                "option1": {
+                    "display_name": "Feed",
+                    "description": "Feed received messages to airframes.io",
+                    "env_name": "FEED",
+                    "default_value": "",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": "false",
+                    "compose-required": "false"
+                },
+
+                "option2": {
+                    "display_name": "QUIET_LOGS",
+                    "description": "Log all received messages to the container's standard output",
+                    "env_name": "QUIET_LOGS",
+                    "default_value": "",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": "false",
+                    "compose-required": "false"
+                },
+
+                "option3": {
+                    "display_name": "DB_SAVE_ALL",
+                    "description": "Save all received messages, including",
+                    "env_name": "FEED",
+                    "default_value": "",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": "false",
+                    "compose-required": "false"
+                }
+            },
+
+            "section2": {
+                "run_if": {
+                    "user_question": "Would you like to enable ACARS?"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option1": {
+                    "display_name": "Enable ACARS",
+                    "description": "Enable acarsdec",
+                    "env_name": "ENABLE_ACARS",
+                    "default_value": "true",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": "false",
+                    "compose-required": "true",
+                    "disable_user_set": "true"
+                },
+                "option2": {
+                    "display_name": "STATION_ID_ACARS",
+                    "description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
+                    "env_name": "STATION_ID_ACARS",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": "true",
+                    "compose-required": "true"
+                },
+                "option3": {
+                    "display_name": "FREQS_ACARS",
+                    "description": "The list of frequencies for ACARS you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "env_name": "FREQS_ACARS",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": "true",
+                    "compose-required": "true"
+                },
+            },
+
+            "section3": {
+                "run_if": {
+                    "user_question": "Would you like to enable VDLM?"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option1": {
+                    "display_name": "Enable VDLM",
+                    "description": "Enable vdlm2dec",
+                    "env_name": "ENABLE_VDLM",
+                    "default_value": "true",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": "false",
+                    "compose-required": "true",
+                    "disable_user_set": "true"
+                },
+                "option2": {
+                    "display_name": "STATION_ID_VDLM",
+                    "description": "The ID used to uniquely identifiy your VDLM station. This will be used both in displaying of messages on the local website and on airframes.io",
+                    "env_name": "STATION_ID_VDLM",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": "true",
+                    "compose-required": "true"
+                },
+                "option3": {
+                    "display_name": "FREQS_VDLM",
+                    "description": "The list of frequencies forVDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "env_name": "FREQS_VDLM",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": "true",
+                    "compose-required": "true"
+                },
+            }
+
+            
+        }
+    }
+}
