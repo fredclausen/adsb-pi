@@ -1,5 +1,7 @@
 # **Plugin v1 Specs**
 
+**DRAFT**
+
 This document is designed to go over the Version 1 spec of the docker-file plugin used by the SDR Docker config project.
 
 ## **Table of Contents**
