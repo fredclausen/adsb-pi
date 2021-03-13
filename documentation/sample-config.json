@@ -5,8 +5,21 @@
         "container_name": "acars_hub",
         "container_display_name": "ACARS Hub",
         "container_image": "fredclausen/acarshub:latest",
+        "container_website": "http://www.github.com/fredclausen/acarshub",
         "container_config": {
             "description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
+            "volumes": {
+                "usb": "true",
+                "volume1": {
+                    "docker_volume_name": "acarshub",
+                    "container_path": "/run/acars"
+                },
+
+            },
+            "ports": {
+                "host_port": 80,
+                "container_port": 80
+            },
             "section1": {
                 "description": "This first section will define some global configuration parameters for ACARS Hub",
                 "option1": {
