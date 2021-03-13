@@ -4,25 +4,29 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 
 ## Table of Contents
 
-* [Overview](#overview)
-  * [General Structure of the file](#general-structure)
-  * [Container Config](#container-config)
-    * [Recommends and Requirements](#recommends-and-requirements)
-    * [Sections](#sections)
-      * [Conditional Execution of a Section](#conditional-execution-of-a-section)
-        * [Depends On](#depends-on)
-        * [Run If](#run-if)
-        * [Loops](#loops)
+* [Overview and Best Practices](#overview-and-best-practices)
+* [General Structure of the file](#general-structure)
+* [Container Config](#container-config)
+  * [Recommends and Requirements](#recommends-and-requirements)
+  * [Volumes](#volumes)
+  * [Ports](#ports)
+  * [Sections](#sections)
+    * [Conditional Execution of a Section](#conditional-execution-of-a-section)
+    * [Depends On](#depends-on)
+    * [Run If](#run-if)
+    * [Loops](#loops)
     * [Groups](#groups)
 * [Sample Configuration](#sample-config)
 
-## Overview
+## Overview and Best Practices
 
 The thought process beind the plugin architecture is to allow a docker container author to specify the configuration options for a container that the web front end can use to assist the user in generating docker-compose files.
 
 The file is set up in JSON format and uses JSON conventions. Many containers can be defined in the plugin file.
 
-### General Structure
+For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. It is best to leave "advanced" configuration to the user and not necessarily this tool.
+
+## General Structure
 
 This section is used to define the plugin and any container config(s) that are available.
 
@@ -72,6 +76,18 @@ Example:
             "recommends": {
                 "container_1": { "container_name": "name_of_container" },
                 "container_2": { "container_name": "name_of_second_container" }
+            },
+            "volumes": {
+                "volume1": {
+                    "docker_volume_name": "path",
+                    "container_path": "path"
+                }
+            },
+            "ports": {
+                "port1": {
+                    "host_port": "port",
+                    "container_port": "port"
+                }
             }
             <snip>
         }
@@ -84,6 +100,24 @@ Example:
 | `description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
 |`requires` | This section describes the containers that are **REQUIRED** to be also installed to run the container being configured. This is used by the web front-end to inform the user about requirements. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the required container |
 |`recommends` | This section describes the containers that are **RECOMMENDED**, but not required, to run the container being configured. This is used by the web front-end to inform the user about suggestion(s) they may also want to install to enhance or improve the container being configured. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the recommended container |
+
+### Volumes
+
+If your container requires volumes, include this configuration in the plugin.
+
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `docker_volume_name` | The name of the docker volume for the container | No | `Standard docker volume naming` |
+| `container_path` | The path the `docker_volume_name` should be mapped to in the container | Yes, if `docker_volume_name` is included | `Standard unix path naming` |
+
+### Ports
+
+If your container requires port mapping, include this section.
+
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `host_port` | The port that should be exposed on the host | No | `Integer` |
+| `container_port` | The container port that will be mapped to the `host_port` | Yes, yes `host_port` included | `Integer` |
 
 ### Sections
 
@@ -125,7 +159,7 @@ Example:
 
 You have two options to conditionally run a section. Neither is required, but if you want to run a section conditonally you cannot choose both `depends_on` or and `run_if` - it is one or the other.
 
-##### Depends On
+#### Depends On
 
 The first conditional execution section is `depends_on`. `depends_on` is used if you want to run a section based a previous user response to an ENV variable. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
 
@@ -135,7 +169,7 @@ The first conditional execution section is `depends_on`. `depends_on` is used if
 | `env_name` | The name of the option that will trigger this section being included in the docker-compose | Yes, if `depends_on` is included in the section configuraton AND `run_if` is not included | `ENV name of the value being checked to see if the section should be run` | Blank |
 | `env_name_value` | The value that will trigger the section to be run | No | `container's variable spec` | Not `default_value` of the `env_name` variable being checked |
 
-##### Run If
+#### Run If
 
 The next conditional execution is the `run_if`, and if `run_if` is included, it is recommended to include the `loops` section. This section will ask the user a question, and then based on their response will configure the options in this section. After that is done, the user is asked the `user_question_after` and based on their response, will run the section again based on the configuration options in the loop section.
 
@@ -145,7 +179,7 @@ The next conditional execution is the `run_if`, and if `run_if` is included, it 
 | `user_question` | The first question that is asked of a user. IE "Would you like to set up an SDR now?" | Yes, if `run_if` section is included | `ASCII text` | Blank |
 | `user_question_after` | The subsequent question asked to the user. IE "Do you have another SDR you'd like to set up?" | No | `ASCII text` | Set to the same value as `user_question` |
 
-##### Loops
+#### Loops
 
 `loops` configures how each run of the section is handled and is **recommended** if `run_if` is included. This section is ignored if `run_if` is excluded. The idea here is that the variable names in this section should change in some way if the loop is going to iterate more than once, and potentially have a maximum number of times the loop should execute.
 
