@@ -39,7 +39,7 @@ The plugin file will start out with the following items:
 ```
 {
     "docker_config_version": 1.0,
-    "container1": {
+    "container_1": {
         "config_version": 1.0,
         "container_name": "name_of_container",
         "container_display_name": "Name of Container",
@@ -56,7 +56,7 @@ The plugin file will start out with the following items:
 | -------- | ----------- | -------- | ---------- |
 | `docker_config_version` | This variable sets the plugin spec version number. For now, only `1.0` is an acceptable value, but in the future if the spec document is changed, this will be used by the parser to determine how to process the plugin | Yes | `Float` |
 | `config_version` | This sets the configuration version of the plugin itself. This is not used for anything in the parser, but can be used by the plugin developer to track additions/changes to their container. | No | `Float`
-| `container_name` | This is the the internal name of the container and will be used by the web front-end as an internal value to reference the container. | Yes | `lower-case, ASCII letters, - and _` |
+| `container_name` | This is the the name of the container that will be used in the compose file. | Yes | `lower-case, ASCII letters, - and _` |
 | `container_display_name` | The friendly name of the container displayed to the user | Yes | `Upper and lower case, ASCII, _ - and spaces` | Yes | `lower-case, ASCII letters, - and _` |
 | `container_image` | The dockerhub, or applicable, path to the image | Yes | `standard formatting for docker-images` |
 | `container_website` | The URL for the container's website | No | `standard URL formatting` |
@@ -70,7 +70,7 @@ This section of the configuration file is used to define the parameters of a con
 
 Example:
 
-```
+```json
 {
     <snip>
         "container_config": {
@@ -92,9 +92,8 @@ Example:
             },
             "ports": {
                 "port1": {
-                    "host_port": "port",
-                    "container_port": "port"
-                }
+                    "host_port": port,
+                    "container_port": port                }
             }
             "section1": {
                 <snip>
@@ -137,7 +136,7 @@ Sections are executed in order, and depend on the previous section for certain t
 
 Example:
 
-```
+```json
 <snip>
                 "section1": {
                     "description": "value",
@@ -205,7 +204,7 @@ Additionally, it may be required for a container to save the value of user respo
 
 Example below:
 
-```
+```json
 <snip>
                 "section1": {
                     "env_name": "variable",
@@ -230,18 +229,21 @@ Example below:
                         }
                     }
                 }
+```
 
 In the example above, the ENV variable would end up looking like this:
 
-```
-- variable=loop1_response_to_option1,loop1_response_to_option2;loop2_response_to_option1,loop2_response_to_option2
+```shell
+
+variable=loop1_response_to_option1,loop1_response_to_option2;loop2_response_to_option1,loop2_response_to_option2
+
 ```
 
 #### Options
 
 Below is the configuration for an environment variable in a section, also known as `options`.
 
-```
+```json
 <snip>
                 "section1": {
                     "option1": {
@@ -277,7 +279,7 @@ If you wish to combine several questions in to a ENV variable, use the `group` o
 
 Example
 
-```
+```json
 <snip>
                     "group:" {
                         "env_name": "environment_variable",
