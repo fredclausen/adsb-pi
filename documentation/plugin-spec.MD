@@ -26,7 +26,7 @@ In order to facilitate this, and to make the project scalable and usable far in 
 
 The plugin file is set up in JSON format and uses JSON conventions. Many containers can be defined in the plugin file.
 
-For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. It is best to leave "advanced" configuration to the user and not necessarily this tool.
+For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. It is best to leave "advanced" configuration for the user to do outside of the tool. The objective is to create a workable compose file that meets most user's needs.
 
 Anywhere you see `description` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide.
 
@@ -36,7 +36,7 @@ This section is used to define the plugin and any container config(s) that are a
 
 The plugin file will start out with the following items:
 
-```
+```json
 {
     "docker_config_version": 1.0,
     "container_1": {
@@ -72,9 +72,10 @@ Example:
 
 ```json
 {
-    <snip>
+    "container_1": {
+        <snip>
         "container_config": {
-            "description: "value",
+            "description": "value",
             "requires": {
                 "container_1": { "container_name": "name_of_container" },
                 "container_2": { "container_name": "name_of_second_container" }
@@ -93,7 +94,8 @@ Example:
             "ports": {
                 "port1": {
                     "host_port": port,
-                    "container_port": port                }
+                    "container_port": port
+                }
             }
             "section1": {
                 <snip>
