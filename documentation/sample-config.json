@@ -22,7 +22,7 @@
 
                 "option2": {
                     "display_name": "QUIET_LOGS",
-                    "description": "Log all received messages to the container's standard output",
+                    "description": "Log all received messages to the container's standard output?",
                     "env_name": "QUIET_LOGS",
                     "default_value": "",
                     "variable_type": "boolean",
@@ -33,7 +33,7 @@
 
                 "option3": {
                     "display_name": "DB_SAVE_ALL",
-                    "description": "Save all received messages, including",
+                    "description": "Save all received messages, including messages that are 'blank'?",
                     "env_name": "FEED",
                     "default_value": "",
                     "variable_type": "boolean",
@@ -78,7 +78,7 @@
                     "variable_type": "string",
                     "user_required": "true",
                     "compose-required": "true"
-                },
+                }
             },
 
             "section3": {
@@ -110,16 +110,138 @@
                 },
                 "option3": {
                     "display_name": "FREQS_VDLM",
-                    "description": "The list of frequencies forVDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "description": "The list of frequencies for VDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
                     "env_name": "FREQS_VDLM",
                     "default_value": "",
                     "variable_type": "string",
                     "user_required": "true",
                     "compose-required": "true"
-                },
-            }
+                }
+            },
 
-            
+            "section4": {
+                "run_if": {
+                    "user_question": "It is now time to set up the first SDR in the container. In this section, these SDRs will be auto-assigned to ACARS and or VDLM as appropriate. If you wish to assign SDRs to a specific decoder, please use the next section for those SDRs.",
+                    "user_question_after": "Do you have another SDR you would like to set up?"
+                },
+                "loops": {
+                    "min_loops": 0
+                },
+                "env_name": "SERIAL",
+                "field_combine": ";",
+                "group": {
+                    "env_name": "SERIAL",
+                    "field_combine": ",",
+                    "option1": {
+                        "display_name": "Serial Number",
+                        "description": "Please input the serial number of the SDR",
+                        "default_value": "",
+                        "user_required": "true"
+                    },
+                    "option2": {
+                        "display_name": "PPM",
+                        "description": "Please input the PPM correction of the SDR",
+                        "default_value": "0"
+                    },
+                    "option3": {
+                        "display_name": "Gain",
+                        "description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "default_value": "A36.0"
+                    },
+                    "option4": {
+                        "display_name": "Bandwidth",
+                        "description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "default_value": "160"
+                    }
+                }
+            },
+
+            "section5": {
+                "run_if": {
+                    "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for ACARS?",
+                    "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for ACARS?"
+                },
+                "loops": {
+                    "min_loops": 0,
+                    "starting_value": 0
+                },
+                "group": {
+                    "env_name": "ACARS_[]",
+                    "field_combine": ",",
+                    "option1": {
+                        "display_name": "Serial Number",
+                        "description": "Please input the serial number of the SDR",
+                        "default_value": "",
+                        "user_required": "true"
+                    },
+                    "option2": {
+                        "display_name": "PPM",
+                        "description": "Please input the PPM correction of the SDR",
+                        "default_value": "0"
+                    },
+                    "option3": {
+                        "display_name": "Gain",
+                        "description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "default_value": "A36.0"
+                    },
+                    "option4": {
+                        "display_name": "Bandwidth",
+                        "description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "default_value": "160"
+                    }
+                },
+                "option1": {
+                    "display_name": "ACARS Frequenices",
+                    "description": "The ACARS frequencies that should be assigned to this SDR",
+                    "env_name": "ACARS_FREQ_[]",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": "true"
+                }
+            },
+            "section6": {
+                "run_if": {
+                    "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for just VDLM?",
+                    "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for just VDLM?"
+                },
+                "loops": {
+                    "min_loops": 0,
+                    "starting_value": 0
+                },
+                "group": {
+                    "env_name": "VDLM_[]",
+                    "field_combine": ",",
+                    "option1": {
+                        "display_name": "Serial Number",
+                        "description": "Please input the serial number of the SDR",
+                        "default_value": "",
+                        "user_required": "true"
+                    },
+                    "option2": {
+                        "display_name": "PPM",
+                        "description": "Please input the PPM correction of the SDR",
+                        "default_value": "0"
+                    },
+                    "option3": {
+                        "display_name": "Gain",
+                        "description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "default_value": "A36.0"
+                    },
+                    "option4": {
+                        "display_name": "Bandwidth",
+                        "description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "default_value": "160"
+                    }
+                },
+                "option1": {
+                    "display_name": "VDLM Frequenices",
+                    "description": "The VDLM frequencies that should be assigned to this SDR",
+                    "env_name": "VDLM_FREQ_[]",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": "true"
+                }
+            }
         }
     }
 }
