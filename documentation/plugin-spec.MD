@@ -131,12 +131,12 @@ If your container requires volumes, include this configuration in the plugin.
 
 ### **Ports**
 
-If your container requires port mapping, include this section.
+If your container requires port mapping, include this section. By default, the `container_port` is mapped to the Host Port as well in the docker-compose file, but the user will be given an option to change this. Also, the front end will check for duplicate host ports and require the user to change mappings, so there is no requirement for plugin developers to ensure their port mappings are unique.
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
-| `host_port` | The port that should be exposed on the host | No | `Integer` |
-| `container_port` | The container port that will be mapped to the `host_port` | Yes, yes `host_port` included | `Integer` |
+| `container_port` | The container port that will be mapped to the `host_port` | No | `Integer` |
+
 
 ### **Sections**
 
