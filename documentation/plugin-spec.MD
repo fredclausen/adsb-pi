@@ -13,6 +13,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
   * [Recommends and Requirements](#recommends-and-requirements)
   * [Volumes](#volumes)
   * [Ports](#ports)
+  * [Devices](#devices)
   * [Sections](#sections)
     * [Conditional Execution of a Section](#conditional-execution-of-a-section)
     * [Depends On](#depends-on)
@@ -86,6 +87,8 @@ Example:
         <snip>
         "container_config": {
             "description": "value",
+            "privileged": "true",
+            "network_mode": "host",
             "requires": {
                 "container_1": { "container_name": "name_of_container" },
                 "container_2": { "container_name": "name_of_second_container" }
@@ -95,7 +98,6 @@ Example:
                 "container_2": { "container_name": "name_of_second_container" }
             },
             "volumes": {
-                "usb": true,
                 "volume1": {
                     "docker_volume_name": "path",
                     "container_path": "path"
@@ -106,7 +108,14 @@ Example:
                     "host_port": port,
                     "container_port": port
                 }
-            }
+            },
+            "devices": {
+                "usb": true,
+                "device_1": {
+                    "host_device_path": "device_path",
+                    "container_device_path": "path_in_container"
+                }
+            },
             "section1": {
                 <snip>
             }     
@@ -118,6 +127,8 @@ Example:
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
 | `description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
+| `privileged` | If your container requires the docker mode `privileged` to run, set this to `true`. Default is `false` | `boolean` |
+| `network_mode` | If your container requires `host` network mode to run, set this to host. Default is `bridged` | No | `host` or `bridged` |
 |`requires` | This section describes the containers that are **REQUIRED** to be also installed to run the container being configured. This is used by the web front-end to inform the user about requirements. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the required container |
 |`recommends` | This section describes the containers that are **RECOMMENDED**, but not required, to run the container being configured. This is used by the web front-end to inform the user about suggestion(s) they may also want to install to enhance and/or improve the container being configured. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the recommended container |
 
@@ -127,7 +138,6 @@ If your container requires volumes, include this configuration in the plugin.
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
-| `usb` | Pass in the host USB bus to the container. Default is `false` | No | `boolean` |
 | `docker_volume_name` | The name of the docker volume for the container | No | `Standard docker volume naming` |
 | `container_path` | The path the `docker_volume_name` should be mapped to in the container | Yes, if `docker_volume_name` is included | `Standard unix path naming` |
 
@@ -139,6 +149,21 @@ If your container requires port mapping, include this section. By default, the `
 | -------- | ----------- | -------- | ---------- |
 | `container_port` | The container port that will be mapped to the `host_port` | No | `Integer` |
 
+### Devices
+
+If you need to pass any system hardware to the container, include this section.
+
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `usb` | Pass in the host USB bus to the container. Will map `- /dev/bus/usb:/dev/bus/usb/`. If you need another USB path, specify that via "device_x" option. Default is `false` | No | `boolean` |
+
+For passing in a device path, specify the following
+
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `device_x` | For each hardware device you are passing in, us `device_x`, where x is an incremented number of devices you are passing in. | No | `JSON list` |
+| `host_device_path` | The path on the host of the device you want to pass in | Yes, if `device_x` is included | `unix device path` |
+| `container_device_path` | The path for the device in the container | Yes, if `device_x` is included | `unix device path` |
 
 ### **Sections**
 
