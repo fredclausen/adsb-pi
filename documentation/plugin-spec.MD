@@ -98,13 +98,13 @@ Example:
                 "container_2": { "container_name": "name_of_second_container" }
             },
             "volumes": {
-                "volume1": {
+                "volume_1": {
                     "docker_volume_name": "path",
                     "container_path": "path"
                 }
             },
             "ports": {
-                "port1": {
+                "port_1": {
                     "host_port": port,
                     "container_port": port
                 }
@@ -134,12 +134,39 @@ Example:
 
 ### **Volumes**
 
-If your container requires volumes, include this configuration in the plugin.
+If your container requires volumes, include this configuration in the plugin. You have two options for volumes in the container: `docker volume` and `tmpfs`.
+
+To set up a `docker_volume` include the following under `volumes`
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
+| `volume_x`| For each docker volume you want to create, include `volume_x`, , where x is an incremented number of devices you are passing in. | No | |
 | `docker_volume_name` | The name of the docker volume for the container | No | `Standard docker volume naming` |
 | `container_path` | The path the `docker_volume_name` should be mapped to in the container | Yes, if `docker_volume_name` is included | `Standard unix path naming` |
+
+If you wish to create a `tmpfs` volume, specify the following under `volumes`
+
+| Variable | Description | Required | Formatting |
+| -------- | ----------- | -------- | ---------- |
+| `tmpfs_x`| For each tmpfs volume you want to create, include `tmpfs_x`, , where x is an incremented number of devices you are passing in. | No | |
+| `container_path` | The path in the container the `tmpfs` volume will be mapped to | Yes, if `tmpfs_x` is included |
+| `tmpfs_options` | A string of options for creation of the tmpfs volume | Yes, `tmpfs_x` is included | `standard docker compose tmpfs options` |
+
+Example
+
+```json
+"tmpfs_1": {
+    "container_path": "/run",
+    "tmpfs_options": "rw,nosuid,nodev,exec,relatime,size=64M,uid=1000,gid=1000"
+}
+```
+
+Will produce the following in a docker-compose file
+
+```yaml
+tmpfs:
+      - /run:rw,nosuid,nodev,exec,relatime,size=64M,uid=1000,gid=1000
+```
 
 ### **Ports**
 
@@ -249,7 +276,7 @@ Example below:
                     "run_if": {
                         "Would you like to add more options?"
                     },
-                    "group:" {
+                    "group": {
                         "env_name": "variable",
                         "field_combine": ",",
                         "option1": {
@@ -270,8 +297,8 @@ Example below:
 
 In the example above, the ENV variable would end up looking like this:
 
-```shell
-variable=loop1_response_to_option1,loop1_response_to_option2;loop2_response_to_option1,loop2_response_to_option2
+```yaml
+- variable=loop1_response_to_option1,loop1_response_to_option2;loop2_response_to_option1,loop2_response_to_option2
 ```
 
 #### Options
