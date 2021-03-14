@@ -7,7 +7,7 @@
         "container_image": "fredclausen/acarshub:latest",
         "container_website": "http://www.github.com/fredclausen/acarshub",
         "container_config": {
-            "description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
+            "user_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
             "volumes": {
                 "usb": "true",
                 "volume1": {
@@ -16,8 +16,7 @@
                 }
             },
             "ports": {
-                "port1": {
-                    "host_port": 80,
+                "port_1": {
                     "container_port": 80
                 }
             },
@@ -265,7 +264,7 @@
         "container_image": "mikenye/adsbexchange:latest",
         "container_website": "https://github.com/mikenye/docker-adsbexchange",
         "requires": {
-            "container_1": "readsb-proto",
+            "container_1": "readsb-proto"
         },
         "recommends": {
             "container_1": "tar1090",
@@ -273,10 +272,11 @@
             "container_3": "mlat-hub"
         },
         "container_config": {
-            "description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired",
+            "user_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired",
             "ports": {
-                "host_port": 30105,
-                "container_port": 30105
+                "port_1": {
+                    "container_port": 30105
+                }
             },
             "section1": {
                 "option1": {

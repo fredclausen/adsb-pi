@@ -107,7 +107,6 @@ Example:
             },
             "ports": {
                 "port_1": {
-                    "host_port": 000,
                     "container_port": 000
                 }
             },

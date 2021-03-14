@@ -12,7 +12,7 @@ def validate_container(container_name=None, value=None):
     # List of keys that are required to be in the container definition
     required_keys = ["container_name", "container_display_name", "container_image", "container_config"]
 
-    print(f"Linting container {attribute}")
+    print(f"Linting {attribute}")
     for key, items in value.items():
         if key == "container_name":
             required_keys.remove("container_name")
@@ -29,6 +29,7 @@ def validate_container(container_name=None, value=None):
                 raise ValueError("Invalid container website")
         elif key == "container_config":
             required_keys.remove("container_config")
+            validate_container_config(container_name=container_name, values=items)
         elif key == "requires":
             validate_req_and_recommends(container_name=container_name, section="requires", values=items)
         elif key == "recommends":
@@ -40,9 +41,43 @@ def validate_container(container_name=None, value=None):
 
     # Run through all keys that weren't present in the container definition
     if len(required_keys) != 0:
-        for item in required_keys:
-            print(f"ERROR: missing key(s) {item} in {container_name}")
+        missing_keys = ", ".join(item for item in required_keys)
+        raise ValueError(f"Missing keys: {missing_keys}")
 
+def validate_container_config(container_name=None, values=None):
+    required_keys = ["user_description"]
+    if len(values) == 0:
+        print(f"WARNING: {container_name} has port section that is empty. Please remove")
+        return
+    else:
+        for key, items in values.items():
+            if key == "user_description":
+                required_keys.remove("user_description")
+            elif key == "ports":
+                validate_ports(container_name=container_name, values=items)
+        
+        # Run through all keys that weren't present in the container definition
+        if len(required_keys) != 0:
+            missing_keys = ", ".join(item for item in required_keys)
+            raise ValueError(f"Missing keys: {missing_keys}")
+
+# Function to validate the ports section
+
+def validate_ports(container_name=None, values=None):
+    if len(values) == 0:
+        print(f"WARNING: {container_name} has port section that is empty. Please remove")
+        return
+    
+    for key, items in values.items():
+        if len(re.findall(r"^port_\d+", key)) == 1:
+            for key_port, key_items in items.items():
+                if key_port == "container_port" and isinstance(key_items, int):
+                    # this is valid
+                    pass
+                else:
+                    raise ValueError(f"{container_name} has key ({key_port}) in section ports that is invalid")
+        else:
+            raise ValueError(f"{container_name} has key ({key}) in section ports that is invalid")
 
 # Function to validate the requires section
 
@@ -102,13 +137,15 @@ if __name__ == "__main__":
                 else:
                     raise ValueError(f"Unknown element {attribute}")
 
+            if len(required_keys) != 0:
+                missing_keys = ", ".join(item for item in required_keys)
+                raise ValueError(f"Missing keys: {missing_keys}")
+
+            # We made it here. Should be all good
+            print("**********VALID CONFIG FILE**********")
         except ValueError as e:
             print(f"ERROR: JSON linting failed: {e}")
         except TypeError as e:
             print(f"ERROR: {e}")
         except Exception as e:
             print(f"ERROR: Linting failed with unspecified error: {e}")
-
-    if len(required_keys) != 0:
-        for item in required_keys:
-            print(f"ERROR: missing key(s) {item}")
