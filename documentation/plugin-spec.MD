@@ -21,7 +21,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Loops](#loops)
     * [Groups](#groups)
   * [Validating User Input](#validating-user-input)
-  * [Beautifying Text Displayed to User](#beautifying-text displayed-to-user)
+  * [Beautifying Text Displayed to User](#beautifying-text-displayed-to-user)
 * [Sample Configuration](#sample-config)
 
 ## **Overview and Best Practices**
