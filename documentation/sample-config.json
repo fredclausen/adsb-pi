@@ -265,7 +265,7 @@
         "container_image": "mikenye/adsbexchange:latest",
         "container_website": "https://github.com/mikenye/docker-adsbexchange",
         "requires": {
-            "container_1": "readsb-proto"
+            "container_1": "readsb-proto",
         },
         "recommends": {
             "container_1": "tar1090",

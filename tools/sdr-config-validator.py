@@ -6,8 +6,12 @@ import re
 import validators
 from typing import Any, Dict, Hashable, List, Tuple
 
+# Function to validate a container
+
 def validate_container(container_name=None, value=None):
+    # List of keys that are required to be in the container definition
     required_keys = ["container_name", "container_display_name", "container_image", "container_config"]
+
     print(f"Linting container {attribute}")
     for key, items in value.items():
         if key == "container_name":
@@ -26,17 +30,36 @@ def validate_container(container_name=None, value=None):
         elif key == "container_config":
             required_keys.remove("container_config")
         elif key == "requires":
-            pass
+            validate_req_and_recommends(container_name=container_name, section="requires", values=items)
         elif key == "recommends":
-            pass
+            validate_req_and_recommends(container_name=container_name, section="recommends", values=items)
         elif key == "config_version":
             pass
         else:
             print(f"Unknown key: {key} in {container_name}")
 
+    # Run through all keys that weren't present in the container definition
     if len(required_keys) != 0:
         for item in required_keys:
             print(f"ERROR: missing key(s) {item} in {container_name}")
+
+
+# Function to validate the requires section
+
+def validate_req_and_recommends(container_name=None, section=None, values=None):
+    if len(values) == 0:
+        print(f"WARNING: {container_name} has {section} that is empty. Please remove")
+        return
+    for key, items in values.items():
+        # check for valid key name
+        if len(re.findall(r"^container_\d+", key)) == 1:
+            pass
+        else:
+            raise ValueError(f"{container_name} has key ({key}) in section {section} that is invalid")
+
+# Function used by JSON loads to ensure all keys are unique
+# which strangely isn't an exception in the default parser
+
 
 def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
     """Raise ValueError if a duplicate key exists in provided ordered list of pairs, otherwise return a dict."""
