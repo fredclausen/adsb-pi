@@ -28,19 +28,21 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 
 The goal of this project is to provide an easy to use, extensible website that an end user can use to quickly and seamlessly generate docker-compose files that they can use in their infrastructure. The idea is to provide the user a functional docker-compose file, built on their responses to questions, that should deploy a workable container.
 
-In order to facilitate this, and to make the project scalable and usable far in to the future, the "brain" of this is going to be author-provided plugin(s) for their containers that describe how the user needs to configure their container. The thought process behind the plugin architecture is to allow a docker container author to specify the configuration options for a container that the web front end can use to assist the user in generating docker-compose files.
+In order to facilitate this, and to make the project scalable and usable far in to the future, the "brain" of this is going to be author-provided plugin(s) for their containers that describe how the user needs to configure their container. The thought process behind the plugin architecture is to allow a docker container author to specify the configuration options for a container that allows any tool that uses this plugin spec to assist the user in generating docker-compose files.
 
-The plugin file is set up in JSON format and uses JSON conventions. Many containers can be defined in the plugin file.
+The plugin file is set up in `JSON` format and uses `JSON` conventions. Many containers can be defined in the plugin file.
 
 ## Best Practices
 
-For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. 
+For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined [below](#sections) in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option.
 
-It is best to leave "advanced" configuration options as not required to be configured. If you wish to expose options to the user, but only for `advanced` users, please set the appropriate flag on the option. This is covered in more detail below.
+The primary mode of operation for this tool should be to set up a basic configuration of your container that works for most users. As such, more advanced configuration settings should either be not included, included but set as `disable_user_set` (which allows for writing of the default value specified in the `option` configuration for the variable in to the docker-compose file), or should be exposed with `advanced` (which hides the option from the user unless they choose to configure advanced options, and also allows writing the default value if the flag is specified in the `option` configuration and the user is not using `advanced` config), and not required to be configured by default.
 
-Addtionally, while not required, it is best practice for any free-text inputs the user is required to use to provide a regex string to validate the input. This is covered below.
+If you wish to expose options to the user, but only for `advanced` users, please set the appropriate flag on the option. This is covered in more detail [below](#sections).
 
-Anywhere you see `description` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide.
+Addtionally, while not required, it is best practice for any free-text inputs the user is required to use to provide a regex string to validate the input. This is covered [below](#validating-user-input).
+
+Anywhere you see `description`, `user_question`, or `user_question_after` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide. For formatting options, please see [below](#beautifying-text displayed-to-user)
 
 ## **General Structure**
 
@@ -85,10 +87,9 @@ Example:
 ```json
 {
     "container_1": {
-        <snip>
         "container_config": {
             "description": "value",
-            "privileged": "true",
+            "privileged": true,
             "network_mode": "host",
             "requires": {
                 "container_1": { "container_name": "name_of_container" },
@@ -106,8 +107,8 @@ Example:
             },
             "ports": {
                 "port_1": {
-                    "host_port": port,
-                    "container_port": port
+                    "host_port": 000,
+                    "container_port": 000
                 }
             },
             "devices": {
@@ -118,7 +119,6 @@ Example:
                 }
             },
             "section1": {
-                <snip>
             }     
         }
     }
@@ -177,7 +177,7 @@ If your container requires port mapping, include this section. By default, the `
 | -------- | ----------- | -------- | ---------- |
 | `container_port` | The container port that will be mapped to the `host_port` | No | `Integer` |
 
-### Devices
+### **Devices**
 
 If you need to pass any system hardware to the container, include this section.
 
@@ -202,10 +202,9 @@ Sections are executed in order, and depend on the previous section for certain t
 Example:
 
 ```json
-<snip>
                 "section1": {
                     "description": "value",
-                    "user_skip": "true",
+                    "user_skip": true,
                     "depends_on": {
                         "option": "env_name",
                         "option_value": "value",
@@ -220,7 +219,6 @@ Example:
                             "starting_value": 0,
                     },
                     "option1": {
-                        <snip>
                     }
                 }
 <snip>
@@ -284,13 +282,13 @@ Example below:
                             "display_name": "display_name",
                             "description": "description",
                             "default_value": "default",
-                            "user_required": "true",
+                            "user_required": true,
                         },
                         "option2": {
                             "display_name": "display_name",
                             "description": "description",
                             "default_value": "default",
-                            "user_required": "true",
+                            "user_required": true,
                         }
                     }
                 }
@@ -302,7 +300,7 @@ In the example above, the ENV variable would end up looking like this:
 - variable=loop1_response_to_option1,loop1_response_to_option2;loop2_response_to_option1,loop2_response_to_option2
 ```
 
-#### Options
+#### **Options**
 
 Below is the configuration for an environment variable in a section, also known as `options`.
 
@@ -316,10 +314,10 @@ Below is the configuration for an environment variable in a section, also known 
                         "default_value": "default",
                         "variable_type": "boolean",
                         "boolean_override_true": "value",
-                        "boolean_override_false": "false",
-                        "user_required": "true",
-                        "compose-required": "true",
-                        "advanced": "true"
+                        "boolean_override_false": false,
+                        "user_required": true,
+                        "compose-required": true,
+                        "advanced": true
                     }
                 }
 <snip>
@@ -334,7 +332,7 @@ Below is the configuration for an environment variable in a section, also known 
 | `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
 | `variable_type` | This sets the type of variable. | No | `boolean`, `string` or `multi-choice` | `string` |
 | `boolean_override_true` and `boolean_override_false` | By default the output for any variable set to boolean will be `TRUE` or `FALSE` depending on what is appropriate. However, if your container uses a different value (ie, a blank string) to represent the `TRUE` and/or `FALSE` state, you can override the output for that selection type. | No | `Formatting per container spec for the variable` | `true` and `false` respectively |
-| `multi-choice-options` | A JSON list of user options that can be selected for the variable. Will be presented to the user via a dropdown menu. See below for formatting of the variable. | No | `JSON List` | Blank |
+| `multi-choice-options` | A JSON list of user options that can be selected for the variable. Will be presented to the user via a dropdown menu. See below for formatting of the variable. | Yes, if `variable_type` is set to `multi-choice` | `JSON List` | Blank |
 | `user_required` | This is used to indicate the user is required to provide unique input. If `advanced` is set to `true` the user will be required to provide input **ONLY** if the user is in `advanced` configuration mode. | No | `true` or `false` | `false` |
 | `compose-required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | `true` or `false` | `false` |
 | `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
@@ -365,13 +363,13 @@ Example
                             "display_name": "display_name",
                             "description": "description",
                             "default_value": "default",
-                            "user_required": "true",
+                            "user_required": true,
                         },
                         "option2": {
                             "display_name": "display_name",
                             "description": "description",
                             "default_value": "default",
-                            "user_required": "true",
+                            "user_required": true,
                         }
                     }
 <snip>
@@ -384,7 +382,7 @@ All of the settings under `option` in a `group` are the same as if they were not
 | `env_name` | In this section, the `env_name` is moved from the option to the `group`, and sets the output enviornment variable that all of the options in the `group` section will be applied to. | Yes, if `group` is used. | `docker ENV variable naming convention` | Blank |
 | `field_combine` | All of the option responses will be combined together and separated with the character(s) in the `field_combine` variable | Yes, if `group` is being used. | `ASCII characters, - _` | Blank |
 
-### Validating User Input
+### **Validating User Input**
 
 By default, all `string` based user-inputs are considered valid. However, any place that requires user input can have the field `validator` applied to it.
 
@@ -392,7 +390,7 @@ By default, all `string` based user-inputs are considered valid. However, any pl
 | -------- | ----------- | -------- | ---------- | ------- |
 | `validator` | A regex string that will be used by the front-end to validate that the user input is in the format required for the ENV vairable. With out specifying this option, all input is considered valid. | No | `/regex string/` | Blank |
 
-### Beautifying Text Displayed to User
+### **Beautifying Text Displayed to User**
 
 For the following fields
 
