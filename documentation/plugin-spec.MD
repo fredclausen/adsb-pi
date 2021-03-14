@@ -42,7 +42,7 @@ If you wish to expose options to the user, but only for `advanced` users, please
 
 Addtionally, while not required, it is best practice for any free-text inputs the user is required to use to provide a regex string to validate the input. This is covered [below](#validating-user-input).
 
-Anywhere you see `user_description`, `user_required_formatting`, `user_question`, or `user_question_after` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide. For formatting options, please see [below](#beautifying-text displayed-to-user)
+Anywhere you see `user_description`, `user_required_formatting`, `user_question`, or `user_question_after` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide. For formatting options, please see [below](#beautifying-text-displayed-to-user)
 
 ## **General Structure**
 
