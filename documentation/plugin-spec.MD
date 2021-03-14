@@ -42,7 +42,7 @@ If you wish to expose options to the user, but only for `advanced` users, please
 
 Addtionally, while not required, it is best practice for any free-text inputs the user is required to use to provide a regex string to validate the input. This is covered [below](#validating-user-input).
 
-Anywhere you see `description`, `user_question`, or `user_question_after` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide. For formatting options, please see [below](#beautifying-text displayed-to-user)
+Anywhere you see `user_description`, `user_required_formatting`, `user_question`, or `user_question_after` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide. For formatting options, please see [below](#beautifying-text displayed-to-user)
 
 ## **General Structure**
 
@@ -88,7 +88,7 @@ Example:
 {
     "container_1": {
         "container_config": {
-            "description": "value",
+            "user_description": "value",
             "privileged": true,
             "network_mode": "host",
             "requires": {
@@ -127,7 +127,7 @@ Example:
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
-| `description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
+| `user_description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
 | `privileged` | If your container requires the docker mode `privileged` to run, set this to `true`. Default is `false` | `boolean` |
 | `network_mode` | If your container requires `host` network mode to run, set this to host. Default is `bridged` | No | `host` or `bridged` |
 |`requires` | This section describes the containers that are **REQUIRED** to be also installed to run the container being configured. This is used by the web front-end to inform the user about requirements. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the required container |
@@ -203,7 +203,7 @@ Example:
 
 ```json
                 "section1": {
-                    "description": "value",
+                    "user_description": "value",
                     "user_skip": true,
                     "depends_on": {
                         "option": "env_name",
@@ -226,7 +226,7 @@ Example:
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
-| `description` | This value is used to inform the user what the next steps of configuration are. | No | `lower-case, ASCII letters, - and _` |
+| `user_description` | This value is used to inform the user what the next steps of configuration are. | No | `lower-case, ASCII letters, - and _` |
 | `user_skip` | If set, this value skips asking the user about the `options` in this section and will just write the default values set for the `options` in this section in to the final docker-compose. This over-rides `user_required`, `loops`, `run_if` and `depends_on` | No | `boolean` |
 
 #### **Conditional Execution of a Section**
@@ -280,13 +280,13 @@ Example below:
                         "field_combine": ",",
                         "option1": {
                             "display_name": "display_name",
-                            "description": "description",
+                            "user_description": "description",
                             "default_value": "default",
                             "user_required": true,
                         },
                         "option2": {
                             "display_name": "display_name",
-                            "description": "description",
+                            "user_description": "description",
                             "default_value": "default",
                             "user_required": true,
                         }
@@ -309,12 +309,12 @@ Below is the configuration for an environment variable in a section, also known 
                 "section1": {
                     "option1": {
                         "display_name": "display_name",
-                        "description": "description",
+                        "user_description": "description",
                         "env_name": "environment_variable",
                         "default_value": "default",
                         "variable_type": "boolean",
                         "boolean_override_true": "value",
-                        "boolean_override_false": false,
+                        "boolean_override_false": "value",
                         "user_required": true,
                         "compose-required": true,
                         "advanced": true
@@ -326,7 +326,7 @@ Below is the configuration for an environment variable in a section, also known 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
 | `display_name` | The name of the configuration option displayed to the user | Yes | `ASCII characters` | None |
-| `description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters and markdown` | None |
+| `user_description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters and markdown` | None |
 | `env_name` | The name of the ENV variable that will be in the docker-compose file. If the variable is used for looping (see [section](#section) above), the placeholder `[]` is used for the incrementing character in the variable name. | Yes | `Standard docker ENV naming conventions` | None |
 | `disable_user_set` | Set this option to disable allowing the user to change this variable. Use of this means the variable, with it's default value, will be included in the docker-compose output. | No | `false` |
 | `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
@@ -361,13 +361,13 @@ Example
                         "field_combine": ",",
                         "option1": {
                             "display_name": "display_name",
-                            "description": "description",
+                            "user_description": "description",
                             "default_value": "default",
                             "user_required": true,
                         },
                         "option2": {
                             "display_name": "display_name",
-                            "description": "description",
+                            "user_description": "description",
                             "default_value": "default",
                             "user_required": true,
                         }
@@ -389,6 +389,7 @@ By default, all `string` based user-inputs are considered valid. However, any pl
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
 | `validator` | A regex string that will be used by the front-end to validate that the user input is in the format required for the ENV vairable. With out specifying this option, all input is considered valid. | No | `/regex string/` | Blank |
+| `user_required_description` | This field will be displayed to the user, if present, to inform the user how the data should be formatted for that `option` | No | `ASCII text and markdown` | Blank |
 
 ### **Beautifying Text Displayed to User**
 
@@ -396,7 +397,8 @@ For the following fields
 
 * `user_question`
 * `user_question_after`
-* `description`
+* `user_description`
+* `user_required_formatting`
 
 It may be desirable to apply text-formatting to enhance the readability of the text. Standard markdown syntax can be applied in the text strings of these fields.
 
