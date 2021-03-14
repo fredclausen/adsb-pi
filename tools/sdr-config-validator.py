@@ -53,8 +53,25 @@ def validate_container_config(container_name=None, values=None):
         for key, items in values.items():
             if key == "user_description":
                 required_keys.remove("user_description")
+                if isinstance(items, str):
+                    # this is valid
+                    pass
+                else:
+                    raise ValueError(f"{container_name} key user_description has an invalid value '{items}'. Should be a string")
             elif key == "ports":
                 validate_ports(container_name=container_name, values=items)
+            elif key == "network_mode":
+                if items == "host" or items == "bridged":
+                    # this is valid
+                    pass
+                else:
+                    raise ValueError(f"{container_name} key network_mode has an invalid value '{items}'. Should be 'bridged' or 'host'")
+            elif key == "privileged":
+                if isinstance(items, bool):
+                    # this is valid
+                    pass
+                else:
+                    raise ValueError(f"{container_name} key privileged has an invalid value '{items}'. Should be a boolean value")
         
         # Run through all keys that weren't present in the container definition
         if len(required_keys) != 0:

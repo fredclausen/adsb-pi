@@ -20,6 +20,7 @@
                     "container_port": 80
                 }
             },
+            "privileged": false,
             "section1": {
                 "description": "This first section will define some global configuration parameters for ACARS Hub",
                 "option1": {
