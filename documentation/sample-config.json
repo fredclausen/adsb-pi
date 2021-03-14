@@ -16,8 +16,10 @@
                 }
             },
             "ports": {
-                "host_port": 80,
-                "container_port": 80
+                "port1": {
+                    "host_port": 80,
+                    "container_port": 80
+                }
             },
             "section1": {
                 "description": "This first section will define some global configuration parameters for ACARS Hub",

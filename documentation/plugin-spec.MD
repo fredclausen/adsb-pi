@@ -6,7 +6,8 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 
 ## **Table of Contents**
 
-* [Overview and Best Practices](#overview-and-best-practices)
+* [Overview](#overview)
+* [Best Practices](best-practices)
 * [General Structure of the file](#general-structure)
 * [Container Config](#container-config)
   * [Recommends and Requirements](#recommends-and-requirements)
@@ -18,6 +19,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Run If](#run-if)
     * [Loops](#loops)
     * [Groups](#groups)
+  * [Validating User Input](#validating-user-input)
 * [Sample Configuration](#sample-config)
 
 ## **Overview and Best Practices**
@@ -28,7 +30,11 @@ In order to facilitate this, and to make the project scalable and usable far in 
 
 The plugin file is set up in JSON format and uses JSON conventions. Many containers can be defined in the plugin file.
 
+## Best Practices
+
 For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. It is best to leave "advanced" configuration for the user to do outside of the tool. The objective is to create a workable compose file that meets most user's needs.
+
+Addtionally, while not required, it is best practice for any free-text inputs the user is required to use to provide a regex string to validate the input. This is covered below.
 
 Anywhere you see `description` as a setting, this will be displayed to the user on the website. Use this to inform them about what that step is and/or what value(s) they are expected to provide.
 
@@ -310,6 +316,14 @@ All of the settings under `option` in a `group` are the same as if they were not
 | -------- | ----------- | -------- | ---------- | ------- |
 | `env_name` | In this section, the `env_name` is moved from the option to the `group`, and sets the output enviornment variable that all of the options in the `group` section will be applied to. | Yes, if `group` is used. | `docker ENV variable naming convention` | Blank |
 | `field_combine` | All of the option responses will be combined together and separated with the character(s) in the `field_combine` variable | Yes, if `group` is being used. | `ASCII characters, - _` | Blank |
+
+### Validating User Input
+
+By default, all `string` based user-inputs are considered valid. However, any place that a user input can have the field `validator` applied to it.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `validator` | A regex string that will be used by the front-end to validate that the user input is in the format required for the ENV vairable. With out specifying this option, all input is considered valid. | No | `/regex string/` | Blank |
 
 ## **Sample Config**
 
