@@ -21,6 +21,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Loops](#loops)
     * [Groups](#groups)
   * [Validating User Input](#validating-user-input)
+  * [Beautifying Text Displayed to User](#beautifying-text displayed-to-user)
 * [Sample Configuration](#sample-config)
 
 ## **Overview and Best Practices**
@@ -390,6 +391,16 @@ By default, all `string` based user-inputs are considered valid. However, any pl
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
 | `validator` | A regex string that will be used by the front-end to validate that the user input is in the format required for the ENV vairable. With out specifying this option, all input is considered valid. | No | `/regex string/` | Blank |
+
+### Beautifying Text Displayed to User
+
+For the following fields
+
+* `user_question`
+* `user_question_after`
+* `description`
+
+It may be desirable to apply text-formatting to enhance the readability of the text. Standard markdown syntax can be applied in the text strings of these fields.
 
 ## **Sample Config**
 
