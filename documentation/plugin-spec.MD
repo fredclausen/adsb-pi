@@ -252,8 +252,8 @@ The next conditional execution is the `run_if`, and if `run_if` is included, it 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
 | `run_ if` | If this section should be run based on a user's response to a question (ie, "Do you have another SDR you'd like to set up?"), include this. | Yes, if `run_if` is included and `depends_on` is not included. | None | Blank |
-| `user_question` | The first question that is asked of a user. IE "Would you like to set up an SDR now?" | Yes, if `run_if` section is included | `ASCII text` | Blank |
-| `user_question_after` | The subsequent question asked to the user. IE "Do you have another SDR you'd like to set up?" | No | `ASCII text` | Set to the same value as `user_question` |
+| `user_question` | The first question that is asked of a user. IE "Would you like to set up an SDR now?" | Yes, if `run_if` section is included | `ASCII text and markdown` | Blank |
+| `user_question_after` | The subsequent question asked to the user. IE "Do you have another SDR you'd like to set up?" | No | `ASCII text and markdown` | Set to the same value as `user_question` |
 
 #### **Loops**
 
@@ -328,7 +328,7 @@ Below is the configuration for an environment variable in a section, also known 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
 | `display_name` | The name of the configuration option displayed to the user | Yes | `ASCII characters` | None |
-| `description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters` | None |
+| `description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters and markdown` | None |
 | `env_name` | The name of the ENV variable that will be in the docker-compose file. If the variable is used for looping (see [section](#section) above), the placeholder `[]` is used for the incrementing character in the variable name. | Yes | `Standard docker ENV naming conventions` | None |
 | `disable_user_set` | Set this option to disable allowing the user to change this variable. Use of this means the variable, with it's default value, will be included in the docker-compose output. | No | `false` |
 | `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
