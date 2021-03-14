@@ -32,7 +32,9 @@ The plugin file is set up in JSON format and uses JSON conventions. Many contain
 
 ## Best Practices
 
-For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. It is best to leave "advanced" configuration for the user to do outside of the tool. The objective is to create a workable compose file that meets most user's needs.
+For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined below in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option. 
+
+It is best to leave "advanced" configuration options as not required to be configured. If you wish to expose options to the user, but only for `advanced` users, please set the appropriate flag on the option. This is covered in more detail below.
 
 Addtionally, while not required, it is best practice for any free-text inputs the user is required to use to provide a regex string to validate the input. This is covered below.
 
@@ -244,9 +246,7 @@ Example below:
 In the example above, the ENV variable would end up looking like this:
 
 ```shell
-
 variable=loop1_response_to_option1,loop1_response_to_option2;loop2_response_to_option1,loop2_response_to_option2
-
 ```
 
 #### Options
@@ -265,7 +265,8 @@ Below is the configuration for an environment variable in a section, also known 
                         "boolean_override_true": "value",
                         "boolean_override_false": "false",
                         "user_required": "true",
-                        "compose-required": "true"
+                        "compose-required": "true",
+                        "advanced": "true"
                     }
                 }
 <snip>
@@ -280,8 +281,9 @@ Below is the configuration for an environment variable in a section, also known 
 | `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
 | `variable_type` | This sets the type of variable. | No | `boolean` or `string` | `string` |
 | `boolean_override_true` and `boolean_override_false` | By default the output for any variable set to boolean will be `TRUE` or `FALSE` depending on what is appropriate. However, if your container uses a different value (ie, a blank string) to represent the `TRUE` and/or `FALSE` state, you can override the output for that selection type. | No | `Formatting per container spec for the variable` | `true` and `false` respectively |
-| `user_required` | This is used to indicate the user is required to provide unique input. | No | `true` or `false` | `false` |
+| `user_required` | This is used to indicate the user is required to provide unique input. If `advanced` is set to `true` the user will be required to provide input **ONLY** if the user is in `advanced` configuration mode. | No | `true` or `false` | `false` |
 | `compose-required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | `true` or `false` | `false` |
+| `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
 
 ### **Groups**
 
@@ -319,7 +321,7 @@ All of the settings under `option` in a `group` are the same as if they were not
 
 ### Validating User Input
 
-By default, all `string` based user-inputs are considered valid. However, any place that a user input can have the field `validator` applied to it.
+By default, all `string` based user-inputs are considered valid. However, any place that requires user input can have the field `validator` applied to it.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
