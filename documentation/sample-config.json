@@ -9,10 +9,14 @@
         "container_config": {
             "user_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
             "volumes": {
-                "usb": "true",
-                "volume1": {
+                "volume_1": {
                     "docker_volume_name": "acarshub",
-                    "container_path": "/run/acars"
+                    "container_path": "/run/acars/"
+                },
+
+                "tmpfs_1": {
+                    "container_path": "/database/",
+                    "tmpfs_options": "exec,size=64M"
                 }
             },
             "ports": {
@@ -20,8 +24,11 @@
                     "container_port": 80
                 }
             },
+            "devices": {
+                "usb": true
+            },
             "privileged": false,
-            "section1": {
+            "section_1": {
                 "description": "This first section will define some global configuration parameters for ACARS Hub",
                 "option1": {
                     "display_name": "Feed",
@@ -57,7 +64,7 @@
                 }
             },
 
-            "section2": {
+            "section_2": {
                 "run_if": {
                     "user_question": "Would you like to enable ACARS?"
                 },
@@ -95,7 +102,7 @@
                 }
             },
 
-            "section3": {
+            "section_3": {
                 "run_if": {
                     "user_question": "Would you like to enable VDLM?"
                 },
@@ -133,7 +140,7 @@
                 }
             },
 
-            "section4": {
+            "section_4": {
                 "run_if": {
                     "user_question": "It is now time to set up the first SDR in the container. In this section, these SDRs will be auto-assigned to ACARS and or VDLM as appropriate. If you wish to assign SDRs to a specific decoder, please use the next section for those SDRs.",
                     "user_question_after": "Do you have another SDR you would like to set up?"
@@ -170,7 +177,7 @@
                 }
             },
 
-            "section5": {
+            "section_5": {
                 "run_if": {
                     "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for ACARS?",
                     "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for ACARS?"
@@ -213,7 +220,7 @@
                     "user_required": "true"
                 }
             },
-            "section6": {
+            "section_6": {
                 "run_if": {
                     "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for just VDLM?",
                     "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for just VDLM?"
@@ -279,7 +286,7 @@
                     "container_port": 30105
                 }
             },
-            "section1": {
+            "section_1": {
                 "option1": {
                     "display_name": "BEAST Host",
                     "description": "The host for BEAST data",

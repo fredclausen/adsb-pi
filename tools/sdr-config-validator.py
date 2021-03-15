@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import json
 import argparse
 import re
@@ -72,11 +73,98 @@ def validate_container_config(container_name=None, values=None):
                     pass
                 else:
                     raise ValueError(f"{container_name} key privileged has an invalid value '{items}'. Should be a boolean value")
+            elif key == "volumes":
+                validate_volumes(container_name=container_name, values=items)
+            elif key == "devices":
+                validate_devices(container_name=container_name, values=items)
+            elif len(re.findall(r"^section_\d+", key)):
+                pass
+            else:
+                raise ValueError(f"{container_name} has key ({key}) that is invalid")
         
         # Run through all keys that weren't present in the container definition
         if len(required_keys) != 0:
             missing_keys = ", ".join(item for item in required_keys)
             raise ValueError(f"Missing keys: {missing_keys}")
+
+
+# Function to validate the devices
+
+def validate_devices(container_name=None, values=None):
+    if len(values) == 0:
+        print(f"WARNING: {container_name} has devices section that is empty. Please remove")
+        return
+
+    for key, items in values.items():
+        if key == "usb":
+            if isinstance(items, bool):
+                # this is valid
+                pass
+            else:
+                raise ValueError(f"{container_name} key usb has an invalid value '{items}'. Should be a boolean value")
+        elif len(re.findall(r"^device_\d+", key)) == 1:
+            required_keys = ['container_device_path', 'host_device_path']
+            for sub_key, sub_items in items.items():
+                if sub_key == "host_device_path":
+                    required_keys.remove('host_device_path')
+                    if len(re.findall(r"^(/)?([^/\0]+(/)?)+$", sub_items)) == 1:
+                        # this is valid
+                        pass
+                    else:
+                        ValueError(f"{container_name} has key ({sub_key}) in section devices that is invalid")
+
+                elif sub_key == "container_device_path":
+                    required_keys.remove('container_device_path')
+                else:
+                    ValueError(f"{container_name} has key ({sub_key}) in section devices that is invalid")
+            
+            if len(required_keys) != 0:
+                missing_keys = ", ".join(item for item in required_keys)
+                raise ValueError(f"Missing keys: {missing_keys}")
+        else:
+            raise ValueError(f"{container_name} has key ({key}) in section devices that is invalid")  
+
+# Function to validate the volumes
+
+def validate_volumes(container_name=None, values=None):
+    if len(values) == 0:
+        print(f"WARNING: {container_name} has volume section that is empty. Please remove")
+        return
+
+    for key, items in values.items():
+        if len(re.findall(r"^volume_\d+", key)) == 1:
+            # this is valid key naming
+            required_keys = ['docker_volume_name', 'container_path']
+            for sub_key, sub_items in items.items():
+                # check for unix path
+                if len(re.findall(r"^(/)?([^/\0]+(/)?)+$", sub_items)) == 1 and sub_key == "container_path":
+                    # this is valid 
+                    required_keys.remove("container_path")
+                elif sub_key == "docker_volume_name":
+                    required_keys.remove("docker_volume_name")
+                else:
+                    raise ValueError(f"{container_name} has key ({sub_key}) in section volume that is invalid")
+                
+            if len(required_keys) != 0:
+                missing_keys = ", ".join(item for item in required_keys)
+                raise ValueError(f"Missing keys: {missing_keys}")
+        elif len(re.findall(r"^tmpfs_\d+", key)) == 1:
+            # this is a valid key name
+            required_keys = ['container_path', 'tmpfs_options']
+            for sub_key, sub_items in items.items():
+                if sub_key == "container_path" and len(re.findall(r"^(/)?([^/\0]+(/)?)+$", sub_items)) == 1:
+                    # this is valid
+                    required_keys.remove("container_path")
+                elif sub_key == "tmpfs_options":  # not sure how to check if the formatting is good...I suppose leave it be?
+                    required_keys.remove("tmpfs_options")
+                else:
+                    ValueError(f"{container_name} has key ({sub_key}) in section volume that is invalid")
+            
+            if len(required_keys) != 0:
+                missing_keys = ", ".join(item for item in required_keys)
+                raise ValueError(f"Missing keys: {missing_keys}")
+        else:
+            raise ValueError(f"{container_name} has key ({key}) in section volume that is invalid")  
 
 # Function to validate the ports section
 
@@ -162,7 +250,10 @@ if __name__ == "__main__":
             print("**********VALID CONFIG FILE**********")
         except ValueError as e:
             print(f"ERROR: JSON linting failed: {e}")
+            sys.exit(1)
         except TypeError as e:
             print(f"ERROR: {e}")
+            sys.exit(1)
         except Exception as e:
             print(f"ERROR: Linting failed with unspecified error: {e}")
+            sys.exit(1)
