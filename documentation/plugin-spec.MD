@@ -126,7 +126,7 @@ Example:
 
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
-| `user_description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, - and _` |
+| `user_description` | This value is used to inform the user what the next steps of configuration are. | Yes | `lower-case, ASCII letters, markdown` |
 | `privileged` | If your container requires the docker mode `privileged` to run, set this to `true`. Default is `false` | `boolean` |
 | `network_mode` | If your container requires `host` network mode to run, set this to host. Default is `bridged` | No | `host` or `bridged` |
 |`requires` | This section describes the containers that are **REQUIRED** to be also installed to run the container being configured. This is used by the web front-end to inform the user about requirements. | No | `JSON list of container(s). Use the same name as supplied in the container_name configuration of the required container |
@@ -272,7 +272,7 @@ Example below:
                     "env_name": "variable",
                     "field_combine": ";",
                     "run_if": {
-                        "Would you like to add more options?"
+                        "user_question": "Would you like to add more options?"
                     },
                     "group": {
                         "env_name": "variable",
