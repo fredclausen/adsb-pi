@@ -274,16 +274,16 @@ Example below:
                     "run_if": {
                         "user_question": "Would you like to add more options?"
                     },
-                    "group": {
+                    "group_1": {
                         "env_name": "variable",
                         "field_combine": ",",
-                        "option1": {
+                        "option_1": {
                             "display_name": "display_name",
                             "user_description": "description",
                             "default_value": "default",
                             "user_required": true,
                         },
-                        "option2": {
+                        "option_2": {
                             "display_name": "display_name",
                             "user_description": "description",
                             "default_value": "default",
@@ -306,7 +306,7 @@ Below is the configuration for an environment variable in a section, also known 
 ```json
 <snip>
                 "section1": {
-                    "option1": {
+                    "option_1": {
                         "display_name": "display_name",
                         "user_description": "description",
                         "env_name": "environment_variable",
@@ -355,7 +355,7 @@ Example
 
 ```json
 <snip>
-                    "group:" {
+                    "group_1:" {
                         "env_name": "environment_variable",
                         "field_combine": ",",
                         "option1": {
@@ -374,7 +374,7 @@ Example
 <snip>
 ```
 
-All of the settings under `option` in a `group` are the same as if they were not in a group, with the exception of `boolean` is not a valid type in this section. All response types are assumed to be `string`.
+All of the settings under `option` in a `group` are the same as if they were not in a group, with the exception of `boolean` is not a valid type in this section. All response types are assumed to be `string`. The name of the group needs to be appended with a unique `integer`.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |

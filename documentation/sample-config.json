@@ -29,38 +29,38 @@
             },
             "privileged": false,
             "section_1": {
-                "description": "This first section will define some global configuration parameters for ACARS Hub",
-                "option1": {
+                "user_description": "This first section will define some global configuration parameters for ACARS Hub",
+                "option_1": {
                     "display_name": "Feed",
-                    "description": "Feed received messages to airframes.io",
+                    "user_description": "Feed received messages to airframes.io",
                     "env_name": "FEED",
-                    "default_value": "",
+                    "default_value": false,
                     "variable_type": "boolean",
                     "boolean_override_false": "",
-                    "user_required": "false",
-                    "compose-required": "false"
+                    "user_required": false,
+                    "compose_required": false
                 },
 
-                "option2": {
+                "option_2": {
                     "display_name": "QUIET_LOGS",
-                    "description": "Log all received messages to the container's standard output?",
+                    "user_description": "Log all received messages to the container's standard output?",
                     "env_name": "QUIET_LOGS",
-                    "default_value": "",
+                    "default_value": true,
                     "variable_type": "boolean",
                     "boolean_override_false": "",
-                    "user_required": "false",
-                    "compose-required": "false"
+                    "user_required": false,
+                    "compose_required": false
                 },
 
-                "option3": {
+                "option_3": {
                     "display_name": "DB_SAVE_ALL",
-                    "description": "Save all received messages, including messages that are 'blank'?",
+                    "user_description": "Save all received messages, including messages that are 'blank'?",
                     "env_name": "FEED",
-                    "default_value": "",
+                    "default_value": true,
                     "variable_type": "boolean",
                     "boolean_override_false": "",
-                    "user_required": "false",
-                    "compose-required": "false"
+                    "user_required": false,
+                    "compose_required": false
                 }
             },
 
@@ -71,34 +71,34 @@
                 "loops": {
                     "max_loops": 1
                 },
-                "option1": {
+                "option_1": {
                     "display_name": "Enable ACARS",
-                    "description": "Enable acarsdec",
+                    "user_description": "Enable acarsdec",
                     "env_name": "ENABLE_ACARS",
-                    "default_value": "true",
+                    "default_value": true,
                     "variable_type": "boolean",
                     "boolean_override_false": "",
-                    "user_required": "false",
-                    "compose-required": "true",
-                    "disable_user_set": "true"
+                    "user_required": false,
+                    "compose_required": true,
+                    "disable_user_set": true
                 },
-                "option2": {
+                "option_2": {
                     "display_name": "STATION_ID_ACARS",
-                    "description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
+                    "user_description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
                     "env_name": "STATION_ID_ACARS",
                     "default_value": "",
                     "variable_type": "string",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 },
-                "option3": {
+                "option_3": {
                     "display_name": "FREQS_ACARS",
-                    "description": "The list of frequencies for ACARS you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "user_description": "The list of frequencies for ACARS you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
                     "env_name": "FREQS_ACARS",
                     "default_value": "",
                     "variable_type": "string",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 }
             },
 
@@ -109,34 +109,34 @@
                 "loops": {
                     "max_loops": 1
                 },
-                "option1": {
+                "option_1": {
                     "display_name": "Enable VDLM",
-                    "description": "Enable vdlm2dec",
+                    "user_description": "Enable vdlm2dec",
                     "env_name": "ENABLE_VDLM",
-                    "default_value": "true",
+                    "default_value": true,
                     "variable_type": "boolean",
                     "boolean_override_false": "",
-                    "user_required": "false",
-                    "compose-required": "true",
-                    "disable_user_set": "true"
+                    "user_required": false,
+                    "compose_required": true,
+                    "disable_user_set": true
                 },
-                "option2": {
+                "option_2": {
                     "display_name": "STATION_ID_VDLM",
-                    "description": "The ID used to uniquely identifiy your VDLM station. This will be used both in displaying of messages on the local website and on airframes.io",
+                    "user_description": "The ID used to uniquely identifiy your VDLM station. This will be used both in displaying of messages on the local website and on airframes.io",
                     "env_name": "STATION_ID_VDLM",
                     "default_value": "",
                     "variable_type": "string",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 },
-                "option3": {
+                "option_3": {
                     "display_name": "FREQS_VDLM",
-                    "description": "The list of frequencies for VDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "user_description": "The list of frequencies for VDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
                     "env_name": "FREQS_VDLM",
                     "default_value": "",
                     "variable_type": "string",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 }
             },
 
@@ -153,25 +153,25 @@
                 "group": {
                     "env_name": "SERIAL",
                     "field_combine": ",",
-                    "option1": {
+                    "option_1": {
                         "display_name": "Serial Number",
-                        "description": "Please input the serial number of the SDR",
+                        "user_description": "Please input the serial number of the SDR",
                         "default_value": "",
-                        "user_required": "true"
+                        "user_required": true
                     },
-                    "option2": {
+                    "option_2": {
                         "display_name": "PPM",
-                        "description": "Please input the PPM correction of the SDR",
+                        "user_description": "Please input the PPM correction of the SDR",
                         "default_value": "0"
                     },
-                    "option3": {
+                    "option_3": {
                         "display_name": "Gain",
-                        "description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
                         "default_value": "A36.0"
                     },
-                    "option4": {
+                    "option_4": {
                         "display_name": "Bandwidth",
-                        "description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
                         "default_value": "160"
                     }
                 }
@@ -189,35 +189,35 @@
                 "group": {
                     "env_name": "ACARS_[]",
                     "field_combine": ",",
-                    "option1": {
+                    "option_1": {
                         "display_name": "Serial Number",
-                        "description": "Please input the serial number of the SDR",
+                        "user_description": "Please input the serial number of the SDR",
                         "default_value": "",
-                        "user_required": "true"
+                        "user_required": true
                     },
-                    "option2": {
+                    "option_2": {
                         "display_name": "PPM",
-                        "description": "Please input the PPM correction of the SDR",
+                        "user_description": "Please input the PPM correction of the SDR",
                         "default_value": "0"
                     },
-                    "option3": {
+                    "option_3": {
                         "display_name": "Gain",
-                        "description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
                         "default_value": "A36.0"
                     },
-                    "option4": {
+                    "option_4": {
                         "display_name": "Bandwidth",
-                        "description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
                         "default_value": "160"
                     }
                 },
-                "option1": {
+                "option_1": {
                     "display_name": "ACARS Frequenices",
-                    "description": "The ACARS frequencies that should be assigned to this SDR",
+                    "user_description": "The ACARS frequencies that should be assigned to this SDR",
                     "env_name": "ACARS_FREQ_[]",
                     "default_value": "",
                     "variable_type": "string",
-                    "user_required": "true"
+                    "user_required": true
                 }
             },
             "section_6": {
@@ -232,35 +232,35 @@
                 "group": {
                     "env_name": "VDLM_[]",
                     "field_combine": ",",
-                    "option1": {
+                    "option_1": {
                         "display_name": "Serial Number",
-                        "description": "Please input the serial number of the SDR",
+                        "user_description": "Please input the serial number of the SDR",
                         "default_value": "",
-                        "user_required": "true"
+                        "user_required": true
                     },
-                    "option2": {
+                    "option_2": {
                         "display_name": "PPM",
-                        "description": "Please input the PPM correction of the SDR",
+                        "user_description": "Please input the PPM correction of the SDR",
                         "default_value": "0"
                     },
-                    "option3": {
+                    "option_3": {
                         "display_name": "Gain",
-                        "description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
                         "default_value": "A36.0"
                     },
-                    "option4": {
+                    "option_4": {
                         "display_name": "Bandwidth",
-                        "description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
                         "default_value": "160"
                     }
                 },
-                "option1": {
+                "option_1": {
                     "display_name": "VDLM Frequenices",
-                    "description": "The VDLM frequencies that should be assigned to this SDR",
+                    "user_description": "The VDLM frequencies that should be assigned to this SDR",
                     "env_name": "VDLM_FREQ_[]",
                     "default_value": "",
                     "variable_type": "string",
-                    "user_required": "true"
+                    "user_required": true
                 }
             }
         }
@@ -287,55 +287,55 @@
                 }
             },
             "section_1": {
-                "option1": {
+                "option_1": {
                     "display_name": "BEAST Host",
-                    "description": "The host for BEAST data",
+                    "user_description": "The host for BEAST data",
                     "env_name": "BEAST_HOST",
                     "default_value": "readsb",
-                    "user_required": "false",
-                    "disable_user_set": "true",
-                    "compose-required": "true"
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "compose_required": true
                 },
-                "option2": {
+                "option_2": {
                     "display_name": "BEAST Host",
-                    "description": "The host for BEAST data",
+                    "user_description": "The host for BEAST data",
                     "env_name": "BEAST_PORT",
                     "default_value": "30005",
-                    "user_required": "false",
-                    "disable_user_set": "true",
-                    "compose-required": "true"
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "compose_required": true
                 },
-                "option3": {
+                "option_3": {
                     "display_name": "ADSB Exchange Unique ID",
-                    "description": "Your ADSBX UUID. If you don't have one yet, please leave blank and follow the setup instructions at the source repo to aquire one.",
+                    "user_description": "Your ADSBX UUID. If you don't have one yet, please leave blank and follow the setup instructions at the source repo to aquire one.",
                     "env_name": "UUID",
                     "default_value": "",
-                    "user_required": "false",
-                    "compose-required": "true"
+                    "user_required": false,
+                    "compose_required": true
                 },
-                "option4": {
+                "option_4": {
                     "display_name": "Station Latitude",
-                    "description": "Your station's latitude, in decimal format, up to 5 decimals of precision",
+                    "user_description": "Your station's latitude, in decimal format, up to 5 decimals of precision",
                     "env_name": "LAT",
                     "default_value": "",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 },
-                "option5": {
+                "option_5": {
                     "display_name": "Station Longitude",
-                    "description": "Your station's longitude, in decimal format, up to 5 decimals of precision",
+                    "user_description": "Your station's longitude, in decimal format, up to 5 decimals of precision",
                     "env_name": "LON",
                     "default_value": "",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 },
-                "option6": {
+                "option_6": {
                     "display_name": "Station Altitude",
-                    "description": "Your station's altitude. If using feet, append ft to the alitude. If using metres, append m to the alitude",
+                    "user_description": "Your station's altitude. If using feet, append ft to the alitude. If using metres, append m to the alitude",
                     "env_name": "ALT",
                     "default_value": "",
-                    "user_required": "true",
-                    "compose-required": "true"
+                    "user_required": true,
+                    "compose_required": true
                 }
             }
         }
