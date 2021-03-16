@@ -112,7 +112,7 @@ def validate_sections(container_name=None, values=None):
     if "depends_on" in values:
         if "run_if" in values:
             raise ValueError(f"{container_name} has depends_on AND run_if. Can only have one")
-
+        valid_keys = ['env_name', 'env_name_value']
         depends_on_values = values['depends_on']
 
         if 'env_name' not in depends_on_values and not isinstance(depends_on_values['env_name'], str) and len(depends_on_values['env_name']) == 0:
@@ -121,10 +121,15 @@ def validate_sections(container_name=None, values=None):
         if 'env_name_value' in depends_on_values:
             # do nothing for now. Will eventually need to check and see if the env variable has been previously declared
             pass
+        
+        for key in depends_on_values:
+            if key not in valid_keys:
+                raise ValueError(f"{container_name} depends_on has invalid key {key}")
     elif "run_if" in values:
         if "depends_on" in values:
             raise ValueError(f"{container_name} has depends_on AND run_if. Can only have one")
         
+        valid_keys = ['user_question', 'user_question_after']
         run_if_values = values['run_if']
 
         if 'user_question' not in run_if_values and not isinstance(run_if_values['user_question'], str) and len(run_if_values['user_question']) == 0:
@@ -132,9 +137,13 @@ def validate_sections(container_name=None, values=None):
 
         if 'user_question_after' in run_if_values and (not isinstance(run_if_values['user_question_after'], str) or len(run_if_values['user_question_after']) == 0):
             raise ValueError(f"{container_name} run_if user_question_after should be a string")
-    
+
+        for key in run_if_values:
+            if key not in run_if_values:
+                raise ValueError(f"{container_name} run_if has invalid key {key}")
     if 'loops' in values:
         loops_values = values['loops']
+        valid_keys = ['max_loops', 'min_loops', 'starting_value']
 
         if 'max_loops' in loops_values and not isinstance(loops_values['max_loops'], int) and loops_values['max_loops'] == 0:
             raise ValueError(f"{container_name} max_loops should be a non-zero int")
@@ -145,7 +154,86 @@ def validate_sections(container_name=None, values=None):
         if 'starting_value' in loops_values and not isinstance(loops_values['starting_value'], int):
             raise ValueError(f"{container_name} starting_value should be anint")
 
+        for key in loops_values:
+            if key not in valid_keys:
+                raise ValueError(f"{container_name} loops has invalid key {key}")
 
+    # now run through all keys
+    required_keys = ['display_name', 'user_description', 'env_name', 'default_value']
+    # now lets add in all of the additional required keys based on certian options
+
+    if 'variable_type' in values and values['variable_type'] == "multi-choice":
+        required_keys.append('multi_choice_options')
+
+    valid_keys = ['display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced']
+    for key, items in values.items():
+        if key == "loops" or key == "run_if" or key == "depends_on":
+            # we've already validated these
+            pass
+        elif key == 'display_name':
+            required_keys.remove('display_name')
+
+            if not isinstance(items, str) and len(items) == 0:
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+        
+        elif key == 'user_description':
+            required_keys.remove('user_description')
+
+            if not isinstance(items, str) and len(items) == 0:
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+        
+        elif key == 'env_name':
+            required_keys.remove('env_name')
+
+            if not isinstance(items, str) and len(items) == 0:
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+
+        elif key == 'disable_user_set':
+            if not isinstance(items, bool):
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a boolean")
+        
+        elif key == 'default_value':
+            required_keys.remove('default_value')
+
+            if not isinstance(items, str) and len(items) == 0:
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+        
+        elif key == 'variable_type':
+            if not isinstance(items, str) and (items == "boolean" or items == "string" or items == "multi-choice"):
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+        
+        elif key.startswith('boolean_override_'):
+            if not isinstance(items, str):
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+        
+        elif key == 'multi_choice_options':
+            if 'variable_type' not in items and items['variable_type'] != "multi-choice":
+                raise ValueError(f"{container_name} loops has option invalid key {key}. multi_choice_options included but variable_type is not multi-choice")
+            required_keys.remove("multi_choice_options")
+            for sub_key, sub_items in items.items():
+                if len(re.findall(r"^option_\d+", sub_key)):
+                    if "user_text" not in sub_items and "env_text" not in sub_items:
+                        raise ValueError(f"{container_name} {sub_key} is invalid. Should contain user_text and env_text.")
+                    for option_key, option_items in sub_items.items():
+                        if option_key != "user_text" or "env_text":
+                            raise ValueError(f"{container_name} has invalid key {sub_key}")
+                        elif not isinstance(option_items, str) and len(option_items) == 0:
+                            raise ValueError(f"{container_name} {option_key} should be a non-blank string")
+                else:
+                    raise ValueError(f"{container_name} has option invalid key {sub_key}.")
+        
+        elif key == "user_required":
+            if not isinstance(items, bool):
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a boolean")
+        
+        elif key == "compose_required":
+            if not isinstance(items, bool):
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a boolean")
+        
+        elif key == "advanced":
+            if not isinstance(items, bool):
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a boolean")
+        
 # Function to validate the devices
 
 

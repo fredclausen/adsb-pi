@@ -234,7 +234,7 @@ You have two options to conditionally run a section. Neither is required, but if
 
 #### **Depends On**
 
-The first conditional execution section is `depends_on`. `depends_on` is used if you want to run a section based a previous user response to an ENV variable. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
+The first conditional execution section is `depends_on`. `depends_on` is used if you want to run a section based a previous user response to an ENV variable. The section will be run only once. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
@@ -244,7 +244,7 @@ The first conditional execution section is `depends_on`. `depends_on` is used if
 
 #### **Run If**
 
-The next conditional execution is the `run_if`, and if `run_if` is included, it is recommended to include the `loops` section. This section will ask the user a question, and then based on their response will configure the options in this section. After that is done, the user is asked the `user_question_after` and based on their response, will run the section again based on the configuration options in the loop section.
+The next conditional execution is the `run_if`, and if `run_if` is included, it is recommended to include the `loops` section. This section will ask the user a question, and then based on their response will configure the options in this section. After that is done, the user is asked the `user_question_after` or `user_question` if `_after` is not included, and based on their response, will run the section again based on the configuration options in the loop section.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
@@ -315,7 +315,7 @@ Below is the configuration for an environment variable in a section, also known 
                         "boolean_override_true": "value",
                         "boolean_override_false": "value",
                         "user_required": true,
-                        "compose-required": true,
+                        "compose_required": true,
                         "advanced": true
                     }
                 }
@@ -327,19 +327,19 @@ Below is the configuration for an environment variable in a section, also known 
 | `display_name` | The name of the configuration option displayed to the user | Yes | `ASCII characters` | None |
 | `user_description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters and markdown` | None |
 | `env_name` | The name of the ENV variable that will be in the docker-compose file. If the variable is used for looping (see [section](#section) above), the placeholder `[]` is used for the incrementing character in the variable name. | Yes | `Standard docker ENV naming conventions` | None |
-| `disable_user_set` | Set this option to disable allowing the user to change this variable. Use of this means the variable, with it's default value, will be included in the docker-compose output. | No | `false` |
+| `disable_user_set` | Set this option to disable allowing the user to change this variable. Use of this means the variable, with it's default value, will be included in the docker-compose output. | No | `boolean` | `false` |
 | `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
 | `variable_type` | This sets the type of variable. | No | `boolean`, `string` or `multi-choice` | `string` |
 | `boolean_override_true` and `boolean_override_false` | By default the output for any variable set to boolean will be `TRUE` or `FALSE` depending on what is appropriate. However, if your container uses a different value (ie, a blank string) to represent the `TRUE` and/or `FALSE` state, you can override the output for that selection type. | No | `Formatting per container spec for the variable` | `true` and `false` respectively |
-| `multi-choice-options` | A JSON list of user options that can be selected for the variable. Will be presented to the user via a dropdown menu. See below for formatting of the variable. | Yes, if `variable_type` is set to `multi-choice` | `JSON List` | Blank |
+| `multi_choice_options` | A JSON list of user options that can be selected for the variable. Will be presented to the user via a dropdown menu. See below for formatting of the variable. | Yes, if `variable_type` is set to `multi-choice` | `JSON List` | Blank |
 | `user_required` | This is used to indicate the user is required to provide unique input. If `advanced` is set to `true` the user will be required to provide input **ONLY** if the user is in `advanced` configuration mode. | No | `true` or `false` | `false` |
-| `compose-required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | `true` or `false` | `false` |
+| `compose_required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | No | `boolean` | `false` |
 | `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
 
-The `multi-choice-options` list should be formatted as follows
+The `multi_choice_options` list should be formatted as follows
 
 ```json
-"multi-choice-options": {
+"multi_choice_options": {
     "option_1": { "user_text": "Text displayed to the user",
                   "env_text": "value_written_to_env_file" },
     "option_2": { "user_text": "Second option text displayed to the user",
