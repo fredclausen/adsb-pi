@@ -159,10 +159,33 @@ def validate_sections(container_name=None, values=None):
                 raise ValueError(f"{container_name} loops has invalid key {key}")
 
     for key, items in values.items():
-        if re.findall(r"^option_\d+", key):
+        if len(re.findall(r"^option_\d+", key)) == 1:
             validate_option(container_name=container_name, values=items)
+        if len(re.findall(r"^group_\d+", key)) == 1:
+            validate_group(container_name=container_name, values=items)
 
-def validate_option(container_name=None, values=None):
+def validate_group(container_name=None, values=None):
+        if values is None or len(values) == 0:
+            print(f"WARNING: {container_name} has section that is empty. Please remove")
+            return
+        
+        required_keys = ['env_name', 'field_combine']
+
+        for key, item in values.items():
+            if key not in required_keys and not len(re.findall(r"^group_\d+", key)) == 1 and not len(re.findall(r"^option_\d+", key)) == 1:
+                raise ValueError(f"{container_name} group has group invalid key {key}")
+            elif len(re.findall(r"^group_\d+", key)) == 1:
+                validate_group(container_name=container_name, values=item)
+            elif len(re.findall(r"^option_\d+", key)) == 1:
+                validate_option(container_name=container_name, values=item, as_group=True)
+            elif not len(re.findall(r"^group_\d+", key)) == 1 and key in required_keys:
+                required_keys.remove(key)
+                if not isinstance(item, str):
+                    raise ValueError(f"{container_name} group has group invalid key {key}")
+            else:
+                raise ValueError(f"{container_name} group has group invalid key {key}")
+
+def validate_option(container_name=None, values=None, as_group=False):
     if values is None or len(values) == 0:
         print(f"WARNING: {container_name} has section that is empty. Please remove")
         return
@@ -173,6 +196,11 @@ def validate_option(container_name=None, values=None):
 
     if 'variable_type' in values and values['variable_type'] == "multi-choice":
         required_keys.append('multi_choice_options')
+        required_keys.remove('default_value')
+
+    if as_group:
+        required_keys.remove("env_name")
+        required_keys.append("field_combine")
 
     for option_key, option_items in values.items():
         if option_key not in valid_keys:
@@ -205,7 +233,9 @@ def validate_option(container_name=None, values=None):
         
         elif option_key == 'default_value':
             required_keys.remove('default_value')
-            if 'variable_type' in values:
+            if 'variable_type' in values and values['variable_type'] == "multi-choice":
+                raise ValueError(f"{container_name} loops has option key {option_key} with 'variable_type' set to 'multi-choice'")
+            elif 'variable_type' in values:
                 option_variable_type = values['variable_type']
             else:
                 option_variable_type = "string"

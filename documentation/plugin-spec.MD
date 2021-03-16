@@ -328,7 +328,7 @@ Below is the configuration for an environment variable in a section, also known 
 | `user_description` | Description of what this variable does and any information needed for the user to provide their own value. | Yes | `ASCII Characters and markdown` | None |
 | `env_name` | The name of the ENV variable that will be in the docker-compose file. If the variable is used for looping (see [section](#section) above), the placeholder `[]` is used for the incrementing character in the variable name. | Yes | `Standard docker ENV naming conventions` | None |
 | `disable_user_set` | Set this option to disable allowing the user to change this variable. Use of this means the variable, with it's default value, will be included in the docker-compose output. | No | `boolean` | `false` |
-| `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes | `Formatting per container spec for the variable` | None |
+| `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes, `variable_type` is not `multi_choice_options` | `Formatting per container spec for the variable` | None |
 | `variable_type` | This sets the type of variable. | No | `boolean`, `string` or `multi-choice` | `string` |
 | `boolean_override_true` and `boolean_override_false` | By default the output for any variable set to boolean will be `TRUE` or `FALSE` depending on what is appropriate. However, if your container uses a different value (ie, a blank string) to represent the `TRUE` and/or `FALSE` state, you can override the output for that selection type. | No | `Formatting per container spec for the variable` | `true` and `false` respectively |
 | `multi_choice_options` | A JSON list of user options that can be selected for the variable. Will be presented to the user via a dropdown menu. See below for formatting of the variable. | Yes, if `variable_type` is set to `multi-choice` | `JSON List` | Blank |
@@ -375,6 +375,8 @@ Example
 ```
 
 All of the settings under `option` in a `group` are the same as if they were not in a group, with the exception of `boolean` is not a valid type in this section. All response types are assumed to be `string`. The name of the group needs to be appended with a unique `integer`.
+
+Groups can be nested.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |

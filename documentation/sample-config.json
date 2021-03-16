@@ -148,31 +148,33 @@
                 "loops": {
                     "min_loops": 0
                 },
-                "env_name": "SERIAL",
-                "field_combine": ";",
-                "group": {
+                "group_1": {
                     "env_name": "SERIAL",
-                    "field_combine": ",",
-                    "option_1": {
-                        "display_name": "Serial Number",
-                        "user_description": "Please input the serial number of the SDR",
-                        "default_value": "",
-                        "user_required": true
-                    },
-                    "option_2": {
-                        "display_name": "PPM",
-                        "user_description": "Please input the PPM correction of the SDR",
-                        "default_value": "0"
-                    },
-                    "option_3": {
-                        "display_name": "Gain",
-                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
-                        "default_value": "A36.0"
-                    },
-                    "option_4": {
-                        "display_name": "Bandwidth",
-                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
-                        "default_value": "160"
+                    "field_combine": ";",
+                    "group_1": {
+                        "env_name": "SERIAL",
+                        "field_combine": ",",
+                        "option_1": {
+                            "display_name": "Serial Number",
+                            "user_description": "Please input the serial number of the SDR",
+                            "default_value": "",
+                            "user_required": true
+                        },
+                        "option_2": {
+                            "display_name": "PPM",
+                            "user_description": "Please input the PPM correction of the SDR",
+                            "default_value": "0"
+                        },
+                        "option_3": {
+                            "display_name": "Gain",
+                            "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                            "default_value": "A36.0"
+                        },
+                        "option_4": {
+                            "display_name": "Bandwidth",
+                            "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                            "default_value": "160"
+                        }
                     }
                 }
             },
@@ -186,7 +188,7 @@
                     "min_loops": 0,
                     "starting_value": 0
                 },
-                "group": {
+                "group_1": {
                     "env_name": "ACARS_[]",
                     "field_combine": ",",
                     "option_1": {
@@ -229,7 +231,7 @@
                     "min_loops": 0,
                     "starting_value": 0
                 },
-                "group": {
+                "group_1": {
                     "env_name": "VDLM_[]",
                     "field_combine": ",",
                     "option_1": {
