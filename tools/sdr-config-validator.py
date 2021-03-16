@@ -101,9 +101,49 @@ def validate_container_config(container_name=None, values=None):
 
 
 def validate_sections(container_name=None, values=None):
+    required_keys = ['user_description']
     if values is None or len(values) == 0:
         print(f"WARNING: {container_name} has section that is empty. Please remove")
         return
+    
+    # we need to figure out what kind of section it is
+    # and validate if it's a special section
+
+    if "depends_on" in values:
+        if "run_if" in values:
+            raise ValueError(f"{container_name} has depends_on AND run_if. Can only have one")
+
+        depends_on_values = values['depends_on']
+
+        if 'env_name' not in depends_on_values and not isinstance(depends_on_values['env_name'], str) and len(depends_on_values['env_name']) == 0:
+            raise ValueError(f"{container_name} has depends_on without env_name")
+        
+        if 'env_name_value' in depends_on_values:
+            # do nothing for now. Will eventually need to check and see if the env variable has been previously declared
+            pass
+    elif "run_if" in values:
+        if "depends_on" in values:
+            raise ValueError(f"{container_name} has depends_on AND run_if. Can only have one")
+        
+        run_if_values = values['run_if']
+
+        if 'user_question' not in run_if_values and not isinstance(run_if_values['user_question'], str) and len(run_if_values['user_question']) == 0:
+            raise ValueError(f"{container_name} has run_if without user_question")
+
+        if 'user_question_after' in run_if_values and (not isinstance(run_if_values['user_question_after'], str) or len(run_if_values['user_question_after']) == 0):
+            raise ValueError(f"{container_name} run_if user_question_after should be a string")
+    
+    if 'loops' in values:
+        loops_values = values['loops']
+
+        if 'max_loops' in loops_values and not isinstance(loops_values['max_loops'], int) and loops_values['max_loops'] == 0:
+            raise ValueError(f"{container_name} max_loops should be a non-zero int")
+        
+        if 'min_loops' in loops_values and not isinstance(loops_values['min_loops'], int):
+            raise ValueError(f"{container_name} min_loops should be an int")
+        
+        if 'starting_value' in loops_values and not isinstance(loops_values['starting_value'], int):
+            raise ValueError(f"{container_name} starting_value should be anint")
 
 
 # Function to validate the devices
