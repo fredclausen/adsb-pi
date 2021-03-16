@@ -8,6 +8,9 @@ import re
 import validators
 from typing import Any, Dict, Hashable, List, Tuple
 
+containers = []
+recs_req = []
+
 # Function to validate a container
 
 
@@ -19,6 +22,7 @@ def validate_container(container_name=None, value=None):
     for key, items in value.items():
         if key == "container_name":
             required_keys.remove("container_name")
+            containers.append(items)
             if not isinstance(items, str) or len(re.findall(r"(\s|[A-Z0-9]|(?!(_|-))\W)", items)) > 0:
                 raise ValueError(f"Invalid container_name for {container_name}")
         elif key == "container_display_name":
@@ -406,7 +410,7 @@ def validate_req_and_recommends(container_name=None, section=None, values=None):
     for key, items in values.items():
         # check for valid key name
         if len(re.findall(r"^container_\d+", key)) == 1 and isinstance(items, str):
-            pass
+            recs_req.append(items)
         else:
             raise ValueError(f"{container_name} has key ({key}) in section {section} that is invalid")
 
@@ -464,6 +468,9 @@ if __name__ == "__main__":
                 raise ValueError(f"Missing keys: {missing_keys}")
 
             # We made it here. Should be all good
+            for a in recs_req:
+                if a not in containers:
+                    print(f"****WARNING: container {a} was recommended/required but not found in config file")
             print("**********VALID CONFIG FILE**********")
         except ValueError as e:
             print(f"ERROR: JSON linting failed: {e}")
