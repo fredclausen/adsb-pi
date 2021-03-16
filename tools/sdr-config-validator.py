@@ -215,7 +215,7 @@ def validate_sections(container_name=None, values=None):
                     if "user_text" not in sub_items and "env_text" not in sub_items:
                         raise ValueError(f"{container_name} {sub_key} is invalid. Should contain user_text and env_text.")
                     for option_key, option_items in sub_items.items():
-                        if option_key != "user_text" or "env_text":
+                        if option_key != "user_text" or option_key != "env_text":
                             raise ValueError(f"{container_name} has invalid key {sub_key}")
                         elif not isinstance(option_items, str) and len(option_items) == 0:
                             raise ValueError(f"{container_name} {option_key} should be a non-blank string")
@@ -233,6 +233,14 @@ def validate_sections(container_name=None, values=None):
         elif key == "advanced":
             if not isinstance(items, bool):
                 raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a boolean")
+        
+        elif key == "validator":
+            if not isinstance(items, str) and len(items) == 0:
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
+        
+        elif key == "user_description_required":
+            if not isinstance(items, str) and len(items) == 0:
+                raise ValueError(f"{container_name} loops has option invalid key {key}. Should be a non-blank string")
         
 # Function to validate the devices
 
