@@ -3,11 +3,13 @@ import sys
 import time
 import json
 import re
+import os
 from typing import Any, Dict, Hashable, List, Tuple
 
 page = 1
 config = []
 containers = {}
+advanced_mode = False
 
 def init(screen):
     # Create the curses enviornment
@@ -149,6 +151,8 @@ def clear_screen(screen):
 def config_container(screen):
     global page
     global containers
+    global advanced_mode
+
     curs_x = 1
     curs_y = 2
 
@@ -163,23 +167,46 @@ def config_container(screen):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen.attron(curses.color_pair(2))
-    prompt = "Please select the container(s) you wish to install"
-    status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' to Proceed | 'p' for Previous Page | Press 'q' or Control + C to exit"
-    selected_containers = list()
+    status_bar = "Press enter to save option and proceed | Control - P to go to the previous option"
 
-    screen.addstr(0, 0, prompt)
-    index = 2
-    for container in containers:
-        screen.addstr(index, 0, "[ ] " + container)
-        index += 1
-    
     # show status bar
 
     screen.attron(curses.color_pair(3))
     screen.addstr(height-1, 0, status_bar)
     screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
     screen.attroff(curses.color_pair(3))
-        
+
+    for container in containers:
+        item = containers[container]
+        if 'selected' in item and item['selected'] == True:
+            screen.addstr(0, 0, item['container_display_name'])
+            container_config = item['container_config']
+
+            for section, section_values in container_config.items():
+                if len(re.findall(r"^section_\d+", section)):
+                    if 'user_description' in section_values:
+                        screen.addstr(2, 0, section_values['user_description'])
+                    for options, option_values in section_values.items():
+                        if len(re.findall(r"^option_\d+", options)) == 1:
+                            if ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
+                                screen.addstr(3, 0, f"Container Variable: {option_values['display_name']}")
+                                screen.addstr(4, 0, f"Container Variable: {option_values['user_description']}")
+                                print()
+                                if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                                    while True:
+                                        k = screen.getch()
+                                        screen.refresh()
+                                elif option_values['variable_type'] == 'boolean':
+                                    while True:
+                                        k = screen.getch()
+                                        if ord('1') == k:
+                                            break
+                                        elif ord('0') == k:
+                                            break
+                                        screen.refresh()
+                        #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
+
+
 def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
     """Raise ValueError if a duplicate key exists in provided ordered list of pairs, otherwise return a dict."""
     dict_out = {}
@@ -216,9 +243,10 @@ if __name__ == "__main__":
                 curses.wrapper(config_container)
 
     except KeyboardInterrupt as e:
-        print(e)
+        print("KI", e)
         exit_app()
     except Exception as e:
-        print(e)
+        print("E", e)
+        print(advanced_mode)
         exit_app()
 
