@@ -212,13 +212,48 @@ def config_container(screen):
                                         screen.addstr(5, 0, f"Required Formatting: {option_values['user_required_description']}")
                                     screen.addstr(7, 0, "Make your selection below")
                                     if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                        curses.curs_set(0)
-                                        while True:
-                                            
+                                        curses.curs_set(1)
+                                        curs_x = 0
+                                        curs_y = height - 2
+
+                                        variable_string = ""
+                                        if "default_value" in option_values:
+                                            variable_string = option_values['default_value']
+                                            curs_x = len(variable_string)
+                                        exit = False
+                                        
+                                        screen.addstr(curs_y, 0, variable_string)
+                                        screen.move(curs_y, curs_x)
+                                        while not exit:
                                             k = screen.getch()
+                                            if k == curses.KEY_LEFT:
+                                                curs_x -= 1
+                                                if curs_x < 0:
+                                                    curs_x = 0
+                                            elif k == curses.KEY_RIGHT:
+                                                curs_x += 1
+                                                if curs_x > width:
+                                                    curs_x = width
+                                            elif k == 127:
+                                                variable_string = variable_string[:curs_x - 1] + variable_string[curs_x + 1:]
+                                                curs_x -= 1
+                                                if curs_x < 0:
+                                                    curs_x = 0
+                                            elif k == curses.KEY_DC:
+                                                variable_string = variable_string[:curs_x] + variable_string[curs_x + 1:]
+                                            elif k >= 32 and k <= 126:
+                                                variable_string = variable_string[:curs_x] + chr(k) + variable_string[curs_x:]
+                                                curs_x += 1
+                                                if curs_x > width:
+                                                    curs_x = width
+                                                
+                                            screen.addstr(curs_y, 0, " " * (width - 1))
+                                            screen.addstr(curs_y, 0, variable_string)
+                                            screen.move(curs_y, curs_x)
                                             screen.refresh()
                                     elif option_values['variable_type'] == 'boolean':
                                         exit = False
+                                        curses.noecho()
                                         if 'default_value' not in option_values or option_values['default_value'] == True:
                                             selection = 0
                                         else:
