@@ -69,7 +69,7 @@
                     "user_question": "Would you like to enable ACARS?"
                 },
                 "loops": {
-                    "max_loops": 2
+                    "max_loops": 1
                 },
                 "option_1": {
                     "display_name": "Enable ACARS",
@@ -86,7 +86,7 @@
                     "display_name": "STATION_ID_ACARS",
                     "user_description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
                     "env_name": "STATION_ID_ACARS",
-                    "default_value": "",
+                    "default_value": "titt",
                     "variable_type": "string",
                     "user_required": true,
                     "compose_required": true

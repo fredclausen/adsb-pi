@@ -12,7 +12,7 @@ containers = {}
 advanced_mode = False
 
 volumes = []
-output_container_lines = []
+output_container_config = {}
 
 def init(screen):
     # Create the curses enviornment
@@ -140,6 +140,7 @@ def exit_app():
     curses.nocbreak()
     curses.echo()
     curses.endwin()
+    print("output: ", output_container_config)
     sys.exit(0)
 
 def clear_screen(screen):
@@ -246,11 +247,17 @@ def config_container(screen):
                                                 curs_x += 1
                                                 if curs_x > width:
                                                     curs_x = width
-                                                
-                                            screen.addstr(curs_y, 0, " " * (width - 1))
-                                            screen.addstr(curs_y, 0, variable_string)
-                                            screen.move(curs_y, curs_x)
-                                            screen.refresh()
+                                            elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                                                if ('user_required' in option_values and variable_string != option_values['default_value']) or 'user_required' not in option_values:
+                                                    env_settings[option_values['env_name']] = variable_string
+                                                    exit = True
+                                                else:
+                                                    screen.addstr(curs_y - 1, 0, "Please input a value")
+                                            if not exit:    
+                                                screen.addstr(curs_y, 0, " " * (width - 1))
+                                                screen.addstr(curs_y, 0, variable_string)
+                                                screen.move(curs_y, curs_x)
+                                                screen.refresh()
                                     elif option_values['variable_type'] == 'boolean':
                                         exit = False
                                         curses.noecho()
@@ -304,16 +311,15 @@ def config_container(screen):
                         if 'run_if' in section_values:
                             # first, lets make sure the loop actually ran if required
                             did_run_check = False
-                            sys.exit(10)
                             
                             if 'loops' in section_values:
-                                if 'min_loops' in section_values['loops']['min_loops'] and loops < section_values['loops']['min_loops']:
+                                if 'min_loops' in section_values['loops'] and loops < section_values['loops']['min_loops']:
                                     for i in range (1, height - 1):  # clear all the old lines out, just in case
                                         screen.addstr(i, 0, " " * (width - 1))
                                     did_run_check = True
                                     screen.addstr(3, 0, "This section needs to be ran at least once. Please select yes on the next screen")
                                     run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=True, height=height, width=width)
-                                elif 'max_loops' in section_values['loops']['max_loops'] and section_values['loops']['max_loops'] >= loops:
+                                elif 'max_loops' in section_values['loops'] and section_values['loops']['max_loops'] >= loops:
                                     did_run_check = True
                                     run_section = False                                    
 
@@ -323,9 +329,7 @@ def config_container(screen):
                                 run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
                         else:
                             run_section = False
-
-                #print(env_settings)
-    
+            output_container_config[item['container_name']] = env_settings   
     page = 4
 
 def do_run_section(screen, user_question, user_question_after=None, first=True, height=0, width=0):
