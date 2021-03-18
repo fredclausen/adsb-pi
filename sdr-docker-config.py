@@ -167,7 +167,7 @@ def config_container(screen):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen.attron(curses.color_pair(2))
-    status_bar = "Press enter to save option and proceed | Control - P to go to the previous option"
+    status_bar = "Press enter to save option and proceed | Use arrow keys to navigate between options"
 
     # show status bar
 
@@ -186,76 +186,149 @@ def config_container(screen):
                 if len(re.findall(r"^section_\d+", section)):
                     
                     if 'user_description' in section_values:
-                        pass
                         screen.addstr(2, 0, " " * (width - 1))
                         screen.addstr(2, 0, section_values['user_description'])
 
-                    for options, option_values in section_values.items():
-                        if len(re.findall(r"^option_\d+", options)) == 1:
-                            if ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
-                                for i in range (1, height - 1):  # clear all the old lines out, just in case
-                                    screen.addstr(i, 0, " " * (width - 1))
-                                screen.addstr(3, 0, f"Container Variable: {option_values['display_name']}")
-                                screen.addstr(4, 0, f"Container Variable: {option_values['user_description']}")
-                                if 'user_required_description' in option_values:
-                                    screen.addstr(5, 0, f"Required Formatting: {option_values['user_required_description']}")
-                                screen.addstr(7, 0, "Make your selection below")
-                                if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                    pass
-                                    while True:
-                                         k = screen.getch()
-                                         screen.refresh()
-                                elif option_values['variable_type'] == 'boolean':
-                                    exit = False
-                                    if 'default_value' not in option_values or option_values['default_value'] == True:
-                                        selection = 0
-                                    else:
-                                        selection = 1
-                                    
-                                    curses.curs_set(0)
-                                    k = ""
-                                    while not exit:
-                                        if k == curses.KEY_UP:
-                                            selection -= 1
-                                            if selection < 0:
-                                                selection = 1
-                                        elif k == curses.KEY_DOWN:
-                                            selection += 1
-                                            if selection > 1:
-                                                selection = 0                                            
-                                        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
-                                            if selection == 0:
-                                                exit = True
-                                                if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
-                                                    if 'boolean_override_true' in option_values:
-                                                        env_settings[option_values['env_name']] = option_values['boolean_override_true']
-                                                    else:
-                                                        env_settings[option_values['env_name']] = True
-                                            elif selection == 1:
-                                                exit = True
-                                                if option_values['default_value'] == True or option_values['compose_required'] == True:
-                                                    if 'boolean_override_false' in option_values:
-                                                        env_settings[option_values['env_name']] = option_values['boolean_override_false']
-                                                    else:
-                                                        env_settings[option_values['env_name']] = False
-                                        if not exit:
-                                            if selection == 0:
-                                                screen.attron(curses.A_REVERSE)
-                                                screen.addstr(8, 0, "YES")
-                                                screen.attroff(curses.A_REVERSE)
-                                                screen.addstr(9, 0, "NO")
-                                            else:
-                                                screen.addstr(8, 0, "YES")
-                                                screen.attron(curses.A_REVERSE)
-                                                screen.addstr(9, 0, "NO")
-                                                screen.attroff(curses.A_REVERSE)
-                                            screen.refresh()
-                                            k = screen.getch()
+                    run_section = False
+                    loops = 0
 
-                        #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
+                    if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
+                        run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
+                    elif 'depends_on' in section_values:
+                        run_section = True  ## TODO: ADD IN LOGIC CHECK
+                    else:
+                        run_section = True
+
+                    while run_section:
+                        loops += 1
+                        for options, option_values in section_values.items():
+                            if len(re.findall(r"^option_\d+", options)) == 1:
+                                if ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
+                                    for i in range (1, height - 1):  # clear all the old lines out, just in case
+                                        screen.addstr(i, 0, " " * (width - 1))
+                                    screen.addstr(3, 0, f"Container Variable: {option_values['display_name']}")
+                                    screen.addstr(4, 0, f"Container Variable: {option_values['user_description']}")
+                                    if 'user_required_description' in option_values:
+                                        screen.addstr(5, 0, f"Required Formatting: {option_values['user_required_description']}")
+                                    screen.addstr(7, 0, "Make your selection below")
+                                    if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                                        curses.curs_set(0)
+                                        while True:
+                                            
+                                            k = screen.getch()
+                                            screen.refresh()
+                                    elif option_values['variable_type'] == 'boolean':
+                                        exit = False
+                                        if 'default_value' not in option_values or option_values['default_value'] == True:
+                                            selection = 0
+                                        else:
+                                            selection = 1
+                                        
+                                        curses.curs_set(0)
+                                        k = ""
+                                        while not exit:
+                                            if k == curses.KEY_UP:
+                                                selection -= 1
+                                                if selection < 0:
+                                                    selection = 1
+                                            elif k == curses.KEY_DOWN:
+                                                selection += 1
+                                                if selection > 1:
+                                                    selection = 0                                            
+                                            elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                                                if selection == 0:
+                                                    exit = True
+                                                    if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
+                                                        if 'boolean_override_true' in option_values:
+                                                            env_settings[option_values['env_name']] = option_values['boolean_override_true']
+                                                        else:
+                                                            env_settings[option_values['env_name']] = True
+                                                elif selection == 1:
+                                                    exit = True
+                                                    if option_values['default_value'] == True or option_values['compose_required'] == True:
+                                                        if 'boolean_override_false' in option_values:
+                                                            env_settings[option_values['env_name']] = option_values['boolean_override_false']
+                                                        else:
+                                                            env_settings[option_values['env_name']] = False
+                                            if not exit:
+                                                if selection == 0:
+                                                    screen.attron(curses.A_REVERSE)
+                                                    screen.addstr(8, 0, "YES")
+                                                    screen.attroff(curses.A_REVERSE)
+                                                    screen.addstr(9, 0, "NO")
+                                                else:
+                                                    screen.addstr(8, 0, "YES")
+                                                    screen.attron(curses.A_REVERSE)
+                                                    screen.addstr(9, 0, "NO")
+                                                    screen.attroff(curses.A_REVERSE)
+                                                screen.refresh()
+                                                k = screen.getch()
+
+                            #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
+
+                        if 'run_if' in section_values:
+                            # first, lets make sure the loop actually ran if required
+                            did_run_check = False
+                            sys.exit(10)
+                            
+                            if 'loops' in section_values:
+                                if 'min_loops' in section_values['loops']['min_loops'] and loops < section_values['loops']['min_loops']:
+                                    for i in range (1, height - 1):  # clear all the old lines out, just in case
+                                        screen.addstr(i, 0, " " * (width - 1))
+                                    did_run_check = True
+                                    screen.addstr(3, 0, "This section needs to be ran at least once. Please select yes on the next screen")
+                                    run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=True, height=height, width=width)
+                                elif 'max_loops' in section_values['loops']['max_loops'] and section_values['loops']['max_loops'] >= loops:
+                                    did_run_check = True
+                                    run_section = False                                    
+
+                            if not did_run_check and 'user_question_after' not in section_values['run_if']:
+                                run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=False, height=height, width=width)
+                            elif not did_run_check:
+                                run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
+                        else:
+                            run_section = False
+
                 #print(env_settings)
     
     page = 4
+
+def do_run_section(screen, user_question, user_question_after=None, first=True, height=0, width=0):
+    for i in range (1, height - 1):  # clear all the old lines out, just in case
+        screen.addstr(i, 0, " " * (width - 1))
+
+    if first or user_question_after is None:
+        screen.addstr(3, 0, f"{user_question}")
+    else:
+        screen.addstr(3, 0, f"{user_question_after}")
+
+    selection = 0
+    exit = False
+    k = ""
+    while not exit:
+        if k == curses.KEY_UP:
+            selection -= 1
+            if selection < 0:
+                selection = 1
+        elif k == curses.KEY_DOWN:
+            selection += 1
+            if selection > 1:
+                selection = 0
+        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+            return not bool(selection)
+        if selection == 0:
+            screen.attron(curses.A_REVERSE)
+            screen.addstr(8, 0, "YES")
+            screen.attroff(curses.A_REVERSE)
+            screen.addstr(9, 0, "NO")
+        else:
+            screen.addstr(8, 0, "YES")
+            screen.attron(curses.A_REVERSE)
+            screen.addstr(9, 0, "NO")
+            screen.attroff(curses.A_REVERSE)
+
+        screen.refresh()
+        k = screen.getch()                               
 
 def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
     """Raise ValueError if a duplicate key exists in provided ordered list of pairs, otherwise return a dict."""

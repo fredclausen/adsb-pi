@@ -32,7 +32,7 @@
                 "user_description": "This first section will define some global configuration parameters for ACARS Hub",
                 "option_1": {
                     "display_name": "Feed",
-                    "user_description": "Feed received messages to airframes.io",
+                    "user_description": "Would you like to feed received messages to airframes.io?",
                     "env_name": "FEED",
                     "default_value": false,
                     "variable_type": "boolean",
@@ -42,8 +42,8 @@
                 },
 
                 "option_2": {
-                    "display_name": "QUIET_LOGS",
-                    "user_description": "Log all received messages to the container's standard output?",
+                    "display_name": "QUIET LOGS",
+                    "user_description": "Would you like to log all received messages to the container's standard output?",
                     "env_name": "QUIET_LOGS",
                     "default_value": true,
                     "variable_type": "boolean",
@@ -53,8 +53,8 @@
                 },
 
                 "option_3": {
-                    "display_name": "DB_SAVE_ALL",
-                    "user_description": "Save all received messages, including messages that are 'blank'?",
+                    "display_name": "Database Save All Messages",
+                    "user_description": "Would you like to save all received messages in to the database, including messages that are 'blank'? This will take up more disk space",
                     "env_name": "FEED",
                     "default_value": true,
                     "variable_type": "boolean",
@@ -69,7 +69,7 @@
                     "user_question": "Would you like to enable ACARS?"
                 },
                 "loops": {
-                    "max_loops": 1
+                    "max_loops": 2
                 },
                 "option_1": {
                     "display_name": "Enable ACARS",
@@ -142,7 +142,7 @@
 
             "section_4": {
                 "run_if": {
-                    "user_question": "It is now time to set up the first SDR in the container. In this section, these SDRs will be auto-assigned to ACARS and or VDLM as appropriate. If you wish to assign SDRs to a specific decoder, please use the next section for those SDRs.",
+                    "user_question": "It is now time to set up the first SDR in the container. In this section, these SDRs will be auto-assigned to ACARS and or VDLM as appropriate. If you wish to assign SDRs to a specific decoder, please use the next section for those SDRs. Would you like to setup auto-assignment of SDRS?",
                     "user_question_after": "Do you have another SDR you would like to set up?"
                 },
                 "loops": {
@@ -299,7 +299,7 @@
                     "compose_required": true
                 },
                 "option_2": {
-                    "display_name": "BEAST Host",
+                    "display_name": "BEAST Port",
                     "user_description": "The host for BEAST data",
                     "env_name": "BEAST_PORT",
                     "default_value": "30005",
