@@ -249,7 +249,9 @@ def config_container(screen):
                                                     curs_x = width
                                             elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
                                                 if ('user_required' in option_values and variable_string != option_values['default_value']) or 'user_required' not in option_values:
-                                                    env_settings[option_values['env_name']] = variable_string
+                                                    if (variable_string != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
+                                                        env_settings[option_values['env_name']] = variable_string
+
                                                     exit = True
                                                 else:
                                                     screen.addstr(curs_y - 1, 0, "Please input a value")
