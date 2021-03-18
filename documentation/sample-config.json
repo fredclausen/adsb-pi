@@ -55,7 +55,7 @@
                 "option_3": {
                     "display_name": "Database Save All Messages",
                     "user_description": "Would you like to save all received messages in to the database, including messages that are 'blank'? This will take up more disk space",
-                    "env_name": "FEED",
+                    "env_name": "DB_SAVEALL",
                     "default_value": true,
                     "variable_type": "boolean",
                     "boolean_override_false": "",
@@ -86,7 +86,7 @@
                     "display_name": "STATION_ID_ACARS",
                     "user_description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
                     "env_name": "STATION_ID_ACARS",
-                    "default_value": "titt",
+                    "default_value": "",
                     "variable_type": "string",
                     "user_required": true,
                     "compose_required": true

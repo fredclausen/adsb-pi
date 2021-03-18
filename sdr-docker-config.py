@@ -204,110 +204,43 @@ def config_container(screen):
                         loops += 1
                         for options, option_values in section_values.items():
                             if len(re.findall(r"^option_\d+", options)) == 1:
-                                if ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
+                                if 'disable_user_set' in option_values and option_values['disable_user_set'] == True:
+                                    if 'compose_required' in option_values and option_values['compose_required'] == True:
+                                        if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                                            env_settings[option_values['env_name']] = option_values['default_value']
+                                        elif option_values['variable_type'] == 'boolean':
+                                            env_settings[option_values['env_name']] = option_values['default_value']
+                                        
+                                elif ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
                                     for i in range (1, height - 1):  # clear all the old lines out, just in case
                                         screen.addstr(i, 0, " " * (width - 1))
                                     screen.addstr(3, 0, f"Container Variable: {option_values['display_name']}")
                                     screen.addstr(4, 0, f"Container Variable: {option_values['user_description']}")
                                     if 'user_required_description' in option_values:
                                         screen.addstr(5, 0, f"Required Formatting: {option_values['user_required_description']}")
-                                    screen.addstr(7, 0, "Make your selection below")
+                                    
                                     if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                        curses.curs_set(1)
-                                        curs_x = 0
-                                        curs_y = height - 2
+                                        response = handle_string(screen, option_values, options, height, width)
 
-                                        variable_string = ""
-                                        if "default_value" in option_values:
-                                            variable_string = option_values['default_value']
-                                            curs_x = len(variable_string)
-                                        exit = False
-                                        
-                                        screen.addstr(curs_y, 0, variable_string)
-                                        screen.move(curs_y, curs_x)
-                                        while not exit:
-                                            k = screen.getch()
-                                            if k == curses.KEY_LEFT:
-                                                curs_x -= 1
-                                                if curs_x < 0:
-                                                    curs_x = 0
-                                            elif k == curses.KEY_RIGHT:
-                                                curs_x += 1
-                                                if curs_x > width:
-                                                    curs_x = width
-                                            elif k == 127:
-                                                variable_string = variable_string[:curs_x - 1] + variable_string[curs_x + 1:]
-                                                curs_x -= 1
-                                                if curs_x < 0:
-                                                    curs_x = 0
-                                            elif k == curses.KEY_DC:
-                                                variable_string = variable_string[:curs_x] + variable_string[curs_x + 1:]
-                                            elif k >= 32 and k <= 126:
-                                                variable_string = variable_string[:curs_x] + chr(k) + variable_string[curs_x:]
-                                                curs_x += 1
-                                                if curs_x > width:
-                                                    curs_x = width
-                                            elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
-                                                if ('user_required' in option_values and variable_string != option_values['default_value']) or 'user_required' not in option_values:
-                                                    if (variable_string != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
-                                                        env_settings[option_values['env_name']] = variable_string
+                                        if ('user_required' in option_values and response != option_values['default_value']) or 'user_required' not in option_values:
+                                            if (response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
+                                                env_settings[option_values['env_name']] = response
 
-                                                    exit = True
-                                                else:
-                                                    screen.addstr(curs_y - 1, 0, "Please input a value")
-                                            if not exit:    
-                                                screen.addstr(curs_y, 0, " " * (width - 1))
-                                                screen.addstr(curs_y, 0, variable_string)
-                                                screen.move(curs_y, curs_x)
-                                                screen.refresh()
                                     elif option_values['variable_type'] == 'boolean':
-                                        exit = False
-                                        curses.noecho()
-                                        if 'default_value' not in option_values or option_values['default_value'] == True:
-                                            selection = 0
-                                        else:
-                                            selection = 1
-                                        
-                                        curses.curs_set(0)
-                                        k = ""
-                                        while not exit:
-                                            if k == curses.KEY_UP:
-                                                selection -= 1
-                                                if selection < 0:
-                                                    selection = 1
-                                            elif k == curses.KEY_DOWN:
-                                                selection += 1
-                                                if selection > 1:
-                                                    selection = 0                                            
-                                            elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
-                                                if selection == 0:
-                                                    exit = True
-                                                    if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
-                                                        if 'boolean_override_true' in option_values:
-                                                            env_settings[option_values['env_name']] = option_values['boolean_override_true']
-                                                        else:
-                                                            env_settings[option_values['env_name']] = True
-                                                elif selection == 1:
-                                                    exit = True
-                                                    if option_values['default_value'] == True or option_values['compose_required'] == True:
-                                                        if 'boolean_override_false' in option_values:
-                                                            env_settings[option_values['env_name']] = option_values['boolean_override_false']
-                                                        else:
-                                                            env_settings[option_values['env_name']] = False
-                                            if not exit:
-                                                if selection == 0:
-                                                    screen.attron(curses.A_REVERSE)
-                                                    screen.addstr(8, 0, "YES")
-                                                    screen.attroff(curses.A_REVERSE)
-                                                    screen.addstr(9, 0, "NO")
-                                                else:
-                                                    screen.addstr(8, 0, "YES")
-                                                    screen.attron(curses.A_REVERSE)
-                                                    screen.addstr(9, 0, "NO")
-                                                    screen.attroff(curses.A_REVERSE)
-                                                screen.refresh()
-                                                k = screen.getch()
+                                        response = handle_boolean(screen, option_values, options)
 
+                                        if response:
+                                            if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
+                                                if 'boolean_override_true' in option_values:
+                                                    env_settings[option_values['env_name']] = option_values['boolean_override_true']
+                                                else:
+                                                    env_settings[option_values['env_name']] = "True"
+                                        else:
+                                            if option_values['default_value'] == True or option_values['compose_required'] == True:
+                                                if 'boolean_override_false' in option_values:
+                                                    env_settings[option_values['env_name']] = option_values['boolean_override_false']
+                                                else:
+                                                    env_settings[option_values['env_name']] = "False"
                             #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
 
                         if 'run_if' in section_values:
@@ -334,6 +267,94 @@ def config_container(screen):
             output_container_config[item['container_name']] = env_settings   
     page = 4
 
+def handle_string(screen, option_values, options, height, width):
+    curses.curs_set(1)
+    curs_x = 0
+    curs_y = height - 2
+    screen.addstr(7, 0, "Input your answer below")
+    variable_string = ""
+    if "default_value" in option_values:
+        variable_string = option_values['default_value']
+        curs_x = len(variable_string)
+    exit = False
+    
+    screen.addstr(curs_y, 0, variable_string)
+    screen.move(curs_y, curs_x)
+    while not exit:
+        k = screen.getch()
+        if k == curses.KEY_LEFT:
+            curs_x -= 1
+            if curs_x < 0:
+                curs_x = 0
+        elif k == curses.KEY_RIGHT:
+            curs_x += 1
+            if curs_x > width:
+                curs_x = width
+        elif k == 127:
+            variable_string = variable_string[:curs_x - 1] + variable_string[curs_x + 1:]
+            curs_x -= 1
+            if curs_x < 0:
+                curs_x = 0
+        elif k == curses.KEY_DC:
+            variable_string = variable_string[:curs_x] + variable_string[curs_x + 1:]
+        elif k >= 32 and k <= 126:
+            variable_string = variable_string[:curs_x] + chr(k) + variable_string[curs_x:]
+            curs_x += 1
+            if curs_x > width:
+                curs_x = width
+        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+            if ('user_required' in option_values and variable_string != option_values['default_value']) or 'user_required' not in option_values:
+                return variable_string
+
+                exit = True
+            else:
+                screen.addstr(curs_y - 1, 0, "Please input a value")
+        if not exit:    
+            screen.addstr(curs_y, 0, " " * (width - 1))
+            screen.addstr(curs_y, 0, variable_string)
+            screen.move(curs_y, curs_x)
+            screen.refresh()
+
+def handle_boolean(screen, option_values, options):
+    exit = False
+    curses.noecho()
+    screen.addstr(7, 0, "Make your selection below")
+    if 'default_value' not in option_values or option_values['default_value'] == True:
+        selection = 0
+    else:
+        selection = 1
+    
+    curses.curs_set(0)
+    k = ""
+    while not exit:
+        if k == curses.KEY_UP:
+            selection -= 1
+            if selection < 0:
+                selection = 1
+        elif k == curses.KEY_DOWN:
+            selection += 1
+            if selection > 1:
+                selection = 0                                            
+        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+            if selection == 0:
+                exit = True
+                return True
+            elif selection == 1:
+                return False
+                exit = True
+        if not exit:
+            if selection == 0:
+                screen.attron(curses.A_REVERSE)
+                screen.addstr(8, 0, "YES")
+                screen.attroff(curses.A_REVERSE)
+                screen.addstr(9, 0, "NO")
+            else:
+                screen.addstr(8, 0, "YES")
+                screen.attron(curses.A_REVERSE)
+                screen.addstr(9, 0, "NO")
+                screen.attroff(curses.A_REVERSE)
+            screen.refresh()
+            k = screen.getch()
 def do_run_section(screen, user_question, user_question_after=None, first=True, height=0, width=0):
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
