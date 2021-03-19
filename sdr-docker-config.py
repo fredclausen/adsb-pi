@@ -203,14 +203,19 @@ def config_container(screen):
                     while run_section:
                         loops += 1
                         for options, option_values in section_values.items():
-                            if len(re.findall(r"^option_\d+", options)) == 1:
+                            if len(re.findall(r"^group_\d+", options)) == 1:
+                                result = handle_groups(screen, option_values, options, height, width)
+                                if option_values['env_name'] in env_settings:
+                                   env_settings[option_values['env_name']] =  option_values['field_combine'].join((env_settings[option_values['env_name']], result))
+                                else:
+                                    env_settings[option_values['env_name']] = result
+                            elif len(re.findall(r"^option_\d+", options)) == 1:
                                 if 'disable_user_set' in option_values and option_values['disable_user_set'] == True:
                                     if 'compose_required' in option_values and option_values['compose_required'] == True:
                                         if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                             env_settings[option_values['env_name']] = option_values['default_value']
                                         elif option_values['variable_type'] == 'boolean':
                                             env_settings[option_values['env_name']] = option_values['default_value']
-                                        
                                 elif ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
                                     for i in range (1, height - 1):  # clear all the old lines out, just in case
                                         screen.addstr(i, 0, " " * (width - 1))
@@ -264,8 +269,33 @@ def config_container(screen):
                                 run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
                         else:
                             run_section = False
-            output_container_config[item['container_name']] = env_settings   
+            output_container_config[item['container_name']] = env_settings
     page = 4
+
+def handle_groups(screen, option_values, option, height, width):
+    result = ""
+    separator = option_values['field_combine']
+
+    for key, group in option_values.items():
+        if re.findall(r"^option_\d+", key):
+            if 'disable_user_set' in group and group['disable_user_set'] == True:
+                if 'compose_required' in group and group['compose_required'] == True:
+                    result =  separator.join((result, group['default_value']))
+            else:
+                for i in range (1, height - 1):  # clear all the old lines out, just in case
+                    screen.addstr(i, 0, " " * (width - 1))
+                screen.addstr(3, 0, f"Container Variable: {group['display_name']}")
+                screen.addstr(4, 0, f"Container Variable: {group['user_description']}")
+                if result == "":
+                    result = handle_string(screen, group, key, height, width)
+                else:
+                    result = separator.join((result, handle_string(screen, group, key, height, width)))
+        elif re.findall(r"^group_\d", key):
+            if result == "":
+                    result = handle_groups(screen, group, key, height, width)
+            else:
+                result = separator.join((result, handle_groups(screen, group, key, height, width)))
+    return result
 
 def handle_string(screen, option_values, options, height, width):
     curses.curs_set(1)
