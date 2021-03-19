@@ -198,6 +198,10 @@ def config_container(screen):
 
                     run_section = False
                     loops = 0
+                    starting_value = 0
+
+                    if 'loops' in section_values and 'starting_value' in section_values['loops']:
+                        starting_value = section_values['loops']['starting_value']
 
                     if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
                         run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
@@ -214,17 +218,17 @@ def config_container(screen):
                         for options, option_values in section_values.items():
                             if len(re.findall(r"^group_\d+", options)) == 1:
                                 result = handle_groups(screen, option_values, options, height, width)
-                                if option_values['env_name'] in env_settings:
-                                   env_settings[option_values['env_name']] =  option_values['field_combine'].join((env_settings[option_values['env_name']], result))
+                                if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
+                                   env_settings[option_values['env_name'].replace("[]", str(starting_value))] =  option_values['field_combine'].join((env_settings[option_values['env_name']], result))
                                 else:
-                                    env_settings[option_values['env_name']] = result
+                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = result
                             elif len(re.findall(r"^option_\d+", options)) == 1:
                                 if 'disable_user_set' in option_values and option_values['disable_user_set'] == True:
                                     if 'compose_required' in option_values and option_values['compose_required'] == True:
                                         if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                            env_settings[option_values['env_name']] = option_values['default_value']
+                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
                                         elif option_values['variable_type'] == 'boolean':
-                                            env_settings[option_values['env_name']] = option_values['default_value']
+                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
                                 elif ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
                                     for i in range (1, height - 1):  # clear all the old lines out, just in case
                                         screen.addstr(i, 0, " " * (width - 1))
@@ -238,7 +242,7 @@ def config_container(screen):
 
                                         if ('user_required' in option_values and response != option_values['default_value']) or 'user_required' not in option_values:
                                             if (response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
-                                                env_settings[option_values['env_name']] = response
+                                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
 
                                     elif option_values['variable_type'] == 'boolean':
                                         response = handle_boolean(screen, option_values, options)
@@ -246,21 +250,21 @@ def config_container(screen):
                                         if response:
                                             if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
                                                 if 'boolean_override_true' in option_values:
-                                                    env_settings[option_values['env_name']] = option_values['boolean_override_true']
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
                                                 else:
-                                                    env_settings[option_values['env_name']] = "True"
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "True"
                                         else:
                                             if option_values['default_value'] == True or option_values['compose_required'] == True:
                                                 if 'boolean_override_false' in option_values:
-                                                    env_settings[option_values['env_name']] = option_values['boolean_override_false']
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
                                                 else:
-                                                    env_settings[option_values['env_name']] = "False"
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "False"
                                     elif option_values['variable_type'] == 'multi_choice':
                                         response = handle_multi_choice(screen, option_values, options, height, width)
 
-                                        env_settings[option_values['env_name']] = response
+                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
                             #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
-
+                        starting_value += 1
                         if 'run_if' in section_values:
                             # first, lets make sure the loop actually ran if required
                             did_run_check = False
