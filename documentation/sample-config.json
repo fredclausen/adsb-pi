@@ -165,7 +165,9 @@
                             "variable_type": "string",
                             "display_name": "PPM",
                             "user_description": "Please input the PPM correction of the SDR",
-                            "default_value": "0"
+                            "default_value": "0",
+                            "validator": "\\d+",
+                            "user_required_description": "The value should be a digit only, with no decimal places"
                         },
                         "option_3": {
                             "variable_type": "string",

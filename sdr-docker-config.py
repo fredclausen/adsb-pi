@@ -381,11 +381,14 @@ def handle_string(screen, option_values, options, height, width):
                 curs_x = width
         elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
             if ('user_required' in option_values and variable_string != option_values['default_value']) or 'user_required' not in option_values:
-                return variable_string
-
-                exit = True
+                if 'validator' not in option_values or len(re.findall(option_values['validator'], variable_string)) == 1:
+                    return variable_string
+                else:
+                    screen.addstr(curs_y - 1, 0, " " * (width - 1))
+                    screen.addstr(curs_y - 1, 0, "Formatting error: " + option_values['user_required_description'])
             else:
-                screen.addstr(curs_y - 1, 0, "Please input a value")
+                screen.addstr(curs_y - 1, 0, " " * (width - 1))
+                screen.addstr(curs_y - 1, 0, "The value should not be blank. Please input a value")
         if not exit:    
             screen.addstr(curs_y, 0, " " * (width - 1))
             screen.addstr(curs_y, 0, variable_string)
