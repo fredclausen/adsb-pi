@@ -9,7 +9,7 @@ from typing import Any, Dict, Hashable, List, Tuple
 page = 1
 config = []
 containers = {}
-advanced_mode = False
+advanced = False
 
 volumes = False
 output_container_config = {}
@@ -56,7 +56,7 @@ def init(screen):
         if k == ord('q'):
             exit_app()
         elif k == ord('n'):
-            page = 2
+            page = 4
             return
     screen.refresh()
 
@@ -160,8 +160,8 @@ def clear_screen(screen):
 def config_container(screen):
     global page
     global containers
-    global advanced_mode
     global volumes
+    global advanced
 
     height, width = screen.getmaxyx()
 
@@ -223,13 +223,13 @@ def config_container(screen):
                                 else:
                                     env_settings[option_values['env_name'].replace("[]", str(starting_value))] = result
                             elif len(re.findall(r"^option_\d+", options)) == 1:
-                                if 'disable_user_set' in option_values and option_values['disable_user_set'] == True:
+                                if ('advanced' in option_values and option_values['advanced'] == True and advanced == False) or ('disable_user_set' in option_values and option_values['disable_user_set'] == True):
                                     if 'compose_required' in option_values and option_values['compose_required'] == True:
                                         if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                             env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
                                         elif option_values['variable_type'] == 'boolean':
                                             env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
-                                elif ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
+                                elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
                                     for i in range (1, height - 1):  # clear all the old lines out, just in case
                                         screen.addstr(i, 0, " " * (width - 1))
                                     screen.addstr(3, 0, f"Container Variable: {option_values['display_name']}")
@@ -287,7 +287,7 @@ def config_container(screen):
                         else:
                             run_section = False
             output_container_config[item['container_name']] = env_settings
-    page = 4
+    page = 0
 
 
 def show_proceed_screen(screen, container_name, height, width):
@@ -441,6 +441,60 @@ def handle_boolean(screen, option_values, options):
             screen.refresh()
             k = screen.getch()
 
+
+def ask_advanced(screen):
+    global advanced
+    global page
+    exit = False
+    height, width = screen.getmaxyx()
+    clear_screen(screen)
+    curses.noecho()
+    screen.addstr(2, 0, "Some containers may have advanced configuration settings. These configuration options are not necessary")
+    screen.addstr(3, 0, "To change for most users. Would you like to configure advanced options?")
+    selection = 1
+
+    status_bar = "Up and Down arrow keys to select | Enter to proceed"
+
+    # show status bar
+
+    screen.attron(curses.color_pair(3))
+    screen.addstr(height-1, 0, status_bar)
+    screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
+    screen.attroff(curses.color_pair(3))
+    
+    curses.curs_set(0)
+    k = ""
+    while not exit:
+        if k == curses.KEY_UP:
+            selection -= 1
+            if selection < 0:
+                selection = 1
+        elif k == curses.KEY_DOWN:
+            selection += 1
+            if selection > 1:
+                selection = 0                                            
+        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+            if selection == 0:
+                advanced = True
+                page = 2
+                return
+            elif selection == 1:
+                advanced = False
+                page = 2
+                return
+        if not exit:
+            if selection == 0:
+                screen.attron(curses.A_REVERSE)
+                screen.addstr(8, 0, "YES")
+                screen.attroff(curses.A_REVERSE)
+                screen.addstr(9, 0, "NO")
+            else:
+                screen.addstr(8, 0, "YES")
+                screen.attron(curses.A_REVERSE)
+                screen.addstr(9, 0, "NO")
+                screen.attroff(curses.A_REVERSE)
+            screen.refresh()
+            k = screen.getch()
 
 def handle_multi_choice(screen, option_values, options, height, width):
     exit = False
@@ -605,6 +659,8 @@ if __name__ == "__main__":
                 curses.wrapper(show_containers)
             elif page == 3:
                 curses.wrapper(config_container)
+            elif page == 4:
+                curses.wrapper(ask_advanced)
             else:
                 exit_app()
 
@@ -613,6 +669,5 @@ if __name__ == "__main__":
         exit_app()
     except Exception as e:
         print("E", e)
-        print(advanced_mode)
         exit_app()
 
