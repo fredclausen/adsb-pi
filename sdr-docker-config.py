@@ -185,12 +185,12 @@ def config_container(screen):
             screen.addstr(0, 0, item['container_display_name'])
             container_config = item['container_config']
             env_settings = {}
+            show_proceed_screen(screen, item['container_display_name'], height, width)
             for section, section_values in container_config.items():
                 if len(re.findall(r"^section_\d+", section)):
                     
                     if 'user_description' in section_values:
-                        screen.addstr(2, 0, " " * (width - 1))
-                        screen.addstr(2, 0, section_values['user_description'])
+                        show_section_info(screen, section_values['user_description'], height, width)
 
                     run_section = False
                     loops = 0
@@ -277,6 +277,31 @@ def config_container(screen):
             output_container_config[item['container_name']] = env_settings
     page = 4
 
+def show_proceed_screen(screen, container_name, height, width):
+    for i in range (1, height - 1):  # clear all the old lines out, just in case
+        screen.addstr(i, 0, " " * (width - 1))
+    output = f"It it now time to configure {container_name}. Press enter to proceed."
+    screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2),output)
+    screen.refresh()
+    while True:
+        k = screen.getch()
+
+        if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
+            return
+
+
+def show_section_info(screen, info, height, width):
+    for i in range (1, height - 1):  # clear all the old lines out, just in case
+        screen.addstr(i, 0, " " * (width - 1))
+    output = f"{info}. Press enter to proceed."
+    screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2),output)
+    screen.refresh()
+    while True:
+        k = screen.getch()
+
+        if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
+            return
+
 def handle_groups(screen, option_values, option, height, width):
     result = ""
     separator = option_values['field_combine']
@@ -301,6 +326,7 @@ def handle_groups(screen, option_values, option, height, width):
             else:
                 result = separator.join((result, handle_groups(screen, group, key, height, width)))
     return result
+
 
 def handle_string(screen, option_values, options, height, width):
     curses.curs_set(1)
@@ -350,6 +376,7 @@ def handle_string(screen, option_values, options, height, width):
             screen.move(curs_y, curs_x)
             screen.refresh()
 
+
 def handle_boolean(screen, option_values, options):
     exit = False
     curses.noecho()
@@ -390,6 +417,8 @@ def handle_boolean(screen, option_values, options):
                 screen.attroff(curses.A_REVERSE)
             screen.refresh()
             k = screen.getch()
+
+
 def do_run_section(screen, user_question, user_question_after=None, first=True, height=0, width=0):
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
@@ -427,6 +456,7 @@ def do_run_section(screen, user_question, user_question_after=None, first=True, 
         screen.refresh()
         k = screen.getch()                               
 
+
 def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
     """Raise ValueError if a duplicate key exists in provided ordered list of pairs, otherwise return a dict."""
     dict_out = {}
@@ -437,6 +467,7 @@ def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
             dict_out[key] = val
     return dict_out
 
+
 def get_containers():
     global config
     global containers
@@ -446,6 +477,7 @@ def get_containers():
             item['index'] = index
             index += 1
             containers[item['container_name']] = item
+
 
 def write_compose():
     global volumes
