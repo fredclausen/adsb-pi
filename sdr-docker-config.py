@@ -11,7 +11,7 @@ config = []
 containers = {}
 advanced_mode = False
 
-volumes = []
+volumes = False
 output_container_config = {}
 
 def init(screen):
@@ -84,7 +84,7 @@ def show_containers(screen):
     screen.addstr(0, 0, prompt)
     index = 2
     for container in containers:
-        screen.addstr(index, 0, "[ ] " + container)
+        screen.addstr(index, 0, "[ ] " + containers[container]['container_display_name'])
         index += 1
     
     # show status bar
@@ -129,9 +129,9 @@ def show_containers(screen):
 
         for container in containers:
             if containers[container]['index'] not in selected_containers:
-                screen.addstr(index, 0, "[ ] " + container)
+                screen.addstr(index, 0, "[ ] " + containers[container]['container_display_name'])
             else:
-                screen.addstr(index, 0, "[X] " + container)
+                screen.addstr(index, 0, "[X] " + containers[container]['container_display_name'])
             index += 1
         screen.move(curs_y, curs_x)
         screen.refresh()
@@ -141,6 +141,7 @@ def exit_app():
     curses.echo()
     curses.endwin()
     print("output: ", output_container_config)
+    write_compose()
     sys.exit(0)
 
 def clear_screen(screen):
@@ -156,6 +157,7 @@ def config_container(screen):
     global page
     global containers
     global advanced_mode
+    global volumes
 
     height, width = screen.getmaxyx()
 
@@ -199,6 +201,9 @@ def config_container(screen):
                         run_section = True  ## TODO: ADD IN LOGIC CHECK
                     else:
                         run_section = True
+
+                    if 'volumes' in section_values:
+                        volumes = True
 
                     while run_section:
                         loops += 1
@@ -440,8 +445,60 @@ def get_containers():
         if len(re.findall(r"^container_\d+", key)):
             item['index'] = index
             index += 1
-            containers[item['container_display_name']] = item
+            containers[item['container_name']] = item
 
+def write_compose():
+    global volumes
+    global output_container_config
+    global containers
+
+    try:
+        tab = "  "
+        with open("docker-compose.yaml", "w") as compose:
+            compose.write("version: '3.8'\n\n")
+            compose.write("services:\n")
+            for container in output_container_config:
+                compose.write(tab + container + ":\n")
+                compose.write(tab + tab + "image: " + containers[container]['container_image'] + '\n')
+                compose.write(tab + tab + "tty: true\n")
+                compose.write(tab + tab + "container_name: " + container + "\n")
+                compose.write(tab + tab + "restart: always\n")
+                if 'devices' in containers[container]['container_config']:
+                    compose.write(tab + tab + "devices:\n")
+                    for device, device_config in containers[container]['container_config']['devices'].items():
+                        if device == 'usb' and device_config == True:
+                            compose.write(tab + tab + tab + "- /dev/bus/usb:/dev/bus/usb\n")
+                        else:
+                            compose.write(tab + tab + tab + "- " + device_config['host_device_path'] + ":" + device_config['container_device_path'] + "\n")
+                if 'ports' in containers[container]['container_config']:
+                    compose.write(tab + tab + "ports:\n")
+                    for port, port_config in containers[container]['container_config']['ports'].items():
+                        compose.write(tab + tab + tab + "- " + str(port_config['container_port']) + ":" + str(port_config['container_port']) + "\n")
+                compose.write(tab + tab + "environment:\n")
+                for variable, value in output_container_config[container].items():
+                    compose.write(tab + tab + tab + "- " + variable + ":" + str(value) + "\n")
+                if 'volumes' in containers[container]['container_config']:
+                    volumes_strings = []
+                    tmpfs_strings = []
+                    for volume, volumes_config in containers[container]['container_config']['volumes'].items():
+                        if len(re.findall(r"^volume_\d+", volume)):
+                            volumes_strings.append(tab + tab + tab + f"- {volumes_config['docker_volume_name']}:{volumes_config['container_path']}\n")
+                        elif len(re.findall(r"^tmpfs_\d+", volume)):
+                            tmpfs_strings.append(tab + tab + tab + f"- {volumes_config['container_path']}:{volumes_config['tmpfs_options']}\n")
+                        
+                    if len(volumes_strings):
+                        compose.write(tab + tab + "volumes:\n")
+                        for line in volumes_strings:
+                            compose.write(line)
+                    if len(tmpfs_strings):
+                        compose.write(tab + tab + "tmpfs:\n")
+                        for line in tmpfs_strings:
+                            compose.write(line)
+                
+
+    except Exception as e:
+        print(e)
+        
 
 if __name__ == "__main__":
     json_file = "documentation/sample-config.json"
