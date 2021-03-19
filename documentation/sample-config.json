@@ -156,24 +156,33 @@
                         "field_combine": ",",
                         "option_1": {
                             "display_name": "Serial Number",
+                            "variable_type": "string",
                             "user_description": "Please input the serial number of the SDR",
                             "default_value": "",
                             "user_required": true
                         },
                         "option_2": {
+                            "variable_type": "string",
                             "display_name": "PPM",
                             "user_description": "Please input the PPM correction of the SDR",
                             "default_value": "0"
                         },
                         "option_3": {
+                            "variable_type": "string",
                             "display_name": "Gain",
                             "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
                             "default_value": "A36.0"
                         },
                         "option_4": {
                             "display_name": "Bandwidth",
-                            "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
-                            "default_value": "160"
+                            "user_description": "Please select the SDR bandwidth. Most common is 2.0M/S",
+                            "variable_type": "multi-choice",
+                            "multi_choice_options": {
+                                "option_1": { "user_text": "2.0 M/S (most common)",
+                                              "env_text": "160" },
+                                "option_2": { "user_text": "2.4 M/S",
+                                              "env_text": "192" }        
+                            }
                         }
                     }
                 }

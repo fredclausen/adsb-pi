@@ -60,6 +60,7 @@ def init(screen):
             return
     screen.refresh()
 
+
 def show_containers(screen):
     global page
     global containers
@@ -136,6 +137,7 @@ def show_containers(screen):
         screen.move(curs_y, curs_x)
         screen.refresh()
 
+
 def exit_app():
     curses.nocbreak()
     curses.echo()
@@ -143,6 +145,7 @@ def exit_app():
     print("output: ", output_container_config)
     write_compose()
     sys.exit(0)
+
 
 def clear_screen(screen):
     screen.clear()
@@ -152,6 +155,7 @@ def clear_screen(screen):
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen.bkgd(' ', curses.color_pair(2))
     screen.refresh()
+
 
 def config_container(screen):
     global page
@@ -251,6 +255,10 @@ def config_container(screen):
                                                     env_settings[option_values['env_name']] = option_values['boolean_override_false']
                                                 else:
                                                     env_settings[option_values['env_name']] = "False"
+                                    elif option_values['variable_type'] == 'multi_choice':
+                                        response = handle_multi_choice(screen, option_values, options, height, width)
+
+                                        env_settings[option_values['env_name']] = response
                             #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
 
                         if 'run_if' in section_values:
@@ -277,6 +285,7 @@ def config_container(screen):
             output_container_config[item['container_name']] = env_settings
     page = 4
 
+
 def show_proceed_screen(screen, container_name, height, width):
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
@@ -302,6 +311,7 @@ def show_section_info(screen, info, height, width):
         if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
             return
 
+
 def handle_groups(screen, option_values, option, height, width):
     result = ""
     separator = option_values['field_combine']
@@ -317,9 +327,15 @@ def handle_groups(screen, option_values, option, height, width):
                 screen.addstr(3, 0, f"Container Variable: {group['display_name']}")
                 screen.addstr(4, 0, f"Container Variable: {group['user_description']}")
                 if result == "":
-                    result = handle_string(screen, group, key, height, width)
+                    if 'variable_type' not in group or group['variable_type'] == "string":
+                        result = handle_string(screen, group, key, height, width)
+                    elif group['variable_type'] == "multi_choice":
+                        result = handle_multi_choice(screen, group, key, height, width)
                 else:
-                    result = separator.join((result, handle_string(screen, group, key, height, width)))
+                    if 'variable_type' not in group or group['variable_type'] == "string":
+                        result = separator.join((result, handle_string(screen, group, key, height, width)))
+                    elif group['variable_type'] == "multi-choice":
+                        result = separator.join((result, handle_multi_choice(screen, group, key, height, width)))
         elif re.findall(r"^group_\d", key):
             if result == "":
                     result = handle_groups(screen, group, key, height, width)
@@ -415,6 +431,43 @@ def handle_boolean(screen, option_values, options):
                 screen.attron(curses.A_REVERSE)
                 screen.addstr(9, 0, "NO")
                 screen.attroff(curses.A_REVERSE)
+            screen.refresh()
+            k = screen.getch()
+
+
+def handle_multi_choice(screen, option_values, options, height, width):
+    exit = False
+    curses.noecho()
+    screen.addstr(7, 0, "Make your selection below")
+    selection = 0
+    curses.curs_set(0)
+    max_selection = len(option_values['multi_choice_options'])
+    k = ""
+    while not exit:
+        if k == curses.KEY_UP:
+            selection -= 1
+            if selection < 0:
+                selection = max_selection - 1
+        elif k == curses.KEY_DOWN:
+            selection += 1
+            if selection > max_selection - 1:
+                selection = 0                                            
+        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+            index = 0
+            for key, item in option_values['multi_choice_options'].items():
+                if selection == index:
+                    return item['env_text']
+                index += 1
+        if not exit:
+            index = 0
+            for key, item in option_values['multi_choice_options'].items():
+                if selection == index:
+                    screen.attron(curses.A_REVERSE)
+                    screen.addstr(8 + index, 0, item['user_text'])
+                    screen.attroff(curses.A_REVERSE) 
+                else:
+                    screen.addstr(8 + index, 0, item['user_text'])
+                index += 1
             screen.refresh()
             k = screen.getch()
 
