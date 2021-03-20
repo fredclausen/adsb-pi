@@ -201,8 +201,6 @@ def exit_app():
     curses.nocbreak()
     curses.echo()
     curses.endwin()
-    print("output: ", output_container_config)
-    write_compose()
     sys.exit(0)
 
 
@@ -653,12 +651,55 @@ def get_containers():
             containers[item['container_name']] = item
 
 
-def write_compose():
+def write_compose(screen):
+    import shutil
+    import datetime
+
     global volumes
     global output_container_config
     global containers
 
     try:
+        if os.path.isfile("./docker-compose.yaml"):
+            exit = False
+            clear_screen(screen)
+            height, width = screen.getmaxyx()
+
+            screen.addstr(7, 0, "Make your selection below")
+            screen.addstr(0, 0, "There is already a docker-compose.yaml file in the current directory. Would you like to overwrite or backup this file?")
+            selection = 0
+            
+            curses.curs_set(0)
+            k = ""
+            while not exit:
+                if k == curses.KEY_UP:
+                    selection -= 1
+                    if selection < 0:
+                        selection = 1
+                elif k == curses.KEY_DOWN:
+                    selection += 1
+                    if selection > 1:
+                        selection = 0                                            
+                elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                    if selection == 0:
+                        break
+                    elif selection == 1:
+                        shutil.copyfile("docker-compose.yaml",  "docker-compose.yaml.backup" + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
+                        break
+                if not exit:
+                    if selection == 0:
+                        screen.attron(curses.A_REVERSE)
+                        screen.addstr(8, 0, "Overwrite")
+                        screen.attroff(curses.A_REVERSE)
+                        screen.addstr(9, 0, "Backup")
+                    else:
+                        screen.addstr(8, 0, "Overwrite")
+                        screen.attron(curses.A_REVERSE)
+                        screen.addstr(9, 0, "Backup")
+                        screen.attroff(curses.A_REVERSE)
+                    screen.refresh()
+                    k = screen.getch()
+
         tab = "  "
         with open("docker-compose.yaml", "w") as compose:
             compose.write("version: '3.8'\n\n")
@@ -721,6 +762,9 @@ if __name__ == "__main__":
                 curses.wrapper(config_container)
             elif page == 4:
                 curses.wrapper(ask_advanced)
+            elif page == 0:
+                curses.wrapper(write_compose)
+                exit_app()
             else:
                 exit_app()
 
