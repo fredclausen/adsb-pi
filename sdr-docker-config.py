@@ -32,7 +32,7 @@ def init(screen):
     welcome = "WELCOME TO SDR DOCKER CONFIG"
     help_string = "This utility will walk you through setting up containers that will recieve, display, and feed ADSB data."
     help_string_next = "As well as containers that can receive and/or display ACARS/VDLM and airband VHF communications"
-    status_bar = "Press 'n' to Proceed | Press 'q' or Control + C to exit"
+    status_bar = "Press 'n' or 'Enter' to Proceed | Press 'q' or Control + C to exit"
 
     clear_screen(screen)
 
@@ -55,7 +55,7 @@ def init(screen):
 
         if k == ord('q'):
             exit_app()
-        elif k == ord('n'):
+        elif k == ord('n') or k == ord("\n") or k == ord('\r') or k == curses.KEY_ENTER:
             page = 4
             return
     screen.refresh()
@@ -83,7 +83,7 @@ def show_containers(screen):
     while True:
         if k == ord('q'):
             exit_app()
-        elif k == ord('n'):
+        elif k == ord('n') or k == ord("\n") or k == ord('\r') or k == curses.KEY_ENTER:
             page = 3
             for container in containers:
                 if containers[container]['index'] in selected_containers:
@@ -172,7 +172,7 @@ def show_containers(screen):
         
 
         prompt = "Please select the container(s) you wish to install"
-        status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' to Proceed | 'p' for Previous Page | Press 'q' or Control + C to exit"
+        status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' or 'Enter' to Proceed | 'p' for Previous Page | Press 'q' or Control + C to exit"
 
         for i in range (1, height - 1):  # clear all the old lines out, just in case
             screen.addstr(i, 0, " " * (width - 1))
@@ -725,8 +725,7 @@ if __name__ == "__main__":
                 exit_app()
 
     except KeyboardInterrupt as e:
-        print("KI", e)
         exit_app()
     except Exception as e:
-        print("E", e)
+        print("Exception: ", e)
         exit_app()
