@@ -406,4 +406,3 @@ It may be desirable to apply text-formatting to enhance the readability of the t
 ## **Sample Config**
 
 Putting it all together, we have a sample configuration file that will define three containers
-
