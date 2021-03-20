@@ -285,12 +285,7 @@
         "container_image": "mikenye/adsbexchange:latest",
         "container_website": "https://github.com/mikenye/docker-adsbexchange",
         "requires": {
-            "container_1": "readsb-proto"
-        },
-        "recommends": {
-            "container_1": "tar1090",
-            "container_2": "dump978",
-            "container_3": "mlat-hub"
+            "container_1": "acars_hub"
         },
         "container_config": {
             "user_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired",

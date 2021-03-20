@@ -78,28 +78,9 @@ def show_containers(screen):
     curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen.attron(curses.color_pair(2))
-    prompt = "Please select the container(s) you wish to install"
-    status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' to Proceed | 'p' for Previous Page | Press 'q' or Control + C to exit"
+    k = ""
     selected_containers = list()
-
-    screen.addstr(0, 0, prompt)
-    index = 2
-    for container in containers:
-        screen.addstr(index, 0, "[ ] " + containers[container]['container_display_name'])
-        index += 1
-    
-    # show status bar
-
-    screen.attron(curses.color_pair(3))
-    screen.addstr(height-1, 0, status_bar)
-    screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
-    screen.attroff(curses.color_pair(3))
-
-    screen.move(curs_y, curs_x)
-
     while True:
-        k = screen.getch()
-
         if k == ord('q'):
             exit_app()
         elif k == ord('n'):
@@ -116,16 +97,93 @@ def show_containers(screen):
         elif k == curses.KEY_UP:
             curs_y = curs_y - 1
         elif k == ord(' '):
-            if (curs_y - 1) in selected_containers:
-                selected_containers.remove(curs_y - 1)
+            if (curs_y - 2) in selected_containers:
+                selected_containers.remove(curs_y - 2)
             else:
-                selected_containers.append(curs_y - 1)
-        
+                selected_containers.append(curs_y - 2)
+                
+                # see if there are any containers we need to suggest
+                required_containers = []
+                required_containers_index = []
+                recommended_containers = []
+                recommended_containers_index = []
+                selected_container_name = ""
+                for container in containers:
+                    if containers[container]['index'] == curs_y - 2:
+                        selected_container_name = containers[container]['container_display_name']
+                        if 'recommends' in containers[container]:
+                            for key, item in containers[container]['recommends'].items():
+                                recommended_containers.append(item)
+                        if 'requires' in containers[container]:
+                            for key, item in containers[container]['requires'].items():
+                                required_containers.append(item)
+                        continue
+                
+                if len(required_containers):
+                    output = f"The container {selected_container_name} requires the installation of"
+                    show = False
+                    for item in required_containers:
+                        for container in containers:
+                            if containers[container]['container_name'] == item and containers[container]['index'] not in selected_containers:
+                                show = True
+                                required_containers_index.append(containers[container]['index'])
+                                output += f" {containers[container]['container_display_name']}"
+                    
+                    if show:
+                        clear_screen(screen)
+                        output += ". Press (Y) to select these containers or (N) to skip."
+                        screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2), output)
+                        while True:
+                            k = screen.getch()
+
+                            if k == ord('n'):
+                                break
+                            elif k == ord('y'):
+                                selected_containers.extend(required_containers_index)
+                                break
+                
+                if len(recommended_containers):
+                    output = f"The container {selected_container_name} recommends the installation of"
+                    show = False
+                    for item in recommended_containers:
+                        for container in containers:
+                            if containers[container]['container_name'] == item and containers[container]['index'] not in selected_containers:
+                                show = True
+                                recommended_containers_index.append(containers[container]['index'])
+                                output += f" {containers[container]['container_display_name']}"
+                    
+                    if show:
+                        clear_screen(screen)
+                        output += ". Press (Y) to select these containers or (N) to skip."
+                        screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2), output)
+                        while True:
+                            k = screen.getch()
+
+                            if k == ord('n'):
+                                break
+                            elif k == ord('y'):
+                                selected_containers.extend(recommended_containers_index)
+                                break                
+
         if curs_y > len(containers) + 1:
             curs_y = len(containers) + 1
         elif curs_y < 2:
             curs_y = 2
         
+
+        prompt = "Please select the container(s) you wish to install"
+        status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' to Proceed | 'p' for Previous Page | Press 'q' or Control + C to exit"
+
+        for i in range (1, height - 1):  # clear all the old lines out, just in case
+            screen.addstr(i, 0, " " * (width - 1))
+        screen.addstr(0, 0, prompt)
+        # show status bar
+
+        screen.attron(curses.color_pair(3))
+        screen.addstr(height-1, 0, status_bar)
+        screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
+        screen.attroff(curses.color_pair(3))
+        screen.move(curs_y, curs_x)
         index = 2
 
         for container in containers:
@@ -136,6 +194,7 @@ def show_containers(screen):
             index += 1
         screen.move(curs_y, curs_x)
         screen.refresh()
+        k = screen.getch()
 
 
 def exit_app():
@@ -496,6 +555,7 @@ def ask_advanced(screen):
             screen.refresh()
             k = screen.getch()
 
+
 def handle_multi_choice(screen, option_values, options, height, width):
     exit = False
     curses.noecho()
@@ -585,7 +645,7 @@ def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
 def get_containers():
     global config
     global containers
-    index = 1
+    index = 0
     for key, item in config.items():
         if len(re.findall(r"^container_\d+", key)):
             item['index'] = index
@@ -622,7 +682,7 @@ def write_compose():
                         compose.write(tab + tab + tab + "- " + str(port_config['container_port']) + ":" + str(port_config['container_port']) + "\n")
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
-                    compose.write(tab + tab + tab + "- " + variable + ":" + str(value) + "\n")
+                    compose.write(tab + tab + tab + "- " + variable + "=" + str(value) + "\n")
                 if 'volumes' in containers[container]['container_config']:
                     volumes_strings = []
                     tmpfs_strings = []
@@ -670,4 +730,3 @@ if __name__ == "__main__":
     except Exception as e:
         print("E", e)
         exit_app()
-
