@@ -61,7 +61,7 @@ def init(screen):
     screen.refresh()
 
 
-def show_containers(screen):
+def select_containers(screen):
     global page
     global containers
     curs_x = 1
@@ -81,14 +81,18 @@ def show_containers(screen):
     k = ""
     selected_containers = list()
     while True:
+        show_warning = False
         if k == ord('q'):
             exit_app()
         elif k == ord('n') or k == ord("\n") or k == ord('\r') or k == curses.KEY_ENTER:
             page = 3
-            for container in containers:
-                if containers[container]['index'] in selected_containers:
-                    containers[container]['selected'] = True
-            return
+            if len(selected_containers):
+                for container in containers:
+                    if containers[container]['index'] in selected_containers:
+                        containers[container]['selected'] = True
+                return
+            else:
+                show_warning = True
         elif k == ord('p'):
             page = 1
             return
@@ -185,7 +189,8 @@ def show_containers(screen):
         screen.attroff(curses.color_pair(3))
         screen.move(curs_y, curs_x)
         index = 2
-
+        if show_warning:
+            screen.addstr(height - 2, 0, "Please select at least one container. If you want to exit the setup press 'q'")
         for container in containers:
             if containers[container]['index'] not in selected_containers:
                 screen.addstr(index, 0, "[ ] " + containers[container]['container_display_name'])
@@ -769,7 +774,7 @@ if __name__ == "__main__":
             if page == 1:
                 curses.wrapper(init)
             elif page == 2:
-                curses.wrapper(show_containers)
+                curses.wrapper(select_containers)
             elif page == 3:
                 curses.wrapper(config_container)
             elif page == 4:
