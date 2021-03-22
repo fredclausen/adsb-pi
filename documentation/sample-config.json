@@ -275,6 +275,21 @@
                     "variable_type": "string",
                     "user_required": true
                 }
+            },
+            "section_7": {
+                "user_description": "test",
+                "depends_on": {
+                    "env_name": "FEED"
+                },
+
+                "option_1": {
+                    "display_name": "TEST",
+                    "user_description": "Testing",
+                    "env_name": "TEST",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": false
+                }
             }
         }
     },

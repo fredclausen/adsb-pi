@@ -249,10 +249,6 @@ def config_container(screen):
             show_proceed_screen(screen, item['container_display_name'], height, width)
             for section, section_values in container_config.items():
                 if len(re.findall(r"^section_\d+", section)):
-                    
-                    if 'user_description' in section_values:
-                        show_section_info(screen, section_values['user_description'], height, width)
-
                     run_section = False
                     loops = 0
                     starting_value = 0
@@ -263,12 +259,28 @@ def config_container(screen):
                     if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
                         run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
                     elif 'depends_on' in section_values:
-                        run_section = True  ## TODO: ADD IN LOGIC CHECK
+                        if section_values['depends_on']['env_name'] in env_settings:  # config file has a value set that should trigger running of this section
+                            if 'env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value'])):  # need to cast the json value to string because it may be a boolean
+                                run_section = True
+                            else:  # we need to grab the default value for the original variable and see if we need to run
+                                for key_depends, item_depends in container_config.items():
+                                    if len(re.findall(r"^section_\d+", key_depends)) == 1:
+                                        for key_depends_in, item_depends_in in item_depends.items():
+                                            if len(re.findall(r"^option_\d+", key_depends_in)) == 1 or len(re.findall(r"^group_\d+", key_depends_in)) == 1:
+                                                if 'env_name' in item_depends_in and item_depends_in['env_name'] == section_values['depends_on']['env_name']:
+                                                    if ('default_value' in item_depends_in and item_depends_in['default_value'] != env_settings[section_values['depends_on']['env_name']]) or (env_settings[section_values['depends_on']['env_name']] != "" or env_settings[section_values['depends_on']['env_name']] != "False"):
+                                                        run_section = True
+                                                    continue
+
                     else:
                         run_section = True
 
                     if 'volumes' in section_values:
                         volumes = True
+                    
+                    if run_section:
+                        if 'user_description' in section_values:
+                            show_section_info(screen, section_values['user_description'], height, width)
 
                     while run_section:
                         loops += 1
