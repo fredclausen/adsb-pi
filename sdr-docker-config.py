@@ -693,13 +693,15 @@ def write_compose(screen):
     global volumes
     global output_container_config
     global containers
+    ports = []
+    ports_output = []
+    installed_containers = []
 
     try:
         if os.path.isfile("./docker-compose.yaml"):
             exit = False
             clear_screen(screen)
             height, width = screen.getmaxyx()
-            ports = []
 
             screen.addstr(7, 0, "Make your selection below")
             screen.addstr(0, 0, "There is already a docker-compose.yaml file in the current directory. Would you like to overwrite or backup this file?")
@@ -749,6 +751,7 @@ def write_compose(screen):
 
             compose.write("services:\n")
             for container in output_container_config:
+                installed_containers.append(containers[container]['container_display_name'])
                 compose.write(tab + container + ":\n")
                 compose.write(tab + tab + "image: " + containers[container]['container_image'] + '\n')
                 compose.write(tab + tab + "tty: true\n")
@@ -768,6 +771,7 @@ def write_compose(screen):
                         while host_port in ports:
                             host_port += 1
                         ports.append(host_port)
+                        ports_output.append((containers[container]['container_display_name'], host_port))
                         compose.write(tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n")
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
@@ -790,7 +794,36 @@ def write_compose(screen):
                         for line in tmpfs_strings:
                             compose.write(line)
                 
+                    exit = False
+            
+            # display summary screen
+            clear_screen(screen)
 
+            screen.addstr(0, 0, "Your docker-compose.yaml file has been written. After you have reviewed this press enter to exit")
+            screen.addstr(2, 0, "The following containers have been set up:")
+
+            container_index = 3
+            for item in installed_containers:
+                screen.addstr(container_index, 0, item)
+                container_index += 1
+            
+            container_index += 2
+
+            screen.addstr(container_index, 0, "The following ports have been mapped and will be accessable at this computer's LAN IP address:")
+
+            container_index += 1
+            for name, item in ports_output:
+                screen.addstr(container_index, 0, name + ": " + str(item))
+                container_index += 1
+            
+            curses.curs_set(0)
+            k = ""
+            exit = False
+            while not exit:                                         
+                if k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                    exit = True
+                else:
+                    k = screen.getch()
     except Exception as e:
         print(e)
         
