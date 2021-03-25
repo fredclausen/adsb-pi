@@ -251,11 +251,10 @@ def config_container(screen):
         item = containers[container]
         if 'selected' in item and item['selected'] == True:
             container_list.append(item)
-    
-    i = 0
+    num_containers = 0
 
-    while i < len(container_list):
-        item = container_list[i]
+    while num_containers < len(container_list):
+        item = container_list[num_containers]
         screen.addstr(0, 0, item['container_display_name'])
         container_config = item['container_config']
         env_settings = {}
@@ -369,7 +368,7 @@ def config_container(screen):
                     else:
                         run_section = False
         output_container_config[item['container_name']] = env_settings
-        i += 1
+        num_containers += 1
     page = 0
 
 
@@ -700,6 +699,7 @@ def write_compose(screen):
             exit = False
             clear_screen(screen)
             height, width = screen.getmaxyx()
+            ports = []
 
             screen.addstr(7, 0, "Make your selection below")
             screen.addstr(0, 0, "There is already a docker-compose.yaml file in the current directory. Would you like to overwrite or backup this file?")
@@ -764,7 +764,11 @@ def write_compose(screen):
                 if 'ports' in containers[container]['container_config']:
                     compose.write(tab + tab + "ports:\n")
                     for port, port_config in containers[container]['container_config']['ports'].items():
-                        compose.write(tab + tab + tab + "- " + str(port_config['container_port']) + ":" + str(port_config['container_port']) + "\n")
+                        host_port = port_config['container_port']
+                        while host_port in ports:
+                            host_port += 1
+                        ports.append(host_port)
+                        compose.write(tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n")
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
                     compose.write(tab + tab + tab + "- " + variable + "=" + str(value) + "\n")

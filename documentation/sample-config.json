@@ -307,6 +307,9 @@
             "ports": {
                 "port_1": {
                     "container_port": 30105
+                },
+                "port_2": {
+                    "container_port": 80
                 }
             },
             "section_1": {
