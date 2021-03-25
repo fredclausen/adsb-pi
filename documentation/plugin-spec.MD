@@ -30,7 +30,7 @@ The goal of this project is to provide an easy to use, extensible website that a
 
 In order to facilitate this, and to make the project scalable and usable far in to the future, the "brain" of this is going to be author-provided plugin(s) for their containers that describe how the user needs to configure their container. The thought process behind the plugin architecture is to allow a docker container author to specify the configuration options for a container that allows any tool that uses this plugin spec to assist the user in generating docker-compose files.
 
-The plugin file is set up in `JSON` format and uses `JSON` conventions. Many containers can be defined in the plugin file.
+The plugin file is set up in `JSON` format and uses `JSON` conventions. Many containers can be defined in the plugin file. In general, all containers in a plugin file should be presented in alphabetical order as not all clients using the plugins will sort the containers before presenting them to the user.
 
 ## Best Practices
 
