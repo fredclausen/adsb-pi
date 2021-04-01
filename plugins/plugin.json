@@ -546,7 +546,7 @@
                 "option_3": {
                     "display_name": "BEAST Port",
                     "user_description": "The port for beast data",
-                    "env_name": "SBSPORT",
+                    "env_name": "BEASTPORT",
                     "default_value": "30005",
                     "user_required": false,
                     "disable_user_set": true,
@@ -580,6 +580,85 @@
                     "user_required": false,
                     "advanced": true,
                     "variable_type": "boolean"
+                }
+            }
+        }
+    },
+    "container_6": {
+        "config_version": 1.0,
+        "container_name": "opensky",
+        "container_display_name": "Open Sky Feeder",
+        "container_image": "mikenye/opensky-network:latest",
+        "container_website": "https://github.com/mikenye/docker-opensky-network",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for Open Sky from a BEAST source. Requires some initial setup. Please see container website",
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "BEAST Host",
+                    "user_description": "The host for beast data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "BEAST Port",
+                    "user_description": "The port for beast data",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": false
+                },                
+                "option_4": {
+                    "display_name": "Open Sky user name",
+                    "user_description": "Your open sky username",
+                    "env_name": "OPENSKY_USERNAME",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_5": {
+                    "display_name": "Open Sky Serial",
+                    "user_description": "Open sky station serial",
+                    "env_name": "OPENSKY_SERIAL",
+                    "compose_required": true,
+                    "user_required": true
+                },
+                "option_6": {
+                    "display_name": "LAT",
+                    "user_description": "Your site's latitude",
+                    "env_name": "LAT",
+                    "compose_required": true,
+                    "user_required": true
+                },
+                "option_7": {
+                    "display_name": "LON",
+                    "user_description": "Your site's longitude",
+                    "env_name": "LON",
+                    "compose_required": true,
+                    "user_required": true
+                },
+                "option_8": {
+                    "display_name": "LAT",
+                    "user_description": "Your site's altitude in METERS",
+                    "env_name": "ALT",
+                    "compose_required": true,
+                    "user_required": true
                 }
             }
         }
