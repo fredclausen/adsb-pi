@@ -501,5 +501,76 @@
                 }
             }
         }
-    }
+    },
+    "container_5": {
+        "config_version": 1.0,
+        "container_name": "flightradar24",
+        "container_display_name": "Flight Radar 24 Feeder",
+        "container_image": "mikenye/fr24feed:latest",
+        "container_website": "https://github.com/mikenye/docker-flightradar24",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for Flight Radar 24 from a BEAST source. Requires some initial setup. Please see container website",
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "BEAST Host",
+                    "user_description": "The host for beast data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "BEAST Port",
+                    "user_description": "The port for beast data",
+                    "env_name": "SBSPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": false
+                },                
+                "option_4": {
+                    "display_name": "FR24 Sharing Key",
+                    "user_description": "Your station's sharing key",
+                    "env_name": "FR24KEY",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_5": {
+                    "display_name": "MLAT",
+                    "user_description": "Enable MLAT",
+                    "env_name": "MLAT",
+                    "default_value": false,
+                    "compose_required": false,
+                    "user_required": false,
+                    "advanced": true,
+                    "variable_type": "boolean"
+                },
+                "option_6": {
+                    "display_name": "VERBOSE LOGGING",
+                    "user_description": "Enable verbose logging",
+                    "env_name": "VERBOSE_LOGGING",
+                    "default_value": false,
+                    "compose_required": false,
+                    "user_required": false,
+                    "advanced": true,
+                    "variable_type": "boolean"
+                }
+            }
+        }
+    },
 }
