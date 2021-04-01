@@ -23,7 +23,7 @@ def validate_container(container_name=None, value=None):
         if key == "container_name":
             required_keys.remove("container_name")
             containers.append(items)
-            if not isinstance(items, str) or len(re.findall(r"(\s|[A-Z0-9]|(?!(_|-))\W)", items)) > 0:
+            if not isinstance(items, str) or len(re.findall(r"(\s|[A-Z]|(?!(_|-))\W)", items)) > 0:
                 raise ValueError(f"Invalid container_name for {container_name}")
         elif key == "container_display_name":
             if not isinstance(items, str):
@@ -195,7 +195,7 @@ def validate_option(container_name=None, values=None, as_group=False):
         return
      # now run through all keys
     required_keys = ['display_name', 'user_description', 'env_name', 'default_value']
-    valid_keys = ['display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced']
+    valid_keys = ['display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description']
     # now lets add in all of the additional required keys based on certian options
 
     if 'variable_type' in values and values['variable_type'] == "multi-choice":
@@ -258,7 +258,7 @@ def validate_option(container_name=None, values=None, as_group=False):
                 raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
         
         elif option_key == 'multi_choice_options':
-            if 'variable_type' not in option_items and option_items['variable_type'] != "multi-choice":
+            if 'variable_type' not in values or values['variable_type'] != "multi-choice":
                 raise ValueError(f"{container_name} loops has option invalid key {option_key}. multi_choice_options included but variable_type is not multi-choice")
             required_keys.remove("multi_choice_options")
             for sub_key, sub_items in option_items.items():
@@ -266,8 +266,8 @@ def validate_option(container_name=None, values=None, as_group=False):
                     if "user_text" not in sub_items and "env_text" not in sub_items:
                         raise ValueError(f"{container_name} {sub_key} is invalid. Should contain user_text and env_text.")
                     for multi_option_key, multi_option_items in sub_items.items():
-                        if multi_option_key != "user_text" or multi_option_key != "env_text":
-                            raise ValueError(f"{container_name} has invalid key {sub_key}")
+                        if multi_option_key != "user_text" and multi_option_key != "env_text":
+                            raise ValueError(f"{container_name} has invalid key {sub_key}/{multi_option_key}")
                         elif not isinstance(multi_option_items, str) and len(multi_option_items) == 0:
                             raise ValueError(f"{container_name} {multi_option_key} should be a non-blank string")
                 else:

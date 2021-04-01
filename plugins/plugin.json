@@ -484,7 +484,7 @@
                     "disable_user_set": true,
                     "advanced": true,
                     "compose_required": true
-                },
+                }
             },
             "section_2": {
                 "user_description": "AGC is not enabled. We will need to set the gain manually",
@@ -572,5 +572,5 @@
                 }
             }
         }
-    },
+    }
 }
