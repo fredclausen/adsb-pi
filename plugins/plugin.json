@@ -418,6 +418,17 @@
         "container_website": "https://github.com/mikenye/docker-dump978",
         "container_config": {
             "user_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only",
+            "ports": {
+                "port_1": {
+                    "container_port": 30978
+                },
+                "port_2": {
+                    "container_port": 30979
+                },
+                "port_3": {
+                    "container_port": 37981
+                }
+            },
             "section_1": {
                 "option_1": {
                     "display_name": "Time Zone",
