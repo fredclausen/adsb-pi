@@ -258,8 +258,19 @@ def config_container(screen):
         screen.addstr(0, 0, item['container_display_name'])
         container_config = item['container_config']
         env_settings = {}
+        container_keys = []
+        container_values = []
+
         show_proceed_screen(screen, item['container_display_name'], height, width)
         for section, section_values in container_config.items():
+            container_keys.append(section)
+            container_values.append(section_values)
+
+        value_index = 0
+
+        while value_index < len(container_keys):
+            section_values = container_values[value_index]
+            section = container_keys[value_index]
             if len(re.findall(r"^section_\d+", section)):
                 run_section = False
                 loops = 0
@@ -328,7 +339,12 @@ def config_container(screen):
                                 elif option_values['variable_type'] == 'boolean':
                                     response = handle_boolean(screen, option_values, options)
 
-                                    if response:
+                                    if response == -1:
+                                        value_index -= 1
+                                        if value_index < 0:
+                                            value_index = 0
+
+                                    elif response:
                                         if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
                                             if 'boolean_override_true' in option_values:
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
@@ -344,8 +360,8 @@ def config_container(screen):
                                     response = handle_multi_choice(screen, option_values, options, height, width)
 
                                     env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
-                        #     screen.addstr(3, 0, f"Container Variable: {option_values[options]['display_name']}")
                     starting_value += 1
+
                     if 'run_if' in section_values:
                         # first, lets make sure the loop actually ran if required
                         did_run_check = False
@@ -367,6 +383,7 @@ def config_container(screen):
                             run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
                     else:
                         run_section = False
+            value_index += 1
         output_container_config[item['container_name']] = env_settings
         num_containers += 1
     page = 0
@@ -516,9 +533,13 @@ def handle_boolean(screen, option_values, options):
             if selection == 0:
                 exit = True
                 return True
-            elif selection == 1:
-                return False
-                exit = True
+        elif selection == 1:
+            return False
+            exit = True
+        elif k == curses.KEY_PPAGE:
+            return -1
+        elif k == curses.KEY_NPAGE:
+            return -1
         if not exit:
             if selection == 0:
                 screen.attron(curses.A_REVERSE)
