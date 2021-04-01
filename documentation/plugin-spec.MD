@@ -175,6 +175,8 @@ If your container requires port mapping, include this section. By default, the `
 | Variable | Description | Required | Formatting |
 | -------- | ----------- | -------- | ---------- |
 | `container_port` | The container port that will be mapped to the `host_port` | No | `Integer` |
+| `description` | Description of the port's useage. Will be displayed to the user | No | `string` |
+| `exclude` | Do not include this port unless the user overrides it | No | `boolean` |
 
 ### **Devices**
 

@@ -394,6 +394,12 @@ def validate_ports(container_name=None, values=None):
                 if key_port == "container_port" and isinstance(key_items, int):
                     # this is valid
                     pass
+                elif key_port == "description" and isinstance(key_items, str):
+                    # this is valid
+                    pass
+                elif key_port == "exclude" and isinstance(key_items, bool):
+                    # this is valid
+                    pass
                 else:
                     raise ValueError(f"{container_name} has key ({key_port}) in section ports that is invalid")
         else:

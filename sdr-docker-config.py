@@ -788,12 +788,17 @@ def write_compose(screen):
                 if 'ports' in containers[container]['container_config']:
                     compose.write(tab + tab + "ports:\n")
                     for port, port_config in containers[container]['container_config']['ports'].items():
-                        host_port = port_config['container_port']
-                        while host_port in ports:
-                            host_port += 1
-                        ports.append(host_port)
-                        ports_output.append((containers[container]['container_display_name'], host_port))
-                        compose.write(tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n")
+                        if 'exclude' not in port_config or port_config['exclude'] != False:
+                            if 'description' in port_config:
+                                description = port_config['description']
+                            else:
+                                description = ""
+                            host_port = port_config['container_port']
+                            while host_port in ports:
+                                host_port += 1
+                            ports.append(host_port)
+                            ports_output.append((containers[container]['container_display_name'], host_port, description))
+                            compose.write(tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n")
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
                     compose.write(tab + tab + tab + "- " + variable + "=" + str(value) + "\n")
@@ -833,8 +838,8 @@ def write_compose(screen):
             screen.addstr(container_index, 0, "The following ports have been mapped and will be accessable at this computer's LAN IP address:")
 
             container_index += 1
-            for name, item in ports_output:
-                screen.addstr(container_index, 0, name + ": " + str(item))
+            for name, item, port_description in ports_output:
+                screen.addstr(container_index, 0, name + ": " + str(item) + " " + port_description)
                 container_index += 1
             
             curses.curs_set(0)
@@ -850,7 +855,7 @@ def write_compose(screen):
         
 
 if __name__ == "__main__":
-    json_file = "documentation/sample-config.json"
+    json_file = "plugins/plugin.json"
     
     try:
         config = json.load(open(json_file), object_pairs_hook=raise_on_duplicate_keys)
