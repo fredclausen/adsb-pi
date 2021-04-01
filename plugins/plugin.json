@@ -513,6 +513,17 @@
         },
         "container_config": {
             "user_description": "Feeder for Flight Radar 24 from a BEAST source. Requires some initial setup. Please see container website",
+            "ports": {
+                "port_1": {
+                    "container_port": 8754
+                },
+                "port_2": {
+                    "container_port": 30003
+                },
+                "port_3": {
+                    "container_port": 30334
+                }
+            },
             "section_1": {
                 "option_1": {
                     "display_name": "Time Zone",
