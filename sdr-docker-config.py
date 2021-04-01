@@ -4,6 +4,8 @@ import time
 import json
 import re
 import os
+import argparse
+import urllib.request
 from typing import Any, Dict, Hashable, List, Tuple
 
 page = 1
@@ -855,10 +857,22 @@ def write_compose(screen):
         
 
 if __name__ == "__main__":
-    json_file = "plugins/plugin.json"
-    
+    parser = argparse.ArgumentParser(description='Generate docker-compose yaml file')
+
+    parser.add_argument(
+        '--files', '-f',
+        type=str,
+        help='the plugin file to use',
+        required=False,
+    )
+
+    args = parser.parse_args()
     try:
-        config = json.load(open(json_file), object_pairs_hook=raise_on_duplicate_keys)
+        if args.files is not None:
+            config = json.load(open(args.files), object_pairs_hook=raise_on_duplicate_keys)
+        else:
+            config = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json").read().decode())
+        
         get_containers()
         while True:
             if page == 1:
