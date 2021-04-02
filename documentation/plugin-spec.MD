@@ -22,6 +22,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Groups](#groups)
   * [Template Variables](#template-variables)
   * [Validating User Input](#validating-user-input)
+  * [Special YAML Cases][#special-yaml-cases]
   * [Beautifying Text Displayed to User](#beautifying-text-displayed-to-user)
 * [Sample Configuration](#sample-config)
 
@@ -443,6 +444,32 @@ By default, all `string` based user-inputs are considered valid. However, any pl
 | -------- | ----------- | -------- | ---------- | ------- |
 | `validator` | A regex string that will be used by the front-end to validate that the user input is in the format required for the ENV vairable. With out specifying this option, all input is considered valid. | No | `/regex string/` | Blank |
 | `user_required_description` | This field will be displayed to the user, if present, to inform the user how the data should be formatted for that `option` | No | `ASCII text and markdown` | Blank |
+
+### Special YAML Cases
+
+If your output variable would cause issues in YAML decoding because of special characters, or you want to byass YAML decoding you can include the following syntax to change out the variable is written to the docker-compose file.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `bypass_yaml` | Will set the output variable to by byassed | No | `Boolean` | `False` |
+| `replace_characters` | List of characters that will be duplicated so that YAML parsing will work | No | `JSON Array of characters` | Blank |
+
+Example
+
+```json
+{
+    "option_1": {
+        "env_name": "TEST",
+        "bypass_yaml": true,
+        "replace_characters": ["@", "$"]
+    }
+}
+
+If the user inputs the value `test@$` the following will be written to docker-compose:
+
+```yaml
+-'TEST=test@@$$'
+```
 
 ### **Beautifying Text Displayed to User**
 
