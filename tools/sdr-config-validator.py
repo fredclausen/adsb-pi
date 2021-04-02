@@ -92,6 +92,8 @@ def validate_container_config(container_name=None, values=None):
                 validate_devices(container_name=container_name, values=items)
             elif len(re.findall(r"^section_\d+", key)):
                 validate_sections(container_name=container_name, values=items)
+            elif len(re.findall(r"^template_\d+", key)):
+                validate_template(container_name=container_name, values=items)
             else:
                 raise ValueError(f"{container_name} has key ({key}) that is invalid")
         
@@ -101,6 +103,69 @@ def validate_container_config(container_name=None, values=None):
             raise ValueError(f"Missing keys: {missing_keys}")
 
 
+# Function to validate templates
+
+def validate_template(container_name=None, values=None):
+    required_keys = ['env_name_out']
+    if values is None or len(values) == 0:
+        print(f"WARNING: {container_name} has template that is empty. Please remove")
+        return
+
+    for key, item in values.items():
+        if 'separator' == key:
+            if isinstance(item, str) and len(item) > 0:
+            # this is valid
+                pass
+            else:
+                raise ValueError(f"{container_name} has template with seperator that is invalid. Should be a non-blank string")
+    
+        elif 'env_name_out' == key:
+            if isinstance(item, str) and len(item) > 0:
+                required_keys.remove("env_name_out")
+            else:
+                raise ValueError(f"{container_name} has template with env_name_out that is invalid. Should be a non-blank string")
+        elif len(re.findall(r"^include_\d+", key)) > 0:
+            template_required_keys = ['container', 'env_name', 'value_is_not', 'value_is', 'port']
+            template_optional_keys = ['value', 'separator']
+            for template_key, template_item in item.items():
+                if template_key in template_required_keys:
+                    template_required_keys.remove(template_key)
+                    if isinstance(template_item, str):
+                        # this is valid
+                        pass
+                    else:
+                        raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
+                    
+                    if template_key == 'value_is_not':
+                        template_required_keys.remove("value_is")
+                        template_required_keys.remove("port")
+                    elif template_key == 'value_is':
+                        template_required_keys.remove("value_is_not")
+                        template_required_keys.remove("port")
+                    elif template_key == 'port':
+                        if len(template_item) == 0:
+                            raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
+                        template_required_keys.remove("value_is")
+                        template_required_keys.remove("value_is_not")
+                elif template_key in template_optional_keys:
+                    template_optional_keys.remove(template_key)
+                    if len(template_item) > 0 and isinstance(template_item, str):
+                        # this is valid
+                        pass
+                    else:
+                        raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
+                else:
+                    raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid.")
+            
+            if len(template_required_keys) != 0:
+                missing_keys = ", ".join(item for item in template_required_keys)
+                raise ValueError(f"Missing keys: {missing_keys}")
+        else:
+            raise ValueError(f"{container_name} has template with {key} that is invalids.")
+    # Run through all keys that weren't present in the container definition
+    if len(required_keys) != 0:
+        missing_keys = ", ".join(item for item in required_keys)
+        raise ValueError(f"Missing keys: {missing_keys}")
 # Function to validate the sections
 
 

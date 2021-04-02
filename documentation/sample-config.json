@@ -28,6 +28,15 @@
                 "usb": true
             },
             "privileged": false,
+            "template_01": {
+                "env_name_out": "test",
+                "separator": ":",
+                "include_01": {
+                    "container": "acarshub",
+                    "env_name": "test",
+                    "value_is_not": ""
+                }
+            },
             "section_1": {
                 "user_description": "This first section will define some global configuration parameters for ACARS Hub",
                 "option_1": {
