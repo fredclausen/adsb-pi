@@ -297,15 +297,14 @@
                 }
             },
             "section_7": {
-                "user_description": "test",
-                "depends_on": {
-                    "env_name": "FEED"
-                },
+                "user_description": "testing",
 
                 "option_1": {
-                    "display_name": "TEST",
+                    "bypass_yaml": true,
+                    "replace_characters": ["$", "@"],
+                    "display_name": "TESTING",
                     "user_description": "Testing",
-                    "env_name": "TEST",
+                    "env_name": "TESTING",
                     "default_value": "",
                     "variable_type": "string",
                     "user_required": false

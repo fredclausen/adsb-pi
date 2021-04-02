@@ -351,9 +351,8 @@ def config_container(screen):
                                 if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                     response = handle_string(screen, option_values, options, height, width)
 
-                                    if ('user_required' in option_values and option_values['user_required'] == True and response != option_values['default_value']) or 'user_required' not in option_values:
-                                        if (response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
-                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
+                                    if ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
+                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
 
                                 elif option_values['variable_type'] == 'boolean':
                                     response = handle_boolean(screen, option_values, options)
@@ -819,7 +818,29 @@ def write_compose(screen):
                             compose.write(tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n")
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
-                    compose.write(tab + tab + tab + "- " + variable + "=" + str(value) + "\n")
+                    try:
+                        bypass_yaml = False
+                        output_string = value
+                        # now we need to decide if the yaml should be bypassed
+                        for section_key, section_item in containers[container]['container_config'].items():
+                            if len(re.findall(r"^section_\d+", section_key)) > 0:
+                                for option_key, option_item in section_item.items():
+                                    if len(re.findall(r"option_\d+", option_key)):
+                                        if option_item['env_name'] == variable:
+                                            if 'bypass_yaml' in option_item and option_item['bypass_yaml'] == True:
+                                                bypass_yaml = True
+                                                if 'replace_characters' in option_item:
+                                                    for character in option_item['replace_characters']:
+                                                        output_string = output_string.replace(character, character * 2)
+                                            continue
+                        if not bypass_yaml:
+                            compose.write(tab + tab + tab + "- " + variable + "=" + str(output_string) + "\n")
+                        else:
+                            compose.write(tab + tab + tab + "- '" + variable + "=" + str(output_string) + "'\n")
+                    except Exception as e:
+                        import time
+                        print(e)
+                        time.sleep(10)
                 # check for template variables
                 for template_key, template_item in containers[container]['container_config'].items():
                     if len(re.findall(r"^template_\d+", template_key)) > 0:
