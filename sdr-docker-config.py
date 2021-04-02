@@ -819,7 +819,7 @@ def write_compose(screen):
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
                     try:
-                        bypass_yaml = False
+                        bypass_yaml = ""
                         output_string = value
                         # now we need to decide if the yaml should be bypassed
                         for section_key, section_item in containers[container]['container_config'].items():
@@ -828,15 +828,12 @@ def write_compose(screen):
                                     if len(re.findall(r"option_\d+", option_key)):
                                         if option_item['env_name'] == variable:
                                             if 'bypass_yaml' in option_item and option_item['bypass_yaml'] == True:
-                                                bypass_yaml = True
+                                                bypass_yaml = "'"
                                                 if 'replace_characters' in option_item:
                                                     for character in option_item['replace_characters']:
                                                         output_string = output_string.replace(character, character * 2)
                                             continue
-                        if not bypass_yaml:
-                            compose.write(tab + tab + tab + "- " + variable + "=" + str(output_string) + "\n")
-                        else:
-                            compose.write(tab + tab + tab + "- '" + variable + "=" + str(output_string) + "'\n")
+                        compose.write(tab + tab + tab + f"- {bypass_yaml}" + variable + "=" + str(output_string) + f"{bypass_yaml}\n")
                     except Exception as e:
                         import time
                         print(e)
