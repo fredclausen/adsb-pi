@@ -20,6 +20,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Run If](#run-if)
     * [Loops](#loops)
     * [Groups](#groups)
+  * [Template Variables](#template-variables)
   * [Validating User Input](#validating-user-input)
   * [Beautifying Text Displayed to User](#beautifying-text-displayed-to-user)
 * [Sample Configuration](#sample-config)
@@ -384,6 +385,55 @@ Groups can be nested.
 | -------- | ----------- | -------- | ---------- | ------- |
 | `env_name` | In this section, the `env_name` is moved from the option to the `group`, and sets the output enviornment variable that all of the options in the `group` section will be applied to. | Yes, if `group` is used. | `docker ENV variable naming convention` | Blank |
 | `field_combine` | All of the option responses will be combined together and separated with the character(s) in the `field_combine` variable | Yes, if `group` is being used. | `ASCII characters, - _` | Blank |
+
+### Template Variables
+
+If you have a variable that needs to be composed of values from different places you can use a template variable. These variables are never user-configurable and will be filled in when the config file is written.
+
+Some situations you might want to use these include if a container was included and if a certain value in that container is set to a value. The basic idea is that you declare a template, and then set one or more includes. For each include that is found to be true, it will get added to the output variable.
+
+```json
+
+template_01: {
+    "env_name_out": "name_out",
+    "separator": ":",
+    "include_01": {
+        "container": "containername",
+        "env_name": "name",
+        "port": "port_number", # One of this line or the next two lines, but only one
+        "value_is": "value", # include this
+        "value_is_not": "" # or include this
+    },
+    "include_02": {
+        "container": "containername",
+        "env_name": "name",
+        "port": "port_number", # One of this line or the next two lines, but only one
+        "value_is": "value", # include this
+        "value_is_not": "" # or include this,
+        "value": "test"
+    }
+}
+```
+
+In the example above, `containername` has `name` set to `value` the output would be
+
+```yaml
+    - name_out: value:test
+```
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `env_name_out` | The value that `template` will be written to | Yes | `string` | Blank |
+| `separator` | If you need to separate the include fields with a delimiter include this. The seperator will **ONLY** be included between include elements, and will not preceed or end the variable.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `container` | The container where the `env_name` can be found | Yes | `string` | Blank |
+| `env_name` | The name of the `env_variable` to check | Yes | `string` | Blank |
+| `port` | If this is included the **container** port will be included in the `template` | No | `port_x` where `x` is the number of the port in the container | Blank |
+| `value_is` | If included if the set value of the `env_name` is the value set here | `string` | Blank |
+| `value_is_not` | Same as `value_is`, but the value has to be NOT what the value set here | `string` | Blank |
+| `value` | If included, the value that will be written to the template will be the value set here. Only valid for `value_is(_not)` | No | `string` | Blank |
 
 ### **Validating User Input**
 
