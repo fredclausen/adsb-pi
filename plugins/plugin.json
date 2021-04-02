@@ -321,7 +321,7 @@
                     "user_description": "Your ADSBX UUID. If you don't have one yet, please leave blank and follow the setup instructions at the source repo to aquire one.",
                     "env_name": "UUID",
                     "default_value": "",
-                    "user_required": false,
+                    "user_required": true,
                     "compose_required": true
                 },
                 "option_4": {

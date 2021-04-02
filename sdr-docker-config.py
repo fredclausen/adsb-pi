@@ -291,9 +291,26 @@ def config_container(screen):
                             for key_depends, item_depends in container_config.items():
                                 if len(re.findall(r"^section_\d+", key_depends)) == 1:
                                     for key_depends_in, item_depends_in in item_depends.items():
+                                        default_value = ""
                                         if len(re.findall(r"^option_\d+", key_depends_in)) == 1 or len(re.findall(r"^group_\d+", key_depends_in)) == 1:
                                             if 'env_name' in item_depends_in and item_depends_in['env_name'] == section_values['depends_on']['env_name']:
-                                                if ('default_value' in item_depends_in and item_depends_in['default_value'] != env_settings[section_values['depends_on']['env_name']]) or (env_settings[section_values['depends_on']['env_name']] != "" or env_settings[section_values['depends_on']['env_name']] != "False"):
+                                                if 'env_name_value' in item_depends_in:
+                                                    default_value = str(item_depends_in['env_name_value'])
+                                                elif 'variable_type' in item_depends_in and item_depends_in['variable_type'] == "boolean":
+                                                    if ('default_value' in item_depends_in and item_depends_in['default_value'] == False) or 'default_value' not in item_depends_in:
+                                                        if 'boolean_override_false' in item_depends_in:
+                                                            default_value = item_depends_in['boolean_override_false']
+                                                        else:
+                                                            default_value = "False"
+                                                    elif 'default_value' in item_depends_in and item_depends_in['default_value'] == True:
+                                                        if 'boolean_override_true' in item_depends_in:
+                                                            default_value = item_depends_in['boolean_override_true']
+                                                        else:
+                                                            default_value = "True"
+                                                elif ('variable_type' in item_depends_in and item_depends_in['variable_type'] == "string") or 'variable_type' not in item_depends_in:
+                                                    if 'default_value' in item_depends_in:
+                                                        default_value = item_depends_in['default_value']
+                                                if default_value == env_settings[section_values['depends_on']['env_name']]:
                                                     run_section = True
                                                 continue
 
@@ -334,19 +351,18 @@ def config_container(screen):
                                 if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                     response = handle_string(screen, option_values, options, height, width)
 
-                                    if ('user_required' in option_values and response != option_values['default_value']) or 'user_required' not in option_values:
+                                    if ('user_required' in option_values and option_values['user_required'] == True and response != option_values['default_value']) or 'user_required' not in option_values:
                                         if (response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
                                             env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
 
                                 elif option_values['variable_type'] == 'boolean':
                                     response = handle_boolean(screen, option_values, options)
-
                                     if response == -1:
                                         value_index -= 1
                                         if value_index < 0:
                                             value_index = 0
 
-                                    elif response:
+                                    elif response >= 0:
                                         if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
                                             if 'boolean_override_true' in option_values:
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
@@ -534,10 +550,10 @@ def handle_boolean(screen, option_values, options):
         elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
             if selection == 0:
                 exit = True
-                return True
-        elif selection == 1:
-            return False
-            exit = True
+                return 0
+            elif selection == 1:
+                return 1
+                exit = True
         elif k == curses.KEY_PPAGE:
             return -1
         elif k == curses.KEY_NPAGE:
@@ -871,7 +887,7 @@ if __name__ == "__main__":
         if args.files is not None:
             config = json.load(open(args.files), object_pairs_hook=raise_on_duplicate_keys)
         else:
-            config = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json").read().decode())
+            config = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json").read().decode(), object_pairs_hook=raise_on_duplicate_keys)
         
         get_containers()
         while True:
