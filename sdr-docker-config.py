@@ -362,7 +362,7 @@ def config_container(screen):
                                         if value_index < 0:
                                             value_index = 0
 
-                                    elif response >= 0:
+                                    elif response == 0:
                                         if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
                                             if 'boolean_override_true' in option_values:
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
@@ -820,6 +820,46 @@ def write_compose(screen):
                 compose.write(tab + tab + "environment:\n")
                 for variable, value in output_container_config[container].items():
                     compose.write(tab + tab + tab + "- " + variable + "=" + str(value) + "\n")
+                # check for template variables
+                for template_key, template_item in containers[container]['container_config'].items():
+                    if len(re.findall(r"^template_\d+", template_key)) > 0:
+                        output_template = ""
+                        separator = ""
+                        if "separator" in template_item:
+                            separator = template_item['separator']
+                        for sub_template_key, sub_template_item in template_item.items():
+                            if len(re.findall(r"^include_\d+", sub_template_key)):
+                                if sub_template_item['container'] in output_container_config and sub_template_item['env_name'] in output_container_config[sub_template_item['container']]:
+                                    if "value_is" in sub_template_item and sub_template_item['value_is'] == output_container_config[sub_template_item['container']][sub_template_item['env_name']]:
+                                        value_to_append = ""
+                                        if "value" in sub_template_item:
+                                            value_to_append = sub_template_item['value']
+                                        else:
+                                            value_to_append = output_container_config[sub_template_item['container']][sub_template_item['env_name']]
+
+                                        if len(output_template) != 0:
+                                            output_template += separator + value_to_append
+                                        else:
+                                            output_template += value_to_append
+                                    elif "value_is_not" in sub_template_item and sub_template_item['value_is_not'] != output_container_config[sub_template_item['container']][sub_template_item['env_name']]:
+                                        value_to_append = ""
+                                        if "value" in sub_template_item:
+                                            value_to_append = sub_template_item['value']
+                                        else:
+                                            value_to_append = output_container_config[sub_template_item['container']][sub_template_item['env_name']]
+
+                                        if len(output_template) != 0:
+                                            output_template += separator + value_to_append
+                                        else:
+                                            output_template += value_to_append
+                                    elif "port" in sub_template_item:
+                                        if len(output_template) != 0:
+                                            output_template += separator + str(containers[container]['container_config']['ports'][sub_template_item['port']]['container_port'])
+                                        else:
+                                            output_template += str(containers[container]['container_config']['ports'][sub_template_item['port']]['container_port'])
+                        if len(output_template) > 0:
+                            compose.write(tab + tab + tab + "- " + template_item['env_name_out'] + "=" + output_template + "\n")
+                                    
                 if 'volumes' in containers[container]['container_config']:
                     volumes_strings = []
                     tmpfs_strings = []
