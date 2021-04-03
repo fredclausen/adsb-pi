@@ -779,10 +779,10 @@
     },
     "container_10": {
         "config_version": 1.0,
-        "container_name": "piaware",
-        "container_display_name": "PiAware",
-        "container_image": "mikenye/piaware:latest",
-        "container_website": "https://github.com/mikenye/docker-piaware",
+        "container_name": "rawflight",
+        "container_display_name": "Raw Flight Feeder",
+        "container_image": "mikenye/rawflight:latest",
+        "container_website": "https://github.com/mikenye/docker-rawflight",
         "container_config": {
             "user_description": "Feeder for rawflight.eu from a BEAST source",
             "section_1": {
