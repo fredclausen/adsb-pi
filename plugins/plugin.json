@@ -937,6 +937,22 @@
                     "port": "port_1"
                 }
             },
+            "template_03": {
+                "env_name_out": "ENABLE_978",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value": "yes"
+                }
+            },
+            "template_04": {
+                "env_name_out": "URL_978",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value": "http://127.0.0.1/skyaware978"
+                }
+            },
             "section_1": {
                 "option_1": {
                     "display_name": "Beast HOST",
@@ -1030,7 +1046,91 @@
                 }
             },
             "section_2": {
-
+                "user_description": "In this section we'll set up some tar1090 options",
+                "option_1": {
+                    "display_name": "Update tar1090 at startup",
+                    "user_description": "If you want tar1090 to update at startup select yes",
+                    "env_name": "UPDATE_TAR1090",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Interval",
+                    "user_description": "Interval at which the track history is saved",
+                    "env_name": "INTERVAL",
+                    "default_value": "8",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "History Size",
+                    "user_description": "How many points in time are stored in the track history",
+                    "env_name": "HISTORY_SIZE",
+                    "default_value": "450",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "GZIP",
+                    "user_description": "Level of GZIP Compression. 1-9 are valid, lower level is less CPU usage but more bandwidth.",
+                    "env_name": "GZIP_LEVEL",
+                    "default_value": "3",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true,
+                    "validator": "[1-9]"
+                },
+                "option_5": {
+                    "display_name": "PTRACKS",
+                    "user_description": "Shows the last $PTRACKS hours of traces you have seen at the ?pTracks URL",
+                    "env_name": "PTRACKS",
+                    "default_value": "8",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true,
+                    "validator": "[1-9]+"
+                },
+                "option_6": {
+                    "display_name": "Plane count in page title",
+                    "user_description": "Show the plane count in page title",
+                    "env_name": "TAR1090_PLANECOUNTINTITLE",
+                    "default_value": false,
+                    "compose_required": false,
+                    "variable_type": "boolean"
+                },
+                "option_7": {
+                    "display_name": "Plane message rate in page title",
+                    "user_description": "Show the message rate in page title",
+                    "env_name": "TAR1090_MESSAGERATEINTITLE",
+                    "default_value": false,
+                    "compose_required": false,
+                    "variable_type": "boolean"
+                },
+                "option_8": {
+                    "display_name": "Display units",
+                    "user_description": "The units used to show values on the page",
+                    "env_name": "TAR1090_DISPLAYUNITS",
+                    "compose_required": false,
+                    "variable_type": "multi-choice",
+                    "multi_choice_options": {
+                        "option_1": {
+                            "user_text": "Nautical",
+                            "env_text": "nautical" 
+                        },
+                       "option_2": {
+                            "user_text": "Metric",
+                            "env_text": "metric"
+                        },
+                        "option_3": {
+                            "user_text": "Imperial",
+                            "env_text": "imperial"
+                        }
+                    }
+                }
             }
         }
     }
