@@ -868,5 +868,38 @@
                 }
             }
         }
+    },
+    "container_11": {
+        "config_version": 1.0,
+        "container_name": "tar1090",
+        "container_display_name": "tar1090",
+        "container_image": "mikenye/tar1090:latest",
+        "container_website": "https://github.com/mikenye/docker-tar1090",
+        "container_config": {
+            "user_description": "tar1090. Local viewing of your ADSB data",
+            "ports": {
+                "port_1": {
+                    "container_port": 80
+                }
+            },
+            "volumes": {
+                "tmpfs_1": {
+                    "container_path": "/run",
+                    "tmpfs_options": "exec,size=64M"
+                },
+                "tmpfs_2": {
+                    "container_path": "/var/log",
+                    "tmpfs_options": "exec,size=64M"
+                },
+                "volume_1": {
+                    "docker_volume_name": "tar1090_history",
+                    "container_path": "/var/globe_history"
+                },
+                "volume_2": {
+                    "docker_volume_name": "tar1090_timelapse",
+                    "container_path": "/var/timelapse1090"
+                }
+            }
+        }
     }
 }
