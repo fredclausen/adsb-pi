@@ -401,6 +401,8 @@
                 },
                 "option_4": {
                     "display_name": "Client Key",
+                    "bypass_yaml": true,
+                    "replace_characters": ["$"],
                     "user_description": "Your station's client key",
                     "env_name": "TZ",
                     "default_value": "",
@@ -584,7 +586,7 @@
             }
         }
     },
-    "container_6": {
+    "container_7": {
         "config_version": 1.0,
         "container_name": "opensky",
         "container_display_name": "Open Sky Feeder",
