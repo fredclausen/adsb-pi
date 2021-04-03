@@ -668,5 +668,113 @@
                 }
             }
         }
+    },
+    "container_8": {
+        "config_version": 1.0,
+        "container_name": "piaware",
+        "container_display_name": "PiAware",
+        "container_image": "mikenye/piaware:latest",
+        "container_website": "https://github.com/mikenye/docker-piaware",
+        "container_config": {
+            "user_description": "Feeder for FlightAware. This container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
+            "volumes": {
+                "tmpfs_1": {
+                    "container_path": "/run/",
+                    "tmpfs_options": "exec,size=64M"
+                },
+                "tmpfs_2": {
+                    "container_path": "/var/log",
+                    "tmpfs_options": "exec,size=64M"
+                }
+            },
+            "ports": {
+                "port_1": {
+                    "container_port": 80
+                },
+                "port_2": {
+                    "container_port": 30105
+                }
+            },
+            "template_01": {
+                "env_name_out": "ALLOW_MLAT",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "yes"
+                }
+            },
+            "template_02": {
+                "env_name_out": "MLAT_RESULTS",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "yes"
+                }
+            },
+            "template_03": {
+                "env_name_out": "RECEIVER_TYPE",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "relay"
+                }
+            },
+            "section_1": {
+                "user_description": "In this first section we'll set up some global configuration options",
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "user_description": "Your PiAware Feeder ID",
+                    "env_name": "FEEDER_ID",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "user_description": "Bing Map's API Key",
+                    "env_name": "BINGMAPSAPIKEY",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_4": {
+                    "user_description": "Verbose Logging",
+                    "env_name": "VERBOSE_LOGGING",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": ""
+                }
+            },
+            "section_2": {
+                "option_1": {
+                    "user_description": "Beast HOST",
+                    "env_name": "BEASTHOST",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "readsb"
+                },
+                "option_2": {
+                    "user_description": "Beast PORT",
+                    "env_name": "BEASTPORT",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "30005"
+                }
+            }
+        }
     }
 }

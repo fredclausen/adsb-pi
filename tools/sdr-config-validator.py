@@ -260,7 +260,7 @@ def validate_option(container_name=None, values=None, as_group=False):
         return
      # now run through all keys
     required_keys = ['display_name', 'user_description', 'env_name', 'default_value']
-    valid_keys = ['display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description']
+    valid_keys = ['display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description', 'bypass_yaml', 'replace_characters']
     # now lets add in all of the additional required keys based on certian options
 
     if 'variable_type' in values and values['variable_type'] == "multi-choice":
