@@ -776,5 +776,44 @@
                 }
             }
         }
+    },
+    "container_10": {
+        "config_version": 1.0,
+        "container_name": "piaware",
+        "container_display_name": "PiAware",
+        "container_image": "mikenye/piaware:latest",
+        "container_website": "https://github.com/mikenye/docker-piaware",
+        "container_config": {
+            "user_description": "Feeder for rawflight.eu from a BEAST source",
+            "section_1": {
+                "user_description": "In this first section we'll set up some global configuration options",
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
     }
 }
