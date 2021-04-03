@@ -498,7 +498,7 @@ def handle_string(screen, option_values, options, height, width):
             curs_x += 1
             if curs_x > width:
                 curs_x = width
-        elif k == 127 or k == curses.KEY_BACKSPACE or k == '\b' or k == '\x7f':
+        elif k == 127 or k == curses.KEY_BACKSPACE or k == '\b' or k == '\x7f' or k == 263:
             variable_string = variable_string[:curs_x - 1] + variable_string[curs_x + 1:]
             curs_x -= 1
             if curs_x < 0:
