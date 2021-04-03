@@ -713,15 +713,6 @@
                     "value": "yes"
                 }
             },
-            "template_03": {
-                "env_name_out": "RECEIVER_TYPE",
-                "include_01": {
-                    "container": "piaware",
-                    "env_name": "TZ",
-                    "value_is_not": "",
-                    "value": "relay"
-                }
-            },
             "section_1": {
                 "user_description": "In this first section we'll set up some global configuration options",
                 "option_1": {
@@ -755,10 +746,39 @@
                     "advanced": true,
                     "variable_type": "boolean",
                     "boolean_override_false": ""
+                },
+                "option_5": {
+                    "user_description": "Your site's latitude",
+                    "env_name": "LAT",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_6": {
+                    "user_description": "Your site's longitude",
+                    "env_name": "LONG",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
                 }
             },
             "section_2": {
+                "run_if": {
+                    "user_question": "Would you like to enable ADSB feeding?"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
                 "option_1": {
+                    "env_name": "RECEIVER_TYPE",
+                    "user_description": "Receiver type for ADSB. Only relay supported by this plugin.",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "relay",
+                    "validator": "relay"
+                },
+                "option_2": {
                     "user_description": "Beast HOST",
                     "env_name": "BEASTHOST",
                     "user_required": true,
@@ -766,13 +786,46 @@
                     "advanced": true,
                     "default_value": "readsb"
                 },
-                "option_2": {
+                "option_3": {
                     "user_description": "Beast PORT",
                     "env_name": "BEASTPORT",
                     "user_required": true,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "30005"
+                }
+            },
+            "section_3": {
+                "run_if": {
+                    "user_question": "Would you like to enable UAT/978mhz? US only, requires the dump978 container and a dedicated SDR"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option_1": {
+                    "user_description": "UAT_RECEIVER_TYPE. Only relay supported by this plugin.",
+                    "env_name": "UAT_RECEIVER_TYPE",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "relay",
+                    "validator": "relay"
+                },
+                "option_2": {
+                    "user_description": "UAT_RECEIVER_HOST",
+                    "env_name": "UAT_RECEIVER_HOST",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "dump978"
+                },
+                "option_3": {
+                    "user_description": "UAT_RECEIVER_PORT",
+                    "env_name": "UAT_RECEIVER_HOST",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "30978"
                 }
             }
         }
