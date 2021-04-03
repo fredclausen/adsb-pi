@@ -675,6 +675,9 @@
         "container_display_name": "PiAware",
         "container_image": "mikenye/piaware:latest",
         "container_website": "https://github.com/mikenye/docker-piaware",
+        "requires": {
+            "container_1": "readsb"
+        },
         "container_config": {
             "user_description": "Feeder for FlightAware. This container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
             "volumes": {
@@ -848,6 +851,9 @@
         "container_display_name": "Raw Flight Feeder",
         "container_image": "mikenye/rawflight:latest",
         "container_website": "https://github.com/mikenye/docker-rawflight",
+        "requires": {
+            "container_1": "readsb"
+        },
         "container_config": {
             "user_description": "Feeder for rawflight.eu from a BEAST source",
             "section_1": {
@@ -865,7 +871,7 @@
                     "user_description": "Source for BEAST data",
                     "env_name": "BEASTHOST",
                     "default_value": "readsb",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true
                 },
@@ -874,7 +880,7 @@
                     "user_description": "BEAST data port",
                     "env_name": "BEASTPORT",
                     "default_value": "30005",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true
                 }
@@ -887,6 +893,9 @@
         "container_display_name": "tar1090",
         "container_image": "mikenye/tar1090:latest",
         "container_website": "https://github.com/mikenye/docker-tar1090",
+        "requires": {
+            "container_1": "readsb"
+        },
         "container_config": {
             "user_description": "tar1090. Local viewing of your ADSB data",
             "ports": {
@@ -912,7 +921,115 @@
                     "container_path": "/var/timelapse1090"
                 }
             },
+            "template_01": {
+                "env_name_out": "MLATHOST",
+                "include_01": {
+                    "container": "mlat",
+                    "env_name": "TZ",
+                    "value": "mlat"
+                }
+            },
+            "template_02": {
+                "env_name_out": "MLATPORT",
+                "include_01": {
+                    "container": "mlat",
+                    "env_name": "TZ",
+                    "port": "port_1"
+                }
+            },
             "section_1": {
+                "option_1": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Site latitude",
+                    "user_description": "Your site's latitude",
+                    "env_name": "LAT",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_5": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_6": {
+                    "display_name": "Hey What's That Panorama ID",
+                    "user_description": "Enable displaying antenna range based on Hey What's That calculations. See documentation for details on setup",
+                    "env_name": "HEYWHATSTHAT_PANORAMA_ID",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_7": {
+                    "display_name": "HTTP Access Log",
+                    "user_description": "HTTP Access Logging",
+                    "env_name": "HTTP_ACCESS_LOG",
+                    "default_value": false,
+                    "variable_type": "boolean",
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_8": {
+                    "display_name": "HTTP Error Log",
+                    "user_description": "HTTP Error Logging",
+                    "env_name": "HTTP_ERROR_LOG",
+                    "default_value": false,
+                    "variable_type": "boolean",
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_9": {
+                    "display_name": "READSB Max Range",
+                    "user_description": "Maximum range for displaying ADSB data",
+                    "env_name": "HEYWHATSTHAT_PANORAMA_ID",
+                    "default_value": "300",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_10": {
+                    "display_name": "Timelapse",
+                    "user_description": "Enable saving timelapse data",
+                    "env_name": "ENABLE_TIMELAPSE1090",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "compose_required": true,
+                    "advanced": true
+                }
+            },
+            "section_2": {
 
             }
         }

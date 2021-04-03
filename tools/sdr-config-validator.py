@@ -125,8 +125,9 @@ def validate_template(container_name=None, values=None):
             else:
                 raise ValueError(f"{container_name} has template with env_name_out that is invalid. Should be a non-blank string")
         elif len(re.findall(r"^include_\d+", key)) > 0:
-            template_required_keys = ['container', 'env_name', 'value_is_not', 'value_is', 'port']
-            template_optional_keys = ['value', 'separator']
+            template_valid_keys = ['value', 'separator']
+            template_required_keys = ['container', 'env_name']
+            template_optional_keys = ['value_is_not', 'value_is', 'port']
             for template_key, template_item in item.items():
                 if template_key in template_required_keys:
                     template_required_keys.remove(template_key)
@@ -135,21 +136,23 @@ def validate_template(container_name=None, values=None):
                         pass
                     else:
                         raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
-                    
-                    if template_key == 'value_is_not':
-                        template_required_keys.remove("value_is")
-                        template_required_keys.remove("port")
-                    elif template_key == 'value_is':
-                        template_required_keys.remove("value_is_not")
-                        template_required_keys.remove("port")
-                    elif template_key == 'port':
-                        if len(template_item) == 0:
-                            raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
-                        template_required_keys.remove("value_is")
-                        template_required_keys.remove("value_is_not")
                 elif template_key in template_optional_keys:
-                    template_optional_keys.remove(template_key)
-                    if len(template_item) > 0 and isinstance(template_item, str):
+                    if isinstance(template_item, str):
+                        if template_key == 'value_is_not':
+                            if 'value_is' in item or 'port' in item:
+                                raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. value_is and port cannot be in this section")
+                        elif template_key == 'value_is':
+                            if 'value_is_not' in item or 'port' in item:
+                                raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. value_is and port cannot be in this section")
+                        elif template_key == 'port':
+                            if len(template_item) == 0:
+                                raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
+                            if 'value_is' in item or 'value_is_not' in item:
+                                raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. value_is and port cannot be in this section")
+                    else:
+                        raise ValueError(f"{container_name} has template with {key}/{template_key} that is invalid. Should be a non-blank string")
+                elif template_key in template_valid_keys:
+                    if isinstance(template_item, str):
                         # this is valid
                         pass
                     else:
