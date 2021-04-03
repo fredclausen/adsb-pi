@@ -489,6 +489,7 @@ def handle_string(screen, option_values, options, height, width):
     screen.move(curs_y, curs_x)
     while not exit:
         k = screen.getch()
+        print(k)
         if k == curses.KEY_LEFT:
             curs_x -= 1
             if curs_x < 0:
