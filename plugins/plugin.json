@@ -748,7 +748,8 @@
                     "compose_required": false,
                     "advanced": true,
                     "variable_type": "boolean",
-                    "boolean_override_false": ""
+                    "boolean_override_false": "",
+                    "default_value": false
                 },
                 "option_5": {
                     "display_name": "Latitude",
