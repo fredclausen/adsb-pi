@@ -724,6 +724,7 @@
                     "compose_required": true
                 },
                 "option_2": {
+                    "display_name": "Feeder ID",
                     "user_description": "Your PiAware Feeder ID",
                     "env_name": "FEEDER_ID",
                     "default_value": "",
@@ -731,6 +732,7 @@
                     "compose_required": true
                 },
                 "option_3": {
+                    "display_name": "Bing Map API Key",
                     "user_description": "Bing Map's API Key",
                     "env_name": "BINGMAPSAPIKEY",
                     "default_value": "",
@@ -739,6 +741,7 @@
                     "advanced": true
                 },
                 "option_4": {
+                    "display_name": "Verbose Logging",
                     "user_description": "Verbose Logging",
                     "env_name": "VERBOSE_LOGGING",
                     "user_required": false,
@@ -748,6 +751,7 @@
                     "boolean_override_false": ""
                 },
                 "option_5": {
+                    "display_name": "Latitude",
                     "user_description": "Your site's latitude",
                     "env_name": "LAT",
                     "default_value": "",
@@ -755,6 +759,7 @@
                     "compose_required": true
                 },
                 "option_6": {
+                    "display_name": "Longitude",
                     "user_description": "Your site's longitude",
                     "env_name": "LONG",
                     "default_value": "",
@@ -770,6 +775,7 @@
                     "max_loops": 1
                 },
                 "option_1": {
+                    "display_name": "ADSB Receiver Type",
                     "env_name": "RECEIVER_TYPE",
                     "user_description": "Receiver type for ADSB. Only relay supported by this plugin.",
                     "user_required": true,
@@ -779,6 +785,7 @@
                     "validator": "relay"
                 },
                 "option_2": {
+                    "display_name": "Beast HOST",
                     "user_description": "Beast HOST",
                     "env_name": "BEASTHOST",
                     "user_required": true,
@@ -787,6 +794,7 @@
                     "default_value": "readsb"
                 },
                 "option_3": {
+                    "display_name": "Beast Port",
                     "user_description": "Beast PORT",
                     "env_name": "BEASTPORT",
                     "user_required": true,
@@ -803,6 +811,7 @@
                     "max_loops": 1
                 },
                 "option_1": {
+                    "display_name": "UAT Receiver",
                     "user_description": "UAT_RECEIVER_TYPE. Only relay supported by this plugin.",
                     "env_name": "UAT_RECEIVER_TYPE",
                     "user_required": true,
@@ -812,6 +821,7 @@
                     "validator": "relay"
                 },
                 "option_2": {
+                    "display_name": "UAT Receiver Host",
                     "user_description": "UAT_RECEIVER_HOST",
                     "env_name": "UAT_RECEIVER_HOST",
                     "user_required": true,
@@ -820,6 +830,7 @@
                     "default_value": "dump978"
                 },
                 "option_3": {
+                    "display_name": "UAT Reciever Port",
                     "user_description": "UAT_RECEIVER_PORT",
                     "env_name": "UAT_RECEIVER_HOST",
                     "user_required": true,
@@ -899,6 +910,9 @@
                     "docker_volume_name": "tar1090_timelapse",
                     "container_path": "/var/timelapse1090"
                 }
+            },
+            "section_1": {
+
             }
         }
     }
