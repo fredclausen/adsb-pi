@@ -779,7 +779,7 @@
                     "display_name": "ADSB Receiver Type",
                     "env_name": "RECEIVER_TYPE",
                     "user_description": "Receiver type for ADSB. Only relay supported by this plugin.",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "relay",
@@ -789,7 +789,7 @@
                     "display_name": "Beast HOST",
                     "user_description": "Beast HOST",
                     "env_name": "BEASTHOST",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "readsb"
@@ -798,7 +798,7 @@
                     "display_name": "Beast Port",
                     "user_description": "Beast PORT",
                     "env_name": "BEASTPORT",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "30005"
@@ -815,7 +815,7 @@
                     "display_name": "UAT Receiver",
                     "user_description": "UAT_RECEIVER_TYPE. Only relay supported by this plugin.",
                     "env_name": "UAT_RECEIVER_TYPE",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "relay",
@@ -825,7 +825,7 @@
                     "display_name": "UAT Receiver Host",
                     "user_description": "UAT_RECEIVER_HOST",
                     "env_name": "UAT_RECEIVER_HOST",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "dump978"
@@ -834,7 +834,7 @@
                     "display_name": "UAT Reciever Port",
                     "user_description": "UAT_RECEIVER_PORT",
                     "env_name": "UAT_RECEIVER_HOST",
-                    "user_required": true,
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true,
                     "default_value": "30978"
