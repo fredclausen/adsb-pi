@@ -61,6 +61,7 @@ The plugin file will start out with the following items:
         "container_display_name": "Name of Container",
         "container_image": "image",
         "container_website": "url",
+        "user_full_description": "text",
         "container_config": {
 
         }
@@ -77,6 +78,7 @@ The plugin file will start out with the following items:
 | `container_image` | The dockerhub, or applicable, path to the image | Yes | `standard formatting for docker-images` |
 | `container_website` | The URL for the container's website | No | `standard URL formatting` |
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
+| `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
 
 ## **Container Config**
 
@@ -479,6 +481,7 @@ For the following fields
 * `user_question_after`
 * `user_description`
 * `user_required_formatting`
+* `user_full_description`
 
 It may be desirable to apply text-formatting to enhance the readability of the text. Standard markdown syntax can be applied in the text strings of these fields. Not all clients that use the plugins will support the use of markdown, so any field that uses markdown should have `_markdown` appended to the field name, such as `user_question_markdown`. You should **always** include the non-markdown field, and if you want markdown, also include the markdown version of that setting. The client will choose the correct field to use. If no markdown field is present, the client will always use the appropriate non-markdown field.
 

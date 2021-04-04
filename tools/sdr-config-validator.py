@@ -16,9 +16,9 @@ recs_req = []
 
 def validate_container(container_name=None, value=None):
     # List of keys that are required to be in the container definition
-    required_keys = ["container_name", "container_display_name", "container_image", "container_config"]
+    required_keys = ["container_name", "container_display_name", "container_image", "container_config", "user_full_description"]
 
-    print(f"Linting {attribute}")
+    print(f"Linting {container_name} / {value['container_display_name']}")
     for key, items in value.items():
         if key == "container_name":
             required_keys.remove("container_name")
@@ -46,6 +46,10 @@ def validate_container(container_name=None, value=None):
         elif key == "config_version":
             if not isinstance(items, float):
                 raise ValueError(f"Invalid confign_version for {container_name}")
+        elif key == "user_full_description":
+            required_keys.remove("user_full_description")
+            if not isinstance(items, str):
+                raise ValueError(f"Invalid user_full_description for {container_name}")
         else:
             print(f"Unknown key: {key} in {container_name}")
 

@@ -45,7 +45,8 @@ def init(screen):
     screen.addstr(int(height // 2 + 1),int((width // 2) - (len(help_string_next) // 2) - len(help_string_next) % 2), help_string_next)
 
     # show status bar
-
+    if len(status_bar) > width - 1:
+        status_bar = status_bar[:width -1]
     screen.attron(curses.color_pair(3))
     screen.addstr(height-1, 0, status_bar)
     screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
@@ -98,7 +99,12 @@ def select_containers(screen):
         elif k == ord('p'):
             page = 1
             return
-        if k == curses.KEY_DOWN:
+        elif k == ord('i'):
+            for container in containers:
+                if containers[container]['index'] == curs_y - 2:
+                    container_info(screen, containers[container])
+                    continue
+        elif k == curses.KEY_DOWN:
             curs_y = curs_y + 1
         elif k == curses.KEY_UP:
             curs_y = curs_y - 1
@@ -180,13 +186,14 @@ def select_containers(screen):
         
 
         prompt = "Please select the container(s) you wish to install"
-        status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' or 'Enter' to Proceed | 'p' for Previous Page | Press 'q' or Control + C to exit"
+        status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' or 'Enter' to Proceed | 'i' for container info | Press 'q' or Control + C to exit"
 
         for i in range (1, height - 1):  # clear all the old lines out, just in case
             screen.addstr(i, 0, " " * (width - 1))
         screen.addstr(0, 0, prompt)
         # show status bar
-
+        if len(status_bar) > width - 1:
+            status_bar = status_bar[:width -1]
         screen.attron(curses.color_pair(3))
         screen.addstr(height-1, 0, status_bar)
         screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
@@ -204,6 +211,34 @@ def select_containers(screen):
         screen.move(curs_y, curs_x)
         screen.refresh()
         k = screen.getch()
+
+def container_info(screen=None, container=None):
+    if screen is None or container is None:
+        return
+    
+    height, width = screen.getmaxyx()
+
+    for i in range (1, height - 1):  # clear all the old lines out, just in case
+        screen.addstr(i, 0, " " * (width - 1))
+    
+    screen.addstr(3, 0, "Container Name: " + container['container_display_name'])
+    screen.addstr(4, 0, "Container Website: " + container['container_website'])
+    screen.addstr(5, 0, "Container Image: " + container['container_image'])
+    screen.addstr(6, 0, "Description: " + container['user_full_description'])
+
+    status_bar = "Press p or space to return to container selection"
+    if len(status_bar) > width - 1:
+        status_bar = status_bar[:width -1]
+    screen.attron(curses.color_pair(3))
+    screen.addstr(height-1, 0, status_bar)
+    screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
+    screen.attroff(curses.color_pair(3))
+    k = ""
+    while True:
+        k = screen.getch()
+
+        if k == ord("p") or k == ord(' '):
+            return
 
 
 def exit_app():
@@ -243,7 +278,8 @@ def config_container(screen):
     status_bar = "Press enter to save option and proceed | Use arrow keys to navigate between options"
 
     # show status bar
-
+    if len(status_bar) > width - 1:
+        status_bar = status_bar[:width -1]
     screen.attron(curses.color_pair(3))
     screen.addstr(height-1, 0, status_bar)
     screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
@@ -593,7 +629,8 @@ def ask_advanced(screen):
     status_bar = "Up and Down arrow keys to select | Enter to proceed"
 
     # show status bar
-
+    if len(status_bar) > width - 1:
+        status_bar = status_bar[:width -1]
     screen.attron(curses.color_pair(3))
     screen.addstr(height-1, 0, status_bar)
     screen.addstr(height-1, len(status_bar), " " * (width - len(status_bar) - 1))
