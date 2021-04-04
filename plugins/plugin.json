@@ -324,7 +324,8 @@
                     "env_name": "UUID",
                     "default_value": "",
                     "user_required": false,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_4": {
                     "display_name": "Station Latitude",
@@ -410,7 +411,8 @@
                     "env_name": "CLIENTKEY",
                     "default_value": "",
                     "user_required": false,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 }
             }
         }
@@ -569,7 +571,8 @@
                     "env_name": "FR24KEY",
                     "default_value": "",
                     "user_required": false,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_5": {
                     "display_name": "MLAT",
@@ -741,7 +744,8 @@
                     "env_name": "OPENSKY_USERNAME",
                     "default_value": "",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_5": {
                     "display_name": "Open Sky Serial",
@@ -749,7 +753,8 @@
                     "env_name": "OPENSKY_SERIAL",
                     "default_value": "",
                     "compose_required": true,
-                    "user_required": false
+                    "user_required": false,
+                    "addtional_setup_required": true
                 },
                 "option_6": {
                     "display_name": "LAT",
@@ -842,7 +847,8 @@
                     "env_name": "FEEDER_ID",
                     "default_value": "",
                     "user_required": false,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_3": {
                     "display_name": "Bing Map API Key",
@@ -1484,7 +1490,8 @@
                     "env_name": "SHARING_KEY",
                     "default_value": "",
                     "user_required": false,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_5": {
                     "display_name": "Site Latitude",

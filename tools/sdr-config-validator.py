@@ -240,6 +240,7 @@ def validate_sections(container_name=None, values=None):
         if len(re.findall(r"^group_\d+", key)) == 1:
             validate_group(container_name=container_name, values=items)
 
+
 def validate_group(container_name=None, values=None):
         if values is None or len(values) == 0:
             print(f"WARNING: {container_name} has section that is empty. Please remove")
@@ -261,13 +262,14 @@ def validate_group(container_name=None, values=None):
             else:
                 raise ValueError(f"{container_name} group has group invalid key {key}")
 
+
 def validate_option(container_name=None, values=None, as_group=False):
     if values is None or len(values) == 0:
         print(f"WARNING: {container_name} has section that is empty. Please remove")
         return
      # now run through all keys
     required_keys = ['display_name', 'user_description', 'env_name', 'default_value']
-    valid_keys = ['bypass_yaml', 'replace_character', 'display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description', 'bypass_yaml', 'replace_characters']
+    valid_keys = ['addtional_setup_required', 'bypass_yaml', 'replace_character', 'display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description', 'bypass_yaml', 'replace_characters']
     # now lets add in all of the additional required keys based on certian options
 
     if 'variable_type' in values and values['variable_type'] == "multi-choice":
@@ -376,6 +378,9 @@ def validate_option(container_name=None, values=None, as_group=False):
                         raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a JSON array of strings")
             else:
                 raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a JSON array")
+        elif option_key == "addtional_setup_required":
+            if not isinstance(option_items, bool):
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a boolean")
         elif re.findall(r"^group_\d+", option_key):
             if 'field_combine' in option_items:
                 validate_group(container_name, option_items)
@@ -384,10 +389,11 @@ def validate_option(container_name=None, values=None, as_group=False):
         else:
             raise ValueError(f"{container_name} options has option invalid key {option_key}.")
 
-# Function to validate the devices
+    # Function to validate the devices
     if len(required_keys) != 0:
         missing_keys = ", ".join(item for item in required_keys)
         raise ValueError(f"Missing keys: {missing_keys}")
+
 
 def validate_devices(container_name=None, values=None):
     if values is None or len(values) == 0:

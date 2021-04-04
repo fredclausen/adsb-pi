@@ -212,6 +212,7 @@ def select_containers(screen):
         screen.refresh()
         k = screen.getch()
 
+
 def container_info(screen=None, container=None):
     if screen is None or container is None:
         return
@@ -779,6 +780,7 @@ def write_compose(screen):
     ports = []
     ports_output = []
     installed_containers = []
+    addtional_setup_required = []
 
     try:
         if os.path.isfile("./docker-compose.yaml"):
@@ -872,6 +874,9 @@ def write_compose(screen):
                                 for option_key, option_item in section_item.items():
                                     if len(re.findall(r"option_\d+", option_key)):
                                         if option_item['env_name'] == variable:
+                                            if 'addtional_setup_required' in option_item and value == option_item['default_value']:
+                                                if containers[container]['container_display_name'] not in addtional_setup_required:
+                                                    addtional_setup_required.append(containers[container]['container_display_name'])
                                             if 'bypass_yaml' in option_item and option_item['bypass_yaml'] == True:
                                                 bypass_yaml = "'"
                                                 if 'replace_characters' in option_item:
@@ -951,7 +956,10 @@ def write_compose(screen):
 
             container_index = 3
             for item in installed_containers:
-                screen.addstr(container_index, 0, item)
+                information = ""
+                if item in addtional_setup_required:
+                    information = " (*****!!!!!ADDITONAL SETUP REQUIRED!!!!!*****)"
+                screen.addstr(container_index, 0, item + information)
                 container_index += 1
             
             container_index += 2
