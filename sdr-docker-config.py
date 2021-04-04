@@ -5,16 +5,20 @@ import json
 import re
 import os
 import argparse
-import urllib.request
-from typing import Any, Dict, Hashable, List, Tuple
+import collections
+# some bs to get the correct python library imported
+try:
+    import urllib.request
+except Exception:
+    import urllib2
 
 page = 1
-config = []
-containers = {}
+config = collections.OrderedDict()
+containers = collections.OrderedDict()
 advanced = False
 
 volumes = False
-output_container_config = {}
+output_container_config = collections.OrderedDict()
 
 def init(screen):
     # Create the curses enviornment
@@ -132,7 +136,7 @@ def select_containers(screen):
                         continue
                 
                 if len(required_containers):
-                    output = f"The container {selected_container_name} requires the installation of "
+                    output = "The container {} requires the installation of ".format(selected_container_name)
                     show = False
                     containers_to_show = []
                     for item in required_containers:
@@ -156,7 +160,7 @@ def select_containers(screen):
                                 break
                 
                 if len(recommended_containers):
-                    output = f"The container {selected_container_name} recommends the installation of "
+                    output = "The container {} recommends the installation of ".format(selected_container_name)
                     show = False
                     containers_to_show = []
                     for item in recommended_containers:
@@ -384,10 +388,10 @@ def config_container(screen):
                             elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
                                 for i in range (1, height - 1):  # clear all the old lines out, just in case
                                     screen.addstr(i, 0, " " * (width - 1))
-                                screen.addstr(3, 0, f"Container Variable: {option_values['display_name']}")
-                                screen.addstr(4, 0, f"Container Variable: {option_values['user_description']}")
+                                screen.addstr(3, 0, "Container Variable: {}".format(option_values['display_name']))
+                                screen.addstr(4, 0, "Container Variable: {}".format(option_values['user_description']))
                                 if 'user_required_description' in option_values:
-                                    screen.addstr(5, 0, f"Required Formatting: {option_values['user_required_description']}")
+                                    screen.addstr(5, 0, "Required Formatting: {}".format(option_values['user_required_description']))
                                 
                                 if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                     response = handle_string(screen, option_values, options, height, width)
@@ -450,7 +454,7 @@ def config_container(screen):
 def show_proceed_screen(screen, container_name, height, width):
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
-    output = f"It it now time to configure {container_name}. Press enter to proceed."
+    output = "It it now time to configure {}. Press enter to proceed.".format(container_name)
     screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2),output)
     screen.refresh()
     while True:
@@ -467,7 +471,7 @@ def show_proceed_screen(screen, container_name, height, width):
 def show_section_info(screen, info, height, width):
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
-    output = f"{info}. Press enter to proceed."
+    output = "{}. Press enter to proceed.".format(info)
     screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2),output)
     screen.refresh()
     while True:
@@ -495,8 +499,8 @@ def handle_groups(screen, option_values, option, height, width):
             else:
                 for i in range (1, height - 1):  # clear all the old lines out, just in case
                     screen.addstr(i, 0, " " * (width - 1))
-                screen.addstr(3, 0, f"Container Variable: {group['display_name']}")
-                screen.addstr(4, 0, f"Container Variable: {group['user_description']}")
+                screen.addstr(3, 0, "Container Variable: {}".format(group['display_name']))
+                screen.addstr(4, 0, "Container Variable: {}".format(group['user_description']))
                 if result == "":
                     if 'variable_type' not in group or group['variable_type'] == "string":
                         result = handle_string(screen, group, key, height, width)
@@ -715,9 +719,9 @@ def do_run_section(screen, user_question, user_question_after=None, first=True, 
         screen.addstr(i, 0, " " * (width - 1))
 
     if first or user_question_after is None:
-        screen.addstr(3, 0, f"{user_question}")
+        screen.addstr(3, 0, "{}".format(user_question))
     else:
-        screen.addstr(3, 0, f"{user_question_after}")
+        screen.addstr(3, 0, "{}".format(user_question_after))
 
     selection = 0
     exit = False
@@ -748,12 +752,12 @@ def do_run_section(screen, user_question, user_question_after=None, first=True, 
         k = screen.getch()                               
 
 
-def raise_on_duplicate_keys(ordered_pairs: List[Tuple[Hashable, Any]]) -> Dict:
+def raise_on_duplicate_keys(ordered_pairs):
     """Raise ValueError if a duplicate key exists in provided ordered list of pairs, otherwise return a dict."""
-    dict_out = {}
+    dict_out = collections.OrderedDict()
     for key, val in ordered_pairs:
         if key in dict_out:
-            raise ValueError(f'Duplicate key: {key}')
+            raise ValueError('Duplicate key: {}'.format(key))
         else:
             dict_out[key] = val
     return dict_out
@@ -883,7 +887,7 @@ def write_compose(screen):
                                                     for character in option_item['replace_characters']:
                                                         output_string = output_string.replace(character, character * 2)
                                             continue
-                        compose.write(tab + tab + tab + f"- {bypass_yaml}" + variable + "=" + str(output_string) + f"{bypass_yaml}\n")
+                        compose.write(tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=" + str(output_string) + "{}\n".format(bypass_yaml))
                     except Exception as e:
                         import time
                         print(e)
@@ -933,9 +937,9 @@ def write_compose(screen):
                     tmpfs_strings = []
                     for volume, volumes_config in containers[container]['container_config']['volumes'].items():
                         if len(re.findall(r"^volume_\d+", volume)):
-                            volumes_strings.append(tab + tab + tab + f"- {volumes_config['docker_volume_name']}:{volumes_config['container_path']}\n")
+                            volumes_strings.append(tab + tab + tab + "- {}:{}\n".format(volumes_config['docker_volume_name'], volumes_config['container_path']))
                         elif len(re.findall(r"^tmpfs_\d+", volume)):
-                            tmpfs_strings.append(tab + tab + tab + f"- {volumes_config['container_path']}:{volumes_config['tmpfs_options']}\n")
+                            tmpfs_strings.append(tab + tab + tab + "- {}:{}\n".format(volumes_config['container_path'], volumes_config['tmpfs_options']))
                         
                     if len(volumes_strings):
                         compose.write(tab + tab + "volumes:\n")
@@ -998,8 +1002,18 @@ if __name__ == "__main__":
         if args.files is not None:
             config = json.load(open(args.files), object_pairs_hook=raise_on_duplicate_keys)
         else:
-            config = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json").read().decode(), object_pairs_hook=raise_on_duplicate_keys)
+            # open the file. Using try/except so that the correct libraries are used
+            try:
+                config = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json").read().decode(), object_pairs_hook=raise_on_duplicate_keys)
+            except Exception as e:
+                try:
+                    config = json.loads(urllib2.urlopen(urllib2.Request("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json")).read().decode(), object_pairs_hook=raise_on_duplicate_keys)
+                except Exception:
+                    pass
         
+        if not config:
+            print("Error with loading plugins.")
+            sys.exit(1)
         get_containers()
         while True:
             if page == 1:
@@ -1017,6 +1031,9 @@ if __name__ == "__main__":
                 exit_app()
 
     except KeyboardInterrupt as e:
+        exit_app()
+    except ValueError as e:
+        print("Duplicate key detected: ", e)
         exit_app()
     except Exception as e:
         print("Exception: ", e)
