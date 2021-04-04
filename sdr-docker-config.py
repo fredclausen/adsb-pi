@@ -126,15 +126,16 @@ def select_containers(screen):
                         continue
                 
                 if len(required_containers):
-                    output = f"The container {selected_container_name} requires the installation of"
+                    output = f"The container {selected_container_name} requires the installation of "
                     show = False
+                    containers_to_show = []
                     for item in required_containers:
                         for container in containers:
                             if containers[container]['container_name'] == item and containers[container]['index'] not in selected_containers:
                                 show = True
                                 required_containers_index.append(containers[container]['index'])
-                                output += f" {containers[container]['container_display_name']}"
-                    
+                                containers_to_show.append(containers[container]['container_display_name'])
+                    output += ", ".join(i for i in containers_to_show)
                     if show:
                         clear_screen(screen)
                         output += ". Press (Y) to select these containers or (N) to skip."
@@ -149,15 +150,16 @@ def select_containers(screen):
                                 break
                 
                 if len(recommended_containers):
-                    output = f"The container {selected_container_name} recommends the installation of"
+                    output = f"The container {selected_container_name} recommends the installation of "
                     show = False
+                    containers_to_show = []
                     for item in recommended_containers:
                         for container in containers:
                             if containers[container]['container_name'] == item and containers[container]['index'] not in selected_containers:
                                 show = True
                                 recommended_containers_index.append(containers[container]['index'])
-                                output += f" {containers[container]['container_display_name']}"
-                    
+                                containers_to_show.append(containers[container]['container_display_name'])
+                    output += ", ".join(i for i in containers_to_show)
                     if show:
                         clear_screen(screen)
                         output += ". Press (Y) to select these containers or (N) to skip."
@@ -257,6 +259,8 @@ def config_container(screen):
 
     while num_containers < len(container_list):
         item = container_list[num_containers]
+        # clear the first line
+        screen.addstr(0, 0, " " * (width - 1))
         screen.addstr(0, 0, item['container_display_name'])
         container_config = item['container_config']
         env_settings = {}
@@ -373,7 +377,7 @@ def config_container(screen):
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
                                             else:
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "False"
-                                elif option_values['variable_type'] == 'multi_choice':
+                                elif option_values['variable_type'] == 'multi-choice':
                                     response = handle_multi_choice(screen, option_values, options, height, width)
 
                                     env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
@@ -459,7 +463,7 @@ def handle_groups(screen, option_values, option, height, width):
                 if result == "":
                     if 'variable_type' not in group or group['variable_type'] == "string":
                         result = handle_string(screen, group, key, height, width)
-                    elif group['variable_type'] == "multi_choice":
+                    elif group['variable_type'] == "multi-choice":
                         result = handle_multi_choice(screen, group, key, height, width)
                 else:
                     if 'variable_type' not in group or group['variable_type'] == "string":
@@ -638,6 +642,7 @@ def handle_multi_choice(screen, option_values, options, height, width):
     curses.curs_set(0)
     max_selection = len(option_values['multi_choice_options'])
     k = ""
+
     while not exit:
         if k == curses.KEY_UP:
             selection -= 1
