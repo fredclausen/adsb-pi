@@ -404,7 +404,7 @@
                     "bypass_yaml": true,
                     "replace_characters": ["$"],
                     "user_description": "Your station's client key",
-                    "env_name": "TZ",
+                    "env_name": "CLIENTKEY",
                     "default_value": "",
                     "user_required": true,
                     "compose_required": true
