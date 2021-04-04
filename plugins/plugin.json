@@ -431,6 +431,9 @@
                     "container_port": 37981
                 }
             },
+            "devices": {
+                "usb": true
+            },
             "section_1": {
                 "option_1": {
                     "display_name": "Time Zone",
@@ -582,6 +585,105 @@
                     "user_required": false,
                     "advanced": true,
                     "variable_type": "boolean"
+                }
+            }
+        }
+    },
+    "container_6": {
+        "config_version": 1.0,
+        "container_name": "mlat",
+        "container_display_name": "MLAT Hub",
+        "container_image": "mikenye/readsb-protobuf:latest",
+        "container_website": "https://github.com/mikenye/docker-readsb-protobuf",
+        "recommends": {
+            "container_1": "piaware",
+            "container_2": "adsbx",
+            "container_3": "radar_box",
+            "container_4": "tar1090"
+        },
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "MLAT Hub is used to aggregate MLAT data from feeders that support it and then feed it to readsb so that utilities that can use that data will have it",
+            "template_01": {
+                "env_name_out": "READSB_NET_CONNECTOR",
+                "separator": ";",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "piaware,30105,beast_in"
+                },
+                "include_02": {
+                    "container": "adsbx",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "dump978,30105,beast_in"
+                },
+                "include_03": {
+                    "container": "radar_box",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "radar_box,30105,beast_in"
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "Performance graphs",
+                    "user_description": "Disable performance graphs",
+                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "DISABLE_WEBAPP",
+                    "user_description": "Disable webapp",
+                    "env_name": "DISABLE_WEBAPP",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_4": {
+                    "display_name": "Net enable",
+                    "user_description": "Enable networking",
+                    "env_name": "READSB_NET_ENABLE",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_5": {
+                    "display_name": "Net only",
+                    "user_description": "READSB_NET_ONLY",
+                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_6": {
+                    "display_name": "READSB_NET_BEAST_OUTPUT_PORT",
+                    "user_description": "Beast output port",
+                    "env_name": "READSB_NET_BEAST_OUTPUT_PORT",
+                    "default_value": "30105",
+                    "advanced": true,
+                    "compose_required": true
                 }
             }
         }
@@ -847,6 +949,590 @@
     },
     "container_10": {
         "config_version": 1.0,
+        "container_name": "readsb",
+        "container_display_name": "readsb",
+        "container_image": "mikenye/readsb-protobuf:latest",
+        "container_website": "https://github.com/mikenye/docker-readsb-protobuf",
+        "recommends": {
+                "container_1": "mlat"
+        },
+        "container_config": {
+            "user_description": "readsb is the datahub of ADSB reception. All feeders will connect to this to container to get the ADSB positions your site is receiving.",
+            "devices": {
+                "usb": true
+            },
+            "ports": {
+                "port_1": {
+                    "container_port": 8080
+                },
+                "port_2": {
+                    "container_port": 30001
+                },
+                "port_3": {
+                    "container_port": 30002
+                },
+                "port_4": {
+                    "container_port": 30003
+                },
+                "port_5": {
+                    "container_port": 30004
+                },
+                "port_6": {
+                    "container_port": 30005
+                },
+                "port_7": {
+                    "container_port": 30104
+                }
+            },
+            "volumes": {
+                "volume_1": {
+                    "docker_volume_name": "readsb",
+                    "container_path": "/run/readsb"
+                },
+                "volume_2": {
+                    "docker_volume_name": "readsb-collectd",
+                    "container_path": "/run/collectd"
+                },
+                "volume_3": {
+                    "docker_volume_name": "readsb-autogain",
+                    "container_path": "/run/autogain"
+                }
+            },
+            "template_01": {
+                "env_name_out": "READSB_NET_CONNECTOR",
+                "separator": ";",
+                "include_01": {
+                    "container": "mlat",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "mlat,30105,beast_in"
+                },
+                "include_02": {
+                    "container": "dump978",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "dump978,30978,raw_in"
+                }
+            },
+            "section_1": {
+                "user_description": "In this section we'll set up some basic configuration options for readsb",
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "Verbose Logging",
+                    "user_description": "Enable verbose logging",
+                    "env_name": "VERBOSE_LOGGING",
+                    "default_value": false,
+                    "compose_required": false,
+                    "variable_type": "boolean",
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Disable Webapp",
+                    "user_description": "Disable the built in webapp",
+                    "env_name": "DISABLE_WEBAPP",
+                    "default_value": false,
+                    "compose_required": false,
+                    "variable_type": "boolean",
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Disable performance graphs",
+                    "user_description": "Disable the performance graphs",
+                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
+                    "default_value": false,
+                    "boolean_override_false": "",
+                    "compose_required": false,
+                    "variable_type": "boolean",
+                    "advanced": true
+                }
+            },
+            "section_2": {
+                "user_description": "In this section you'll choose what kind of SDR to set up",
+                "option_1": {
+                    "display_name": "SDR type",
+                    "user_description": "What kind of SDR do you have?",
+                    "env_name": "READSB_DEVICE_TYPE",
+                    "compose_required": true,
+                    "variable_type": "multi-choice",
+                    "multi_choice_options": {
+                        "option_1": {
+                            "user_text": "RTL-SDR (most common)",
+                            "env_text": "rtlsdr"
+                        },
+                        "option_2": {
+                            "user_text": "BladeRF",
+                            "env_text": "bladerf"
+                        },
+                        "option_3": {
+                            "user_text": "Mode S Beast",
+                            "env_text": "modesbeast"
+                        },
+                        "option_4": {
+                            "user_text": "GNS Hulc",
+                            "env_text": "gnshulc"
+                        },
+                        "option_5": {
+                            "user_text": "Pluto SDR",
+                            "env_text": "plutosdr"
+                        }
+                    }
+                }
+            },
+            "section_3": {
+                "depends_on": {
+                    "env_name": "READSB_DEVICE_TYPE",
+                    "env_name_value": "rtlsdr"
+                },
+                "user_description": "This section will set up options unique to the RTL SDR",
+                "option_1": {
+                    "env_name": "READSB_RTLSDR_DEVICE",
+                    "display_name": "RTL-SDR serial",
+                    "user_description": "The serial number for the RTL-SDR device that you receive ADSB on",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "env_name": "READSB_RTLSDR_ENABLE_AGC",
+                    "display_name": "Automatic Gain Control",
+                    "user_description": "Would you like to enable Automatic Gain Control? Recommended to leave off as the container has a better AGC system than this option",
+                    "default_value": false,
+                    "advanced": true,
+                    "variable_type": "boolean",
+                    "compose_required": false
+                },
+                "option_3": {
+                    "env_name": "READSB_RTLSDR_PPM",
+                    "display_name": "PPM Correction",
+                    "user_description": "If your SDR requires PPM correction please input the value below.",
+                    "default_value": "",
+                    "compose_required": false
+                }
+            },
+            "section_4": {
+                "depends_on": {
+                    "env_name": "READSB_DEVICE_TYPE",
+                    "env_name_value": "bladerf"
+                },
+                "user_description": "This section will set up options unique to Blade RF",
+                "option_1": {
+                    "env_name": "READSB_BLADERF_DEVICE",
+                    "display_name": "Blade RF Device Identifier",
+                    "user_description": "The Blade RF Device Identifier",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "env_name": "READSB_BLADERF_BANDWIDTH",
+                    "display_name": "Blade RF Bandwidth",
+                    "user_description": "Set LPF bandwidth ('bypass' to bypass the LPF).",
+                    "default_value": "",
+                    "compose_required": false
+                },
+                "option_3": {
+                    "env_name": "READSB_BLADERF_DECIMATION",
+                    "display_name": "Blade RF Decimation",
+                    "user_description": "Assume FPGA decimates by a factor of N.",
+                    "default_value": "",
+                    "compose_required": false
+                },
+                "option_4": {
+                    "env_name": "READSB_BLADERF_FPGA",
+                    "display_name": "Blade RF FPGA",
+                    "user_description": "Use alternative FPGA bitstream ('' to disable FPGA load).",
+                    "default_value": "",
+                    "compose_required": false
+                }
+            },
+            "section_5": {
+                "depends_on": {
+                    "env_name": "READSB_DEVICE_TYPE",
+                    "env_name_value": "modesbeast"
+                },
+                "user_description": "This section will set up options unique to Mode-S Beast",
+                "option_1": {
+                    "display_name": "CRC Control",
+                    "user_description": "Turn off CRC checking",
+                    "env_name": "READSB_BEAST_CRC_OFF",
+                    "variable_type": "boolean",
+                    "boolean_override_true": "",
+                    "default_value": true,
+                    "compose_required": false
+                },
+                "option_2": {
+                    "display_name": "DF0/4/5 Filter",
+                    "user_description": "Turn ON DF0/4/5 filter",
+                    "env_name": "READSB_BEAST_DF045_ON",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_3": {
+                    "display_name": "DF11/17 Filter",
+                    "user_description": "Turn ON DF0/4/5 filter",
+                    "env_name": "READSB_BEAST_DF1117_ON",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_4": {
+                    "display_name": "Forward Error Correction",
+                    "user_description": "Turn OFF CRC checking",
+                    "env_name": "READSB_BEAST_FEC_OFF",
+                    "variable_type": "boolean",
+                    "boolean_override_true": "",
+                    "default_value": true,
+                    "compose_required": false
+                },
+                "option_5": {
+                    "display_name": "MLAT Time Stamps",
+                    "user_description": "Turn OFF MLAT time stamps",
+                    "env_name": "READSB_BEAST_MLAT_OFF",
+                    "variable_type": "boolean",
+                    "boolean_override_true": "",
+                    "default_value": true,
+                    "compose_required": false
+                },
+                "option_6": {
+                    "display_name": "Mode A/C",
+                    "user_description": "Turn ON MLAT Mode A/C",
+                    "env_name": "READSB_BEAST_MODEAC",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_7": {
+                    "display_name": "Serial Device Path",
+                    "user_description": "Path to Beast serial device",
+                    "env_name": "READSB_BEAST_SERIAL",
+                    "default_value": "",
+                    "compose_required": true,
+                    "user_required": true
+                }
+            },
+            "section_6": {
+                "depends_on": {
+                    "env_name": "READSB_DEVICE_TYPE",
+                    "env_name_value": "gnshulc"
+                },
+                "user_description": "This section will set up options unique to GNS HULC",
+                "option_1": {
+                    "display_name": "Serial Path",
+                    "user_description": "Path to the serial device",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true,
+                    "env_name": "READSB_BEAST_SERIAL"
+                }
+            },
+            "section_7": {
+                "depends_on": {
+                    "env_name": "READSB_DEVICE_TYPE",
+                    "env_name_value": "plutosdr"
+                },
+                "user_description": "This section will set up options unique to GNS ADALM-Pluto SDR",
+                "option_1": {
+                    "display_name": "Pluto Serial",
+                    "user_description": "Hostname or IP to create networks context",
+                    "default_value": "pluto.local",
+                    "compose_required": true,
+                    "env_name": "READSB_PLUTO_NETWORK"
+                },
+                "option_2": {
+                    "display_name": "Pluto URI",
+                    "user_description": "Create USB context from this URI. (eg. usb:1.2.5)",
+                    "default_value": "",
+                    "compose_required": true,
+                    "user_required": true,
+                    "env_name": "READSB_PLUTO_URI"
+                }
+            },
+            "section_8": {
+                "user_description": "This section will configure the rest of the readsb options",
+                "option_1": {
+                    "env_name": "READSB_NET_ENABLE",
+                    "user_description": "Enable network mode for readsb. Recommended",
+                    "display_name": "READSB net enable",
+                    "compose_required": true,
+                    "default_value": true,
+                    "advanced": true,
+                    "boolean_override_false": "",
+                    "variable_type": "boolean"
+                },
+                "option_2": {
+                    "env_name": "READSB_GAIN",
+                    "display_name": "READSB Gain",
+                    "user_description": "Set the gain value for the SDR device. Valid values are dB for a manual value or \"autogain\" to enable the container to select the best gain for your setup",
+                    "compose_required": true,
+                    "default_value": "autogain"
+                },
+                "option_3": {
+                    "env_name": "READSB_DCFILTER",
+                    "user_description": "Apply a 1Hz DC filter to input data (requires more CPU)",
+                    "display_name": "DC Filter",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_4": {
+                    "env_name": "READSB_ENABLE_BIASTEE",
+                    "user_description": "Enable bias tee on supporting interfaces",
+                    "display_name": "Bias Tee",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_5": {
+                    "env_name": "READSB_FIX",
+                    "user_description": "Enable CRC single-bit error correction",
+                    "display_name": "CRC Bit Correction",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "compose_required": false
+                },
+                "option_6": {
+                    "env_name": "READSB_FREQ",
+                    "user_description": "Frequency for the SDR",
+                    "display_name": "SDR Frequency",
+                    "default_value": "1090",
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_7": {
+                    "env_name": "READSB_GNSS",
+                    "user_description": "Show altitudes as GNSS when available",
+                    "display_name": "Show GNSS Altitudes",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_8": {
+                    "env_name": "READSB_LAT",
+                    "user_description": "Site Latitude",
+                    "display_name": "Latitude",
+                    "default_value": "",
+                    "compose_required": true,
+                    "user_required": true
+                },
+                "option_9": {
+                    "env_name": "READSB_LON",
+                    "user_description": "Site Longitude",
+                    "display_name": "Longitude",
+                    "default_value": "",
+                    "compose_required": true,
+                    "user_required": true
+                },
+                "option_10": {
+                    "env_name": "READSB_MAX_RANGE",
+                    "user_description": "Maximum range for position decoding",
+                    "display_name": "Max Range",
+                    "default_value": "300",
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_11": {
+                    "env_name": "READSB_METRIC",
+                    "user_description": "Display values as metric",
+                    "display_name": "Metric",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false
+                },
+                "option_12": {
+                    "env_name": "READSB_MLAT",
+                    "user_description": "Display raw messages in Beast ASCII format",
+                    "display_name": "Raw MLAT",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_13": {
+                    "env_name": "READSB_MODEAC",
+                    "user_description": "Enable Mode 3/A and 3/C decoding",
+                    "display_name": "Mode AC Decoding",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "compose_required": false
+                },
+                "option_14": {
+                    "env_name": "READSB_NO_CRC_CHECK",
+                    "user_description": "Disable messages with invalid CRC (discouragd)",
+                    "display_name": "No CRC Check",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_15": {
+                    "env_name": "READSB_NO_FIX",
+                    "user_description": "Disable single-bit error correction",
+                    "display_name": "No CRC Fix",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_16": {
+                    "env_name": "READSB_NO_MODEAC_AUTO",
+                    "user_description": "Disable Mode A/C being enabled if requested by beast connection",
+                    "display_name": "No requested Mode A/C decoding",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_17": {
+                    "env_name": "READSB_RX_LOCATION_ACCURACY",
+                    "user_description": "Accuracy of location in metadata. Use the values '0', '1' or '2'. 0=no location, 1=approximate, 2=exact",
+                    "display_name": "Location accuracy.",
+                    "default_value": "2",
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_18": {
+                    "env_name": "READSB_STATS_EVERY",
+                    "user_description": "Number of seconds between showing and resetting stats.",
+                    "display_name": "Seconds between show/reset stats",
+                    "default_value": "",
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_19": {
+                    "env_name": "READSB_STATS_RANGE",
+                    "user_description": "Set this to any value to collect range statistics for polar plot.",
+                    "display_name": "Polar range",
+                    "default_value": "",
+                    "compose_required": false,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_11": {
+        "config_version": 1.0,
+        "container_name": "radar_box",
+        "container_display_name": "Radar Box Feeder",
+        "container_image": "mikenye/radarbox:latest",
+        "container_website": "https://github.com/mikenye/docker-radarbox",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for Radar Box from a BEAST source",
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Radar Box Sharing Key",
+                    "user_description": "The sharing key from Radar Box",
+                    "env_name": "SHARING_KEY",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true
+                },
+                "option_5": {
+                    "display_name": "Site Latitude",
+                    "user_description": "Site latitude",
+                    "env_name": "LAT",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_6": {
+                    "display_name": "Site Longitude",
+                    "user_description": "Site longitude",
+                    "env_name": "LONG",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_7": {
+                    "display_name": "Site Altitude",
+                    "user_description": "Site Altitude In METERS",
+                    "env_name": "ALT",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_8": {
+                    "display_name": "MLAT Input Type",
+                    "user_description": "Optional. Sets the input receiver type. Run docker run --rm -it --entrypoint mlat-client mikenye/radarbox --help and see --input-type for valid values.",
+                    "env_name": "MLAT_INPUT_TYPE",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_9": {
+                    "display_name": "MLAT Input Type",
+                    "user_description": "Optional. How often to print statistics, in minutes.",
+                    "env_name": "STATS_INTERVAL_MINUTES",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_10": {
+                    "display_name": "Verbose Logging",
+                    "user_description": "Optional. Set to true for no filtering of rbfeeder logs.",
+                    "env_name": "VERBOSE_LOGGING",
+                    "default_value": false,
+                    "variable_type": "boolean",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_12": {
+        "config_version": 1.0,
         "container_name": "rawflight",
         "container_display_name": "Raw Flight Feeder",
         "container_image": "mikenye/rawflight:latest",
@@ -887,7 +1573,7 @@
             }
         }
     },
-    "container_11": {
+    "container_13": {
         "config_version": 1.0,
         "container_name": "tar1090",
         "container_display_name": "tar1090",
@@ -1130,6 +1816,33 @@
                             "env_text": "imperial"
                         }
                     }
+                },
+                "option_9": {
+                    "display_name": "Bing Maps API Key",
+                    "user_description": "Provide a Bing Maps API key to enable the Bing imagery layer. You can obtain a free key (with usage limits) at https://www.bingmapsportal.com/ (you need a \"basic key\").",
+                    "env_name": "TAR1090_BINGMAPSAPIKEY",
+                    "default_value": "3",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_10": {
+                    "display_name": "Default Zoom Level",
+                    "user_description": "The google maps zoom level, 0 - 16, lower is further out.",
+                    "env_name": "TAR1090_DEFAULTZOOMLVL",
+                    "default_value": "7",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true,
+                    "validator": "[0-9]+"
+                },
+                "option_11": {
+                    "display_name": "Site Name",
+                    "user_description": "Site name displayed on the tar1090 website",
+                    "env_name": "TAR1090_SITENAME",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false
                 }
             }
         }

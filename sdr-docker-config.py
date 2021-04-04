@@ -373,7 +373,7 @@ def config_container(screen):
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
                                             else:
                                                 env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "False"
-                                elif option_values['variable_type'] == 'multi_choice':
+                                elif option_values['variable_type'] == 'multi-choice':
                                     response = handle_multi_choice(screen, option_values, options, height, width)
 
                                     env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
@@ -459,7 +459,7 @@ def handle_groups(screen, option_values, option, height, width):
                 if result == "":
                     if 'variable_type' not in group or group['variable_type'] == "string":
                         result = handle_string(screen, group, key, height, width)
-                    elif group['variable_type'] == "multi_choice":
+                    elif group['variable_type'] == "multi-choice":
                         result = handle_multi_choice(screen, group, key, height, width)
                 else:
                     if 'variable_type' not in group or group['variable_type'] == "string":
@@ -638,6 +638,7 @@ def handle_multi_choice(screen, option_values, options, height, width):
     curses.curs_set(0)
     max_selection = len(option_values['multi_choice_options'])
     k = ""
+
     while not exit:
         if k == curses.KEY_UP:
             selection -= 1
