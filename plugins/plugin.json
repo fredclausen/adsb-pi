@@ -6,6 +6,7 @@
         "container_display_name": "ACARS Hub",
         "container_image": "fredclausen/acarshub:latest",
         "container_website": "http://www.github.com/fredclausen/acarshub",
+        "user_full_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page.\nRequires one or more SDRs.",
         "container_config": {
             "user_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
             "volumes": {
@@ -284,6 +285,7 @@
         "container_display_name": "ADSB Exchange Feeder",
         "container_image": "mikenye/adsbexchange:latest",
         "container_website": "https://github.com/mikenye/docker-adsbexchange",
+        "user_full_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired.\n\nRequires a beast source such as readsb\n\nRecommends MLAT Hub so that MLAT data returned from ADSB Exchange can be displayed\n\nAlso requires a UUID. If you do not have a UUID please see the container's webpage",
         "requires": {
             "container_1": "readsb"
         },
@@ -321,8 +323,9 @@
                     "user_description": "Your ADSBX UUID. If you don't have one yet, please leave blank and follow the setup instructions at the source repo to aquire one.",
                     "env_name": "UUID",
                     "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_4": {
                     "display_name": "Station Latitude",
@@ -365,6 +368,7 @@
         "container_display_name": "ADSB Hub Feeder",
         "container_image": "mikenye/adsbhub:latest",
         "container_website": "https://github.com/mikenye/docker-adsbhub",
+        "user_full_description": "The ADSB Hub container is used to feed ADSB data from a SBS source such as readsb.\n\nRequires: a beast source such as readsb\n\nAlso Requires a client key. If you do not have a client key please see the container's website",
         "requires": {
             "container_1": "readsb"
         },
@@ -406,8 +410,9 @@
                     "user_description": "Your station's client key",
                     "env_name": "CLIENTKEY",
                     "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 }
             }
         }
@@ -418,6 +423,7 @@
         "container_display_name": "dump978",
         "container_image": "mikenye/dump978:latest",
         "container_website": "https://github.com/mikenye/docker-dump978",
+        "user_full_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only\n\nRequires a SDR to receive UAT",
         "container_config": {
             "user_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only",
             "ports": {
@@ -513,6 +519,7 @@
         "container_display_name": "Flight Radar 24 Feeder",
         "container_image": "mikenye/fr24feed:latest",
         "container_website": "https://github.com/mikenye/docker-flightradar24",
+        "user_full_description": "Feeder for Flight Radar 24 from a BEAST source such as readsb.\n\nRequires a beast source such as readsb.\n\nIf you do not have a sharing key please see container website",
         "requires": {
             "container_1": "readsb"
         },
@@ -563,8 +570,9 @@
                     "user_description": "Your station's sharing key",
                     "env_name": "FR24KEY",
                     "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_5": {
                     "display_name": "MLAT",
@@ -595,6 +603,7 @@
         "container_display_name": "MLAT Hub",
         "container_image": "mikenye/readsb-protobuf:latest",
         "container_website": "https://github.com/mikenye/docker-readsb-protobuf",
+        "user_full_description": "MLAT Hub is used to aggregate MLAT data from feeders that support it and then feed it to readsb so that utilities that can use that data will have it\n\nRequires readsb, which will receive the MLAT data to distribute out to clients that support it\n\nRecommends piaware, ADSB Exchange, Radar Box and tar1090",
         "recommends": {
             "container_1": "piaware",
             "container_2": "adsbx",
@@ -694,6 +703,7 @@
         "container_display_name": "Open Sky Feeder",
         "container_image": "mikenye/opensky-network:latest",
         "container_website": "https://github.com/mikenye/docker-opensky-network",
+        "user_full_description": "Feeder for Open Sky from a BEAST source\r\rRequires: readsb or another beast source of data\n\nIf you do not have a client key for OpenSky please see the container's website",
         "requires": {
             "container_1": "readsb"
         },
@@ -734,7 +744,8 @@
                     "env_name": "OPENSKY_USERNAME",
                     "default_value": "",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_5": {
                     "display_name": "Open Sky Serial",
@@ -742,7 +753,8 @@
                     "env_name": "OPENSKY_SERIAL",
                     "default_value": "",
                     "compose_required": true,
-                    "user_required": true
+                    "user_required": false,
+                    "addtional_setup_required": true
                 },
                 "option_6": {
                     "display_name": "LAT",
@@ -777,6 +789,7 @@
         "container_display_name": "PiAware",
         "container_image": "mikenye/piaware:latest",
         "container_website": "https://github.com/mikenye/docker-piaware",
+        "user_full_description": "Feeder for FlightAware.\n\nRequires: readsb or another beast source\n\nThis container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
         "requires": {
             "container_1": "readsb"
         },
@@ -833,8 +846,9 @@
                     "user_description": "Your PiAware Feeder ID",
                     "env_name": "FEEDER_ID",
                     "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_3": {
                     "display_name": "Bing Map API Key",
@@ -953,6 +967,7 @@
         "container_display_name": "readsb",
         "container_image": "mikenye/readsb-protobuf:latest",
         "container_website": "https://github.com/mikenye/docker-readsb-protobuf",
+        "user_full_description": "readsb is the datahub of ADSB reception. All feeders will connect to this to container to get the ADSB positions your site is receiving.\n\nRequires: A dedicated SDR for received 1090mhz",
         "recommends": {
                 "container_1": "mlat"
         },
@@ -1436,6 +1451,7 @@
         "container_display_name": "Radar Box Feeder",
         "container_image": "mikenye/radarbox:latest",
         "container_website": "https://github.com/mikenye/docker-radarbox",
+        "user_full_description": "Feeder for Radar Box from a BEAST source\n\nRequires: readsb or another beast source of data\n\nAlso requires a sharing key. If you do not have one please visit the container's website",
         "requires": {
             "container_1": "readsb"
         },
@@ -1474,7 +1490,8 @@
                     "env_name": "SHARING_KEY",
                     "default_value": "",
                     "user_required": false,
-                    "compose_required": true
+                    "compose_required": true,
+                    "addtional_setup_required": true
                 },
                 "option_5": {
                     "display_name": "Site Latitude",
@@ -1537,6 +1554,7 @@
         "container_display_name": "Raw Flight Feeder",
         "container_image": "mikenye/rawflight:latest",
         "container_website": "https://github.com/mikenye/docker-rawflight",
+        "user_full_description": "Feeder for rawflight.eu from a BEAST source\n\nRequires: readsb or another beast source of data",
         "requires": {
             "container_1": "readsb"
         },
@@ -1579,6 +1597,7 @@
         "container_display_name": "tar1090",
         "container_image": "mikenye/tar1090:latest",
         "container_website": "https://github.com/mikenye/docker-tar1090",
+        "user_full_description": "tar1090. Local viewing of your ADSB data\n\nRequires: readsb or another beast source of data",
         "requires": {
             "container_1": "readsb"
         },

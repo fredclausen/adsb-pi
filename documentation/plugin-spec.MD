@@ -61,6 +61,7 @@ The plugin file will start out with the following items:
         "container_display_name": "Name of Container",
         "container_image": "image",
         "container_website": "url",
+        "user_full_description": "text",
         "container_config": {
 
         }
@@ -77,6 +78,7 @@ The plugin file will start out with the following items:
 | `container_image` | The dockerhub, or applicable, path to the image | Yes | `standard formatting for docker-images` |
 | `container_website` | The URL for the container's website | No | `standard URL formatting` |
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
+| `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
 
 ## **Container Config**
 
@@ -339,6 +341,7 @@ Below is the configuration for an environment variable in a section, also known 
 | `user_required` | This is used to indicate the user is required to provide unique input. If `advanced` is set to `true` the user will be required to provide input **ONLY** if the user is in `advanced` configuration mode. | No | `true` or `false` | `false` |
 | `compose_required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | No | `boolean` | `false` |
 | `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
+| `additional_setup_required` | If this is set, and the user inputs the default value, the user will be informed that the container requires additional setup | No | `boolean` | `false` |
 
 The `multi_choice_options` list should be formatted as follows
 
@@ -479,6 +482,7 @@ For the following fields
 * `user_question_after`
 * `user_description`
 * `user_required_formatting`
+* `user_full_description`
 
 It may be desirable to apply text-formatting to enhance the readability of the text. Standard markdown syntax can be applied in the text strings of these fields. Not all clients that use the plugins will support the use of markdown, so any field that uses markdown should have `_markdown` appended to the field name, such as `user_question_markdown`. You should **always** include the non-markdown field, and if you want markdown, also include the markdown version of that setting. The client will choose the correct field to use. If no markdown field is present, the client will always use the appropriate non-markdown field.
 
