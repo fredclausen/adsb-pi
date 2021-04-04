@@ -263,20 +263,22 @@ def validate_option(container_name=None, values=None, as_group=False):
         return
      # now run through all keys
     required_keys = ['display_name', 'user_description', 'env_name', 'default_value']
-    valid_keys = ['display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description', 'bypass_yaml', 'replace_characters']
+    valid_keys = ['bypass_yaml', 'replace_character', 'display_name', 'user_description', 'env_name', 'disable_user_set', 'default_value', 'variable_type', 'boolean_override_true', 'boolean_override_false', 'multi_choice_options', 'user_required', 'compose_required', 'advanced', 'validator', 'user_required_description', 'bypass_yaml', 'replace_characters']
     # now lets add in all of the additional required keys based on certian options
 
     if 'variable_type' in values and values['variable_type'] == "multi-choice":
         required_keys.append('multi_choice_options')
         required_keys.remove('default_value')
+    if 'variable_type' not in values or values['variable_type'] == "string":
+        valid_keys.remove('boolean_override_true')
+        valid_keys.remove('boolean_override_false')
 
     if as_group:
         required_keys.remove("env_name")
-        required_keys.append("field_combine")
 
     for option_key, option_items in values.items():
         if option_key not in valid_keys:
-           raise ValueError(f"{container_name} loops has option invalid key {option_key}")
+           raise ValueError(f"{container_name} options has option invalid key {option_key}")
 
         if option_key == "loops" or option_key == "run_if" or option_key == "depends_on":
             # we've already validated these
@@ -285,28 +287,28 @@ def validate_option(container_name=None, values=None, as_group=False):
             required_keys.remove('display_name')
 
             if not isinstance(option_items, str) and len(option_items) == 0:
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
         
         elif option_key == 'user_description':
             required_keys.remove('user_description')
 
             if not isinstance(option_items, str) and len(option_items) == 0:
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
         
         elif option_key == 'env_name':
             required_keys.remove('env_name')
 
             if not isinstance(option_items, str) and len(option_items) == 0:
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
 
         elif option_key == 'disable_user_set':
             if not isinstance(option_items, bool):
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a boolean")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a boolean")
         
         elif option_key == 'default_value':
             required_keys.remove('default_value')
             if 'variable_type' in values and values['variable_type'] == "multi-choice":
-                raise ValueError(f"{container_name} loops has option key {option_key} with 'variable_type' set to 'multi-choice'")
+                raise ValueError(f"{container_name} options has option key {option_key} with 'variable_type' set to 'multi-choice'")
             elif 'variable_type' in values:
                 option_variable_type = values['variable_type']
             else:
@@ -315,19 +317,19 @@ def validate_option(container_name=None, values=None, as_group=False):
                 # this is valid
                 pass
             else:
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string or boolean")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string or boolean")
         
         elif option_key == 'variable_type':
             if not isinstance(option_items, str) and (option_items == "boolean" or option_items == "string" or option_items == "multi-choice"):
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
         
         elif option_key.startswith('boolean_override_'):
             if not isinstance(option_items, str):
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
         
         elif option_key == 'multi_choice_options':
             if 'variable_type' not in values or values['variable_type'] != "multi-choice":
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. multi_choice_options included but variable_type is not multi-choice")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. multi_choice_options included but variable_type is not multi-choice")
             required_keys.remove("multi_choice_options")
             for sub_key, sub_items in option_items.items():
                 if len(re.findall(r"^option_\d+", sub_key)):
@@ -343,29 +345,45 @@ def validate_option(container_name=None, values=None, as_group=False):
         
         elif option_key == "user_required":
             if not isinstance(option_items, bool):
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a boolean")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a boolean")
         
         elif option_key == "compose_required":
             if not isinstance(option_items, bool):
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a boolean")
+                raise ValueError(f"{container_name} optionshas option invalid key {option_key}. Should be a boolean")
         
         elif option_key == "advanced":
             if not isinstance(option_items, bool):
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a boolean")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a boolean")
         
         elif option_key == "validator":
             if not isinstance(option_items, str) and len(option_items) == 0:
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
         
-        elif option_key == "user_required_formatting":
+        elif option_key == "user_required_description":
             if not isinstance(option_items, str) and len(option_items) == 0:
-                raise ValueError(f"{container_name} loops has option invalid key {option_key}. Should be a non-blank string")
-        
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a non-blank string")
+        elif option_key == "bypass_yaml":
+            if not isinstance(option_items, bool):
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a boolean")
+        elif option_key == "replace_characters":
+            if isinstance(option_items, list):
+                for item in option_items:
+                    if not isinstance(item, str):
+                        raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a JSON array of strings")
+            else:
+                raise ValueError(f"{container_name} options has option invalid key {option_key}. Should be a JSON array")
         elif re.findall(r"^group_\d+", option_key):
-            pass  
+            if 'field_combine' in option_items:
+                validate_group(container_name, option_items)
+            else:
+                validate_option(container_name=container_name, values=option_items)
+        else:
+            raise ValueError(f"{container_name} options has option invalid key {option_key}.")
 
 # Function to validate the devices
-
+    if len(required_keys) != 0:
+        missing_keys = ", ".join(item for item in required_keys)
+        raise ValueError(f"Missing keys: {missing_keys}")
 
 def validate_devices(container_name=None, values=None):
     if values is None or len(values) == 0:
