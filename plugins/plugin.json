@@ -761,7 +761,7 @@
                     "user_required": true
                 },
                 "option_8": {
-                    "display_name": "LAT",
+                    "display_name": "ALT",
                     "user_description": "Your site's altitude in METERS",
                     "env_name": "ALT",
                     "default_value": "",
