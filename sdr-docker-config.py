@@ -318,7 +318,7 @@ def config_container(screen):
         while value_index < len(container_keys):
             section_values = container_values[value_index]
             section = container_keys[value_index]
-            if len(re.findall(r"^section_\d+", section)):
+            if len(re.findall(r"^section_\d+", section)) == 1:
                 run_section = False
                 loops = 0
                 starting_value = 0
@@ -366,12 +366,22 @@ def config_container(screen):
                     volumes = True
                 
                 if run_section:
+                    option_keys = []
+                    option_items = []
+                    for key, value in section_values.items():
+                        if len(re.findall(r"^option_\d+", key)) == 1 or len(re.findall(r"^group_\d+", key)) == 1:
+                            option_keys.append(key)
+                            option_items.append(value)
                     if 'user_description' in section_values:
                         show_section_info(screen, section_values['user_description'], height, width)
 
                 while run_section:
                     loops += 1
-                    for options, option_values in section_values.items():
+                    options_index = 0
+                    while options_index < len(option_keys):
+                        options = option_keys[options_index]
+                        option_values = option_items[options_index]
+
                         if len(re.findall(r"^group_\d+", options)) == 1:
                             result = handle_groups(screen, option_values, options, height, width)
                             if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
@@ -396,15 +406,38 @@ def config_container(screen):
                                 if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                     response = handle_string(screen, option_values, options, height, width)
 
-                                    if ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
+                                    if response == -1:
+                                        sub_iterator = options_index - 1
+                                        while True:
+                                            if sub_iterator < 0:
+                                                break
+
+                                            if advanced or ('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False):
+                                                sub_iterator -= 1
+                                                break
+                                            else:
+                                                sub_iterator -= 1
+
+                                        options_index = sub_iterator
+
+                                    elif ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
                                         env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
 
                                 elif option_values['variable_type'] == 'boolean':
                                     response = handle_boolean(screen, option_values, options)
                                     if response == -1:
-                                        value_index -= 1
-                                        if value_index < 0:
-                                            value_index = 0
+                                        sub_iterator = options_index - 1
+                                        while True:
+                                            if sub_iterator < 0:
+                                                break
+
+                                            if advanced or ('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False):
+                                                sub_iterator -= 1
+                                                break
+                                            else:
+                                                sub_iterator -= 1
+
+                                        options_index = sub_iterator
 
                                     elif response == 0:
                                         if option_values['default_value'] == False or option_values['compose_required'] == True:                                                
@@ -421,7 +454,23 @@ def config_container(screen):
                                 elif option_values['variable_type'] == 'multi-choice':
                                     response = handle_multi_choice(screen, option_values, options, height, width)
 
-                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
+                                    if response == -1:
+                                        sub_iterator = options_index - 1
+                                        while True:
+                                            if sub_iterator < 0:
+                                                break
+
+                                            if advanced or ('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False):
+                                                sub_iterator -= 1
+                                                break
+                                            else:
+                                                sub_iterator -= 1
+
+                                        options_index = sub_iterator
+                                    else:
+                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
+
+                        options_index += 1
                     starting_value += 1
 
                     if 'run_if' in section_values:
@@ -567,6 +616,10 @@ def handle_string(screen, option_values, options, height, width):
             else:
                 screen.addstr(curs_y - 1, 0, " " * (width - 1))
                 screen.addstr(curs_y - 1, 0, "The value should not be blank. Please input a value")
+        elif k == curses.KEY_PPAGE:
+            return -1
+        elif k == curses.KEY_NPAGE:
+            return -1
         if not exit:    
             screen.addstr(curs_y, 0, " " * (width - 1))
             screen.addstr(curs_y, 0, variable_string)
@@ -700,6 +753,10 @@ def handle_multi_choice(screen, option_values, options, height, width):
                 if selection == index:
                     return item['env_text']
                 index += 1
+        elif k == curses.KEY_PPAGE:
+            return -1
+        elif k == curses.KEY_NPAGE:
+            return -1
         if not exit:
             index = 0
             for key, item in option_values['multi_choice_options'].items():
