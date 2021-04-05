@@ -333,7 +333,10 @@ def config_container(screen):
                         starting_value = section_values['loops']['starting_value']
 
                     if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
-                        run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
+                        run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
+                        if run_section == -1:
+                            section_index -= 2
+                            run_section = False
                     elif 'depends_on' in section_values:
                         if section_values['depends_on']['env_name'] in env_settings:  # config file has a value set that should trigger running of this section
                             if 'env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value'])):  # need to cast the json value to string because it may be a boolean
@@ -379,7 +382,11 @@ def config_container(screen):
                                 option_keys.append(key)
                                 option_items.append(value)
                         if 'user_description' in section_values:
-                            show_section_info(screen, section_values['user_description'], height, width)
+                            response = show_section_info(screen, section_values['user_description'], height, width)
+
+                            if response is not None:
+                                section_index -= 2
+                                run_section = False
 
                     while run_section:
                         loops += 1
@@ -405,7 +412,6 @@ def config_container(screen):
                                             break
                                         else:
                                             sub_iterator -= 1
-
                                     options_index = sub_iterator
 
                             elif len(re.findall(r"^option_\d+", options)) == 1:
@@ -446,7 +452,6 @@ def config_container(screen):
                                             options_index = sub_iterator
                                         elif ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
                                             env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
-
                                     elif option_values['variable_type'] == 'boolean':
                                         previous = None
                                         if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
@@ -471,7 +476,6 @@ def config_container(screen):
                                                     sub_iterator -= 1
 
                                             options_index = sub_iterator
-                                            print(options_index)
                                         elif response == 0:
                                             if option_values['default_value'] == False or option_values['compose_required'] == True:
                                                 if 'boolean_override_true' in option_values:
@@ -513,15 +517,15 @@ def config_container(screen):
                                             options_index = sub_iterator
                                         else:
                                             env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
-                            if options_index < -1:
+                            print(options_index)
+                            if options_index <= -1:
                                 run_section = False
                                 section_index -= 1
-                                print(section_index)
                             else:
                                 options_index += 1
                         starting_value += 1
 
-                        if 'run_if' in section_values and run_section:
+                        if options_index >= 0 and 'run_if' in section_values and run_section:
                             # first, lets make sure the loop actually ran if required
                             did_run_check = False
                             
@@ -538,11 +542,20 @@ def config_container(screen):
 
                             if not did_run_check and 'user_question_after' not in section_values['run_if']:
                                 run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=False, height=height, width=width)
+                                if run_section == -1:
+                                    run_section = False
+                                    section_index -= 2
                             elif not did_run_check:
                                 run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
+                                if run_section == -1:
+                                    run_section = False
+                                    section_index -= 2
                         else:
                             run_section = False
-                if section_index < 0:
+                print(section_index)
+                import time
+                time.sleep(3)
+                if section_index < -1:
                     num_containers -= 1
                 else:
                     section_index += 1
@@ -562,9 +575,6 @@ def config_container(screen):
                 output_container_config = collections.OrderedDict()
                 return
     if num_containers < 0:
-        print("jere")
-        import time
-        time.sleep(4)
         page = 2
         output_container_config = collections.OrderedDict()
         return
@@ -598,45 +608,87 @@ def show_section_info(screen, info, height, width):
         k = screen.getch()
 
         if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
-            return  (None, None)
+            return  None
         if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
-            return (None, None)
+            return None
         elif k == curses.KEY_PPAGE:
-            return (None, -1)
+            return -1
         elif k == curses.KEY_NPAGE:
-            return (None, 1)
+            return -1
 
 
 def handle_groups(screen, option_values, option, height, width):
-    result = ""
+    global advanced
+    output = []
     separator = option_values['field_combine']
+    group_keys = []
+    group_items = []
 
     for key, group in option_values.items():
+        if len(re.findall(r"group_\d+", key)) == 1 or len(re.findall(r"option_\d+", key)):
+            group_keys.append(key)
+            group_items.append(group)
+    index = 0
+
+    while index < len(group_keys) and index >= 0:
+        key = group_keys[index]
+        group = group_items[index]
         if re.findall(r"^option_\d+", key):
-            if 'disable_user_set' in group and group['disable_user_set'] == True:
+            if (not advanced and 'advanced' in group and group['advanced'] == True) or (not advanced and 'disable_user_set' in group and group['disable_user_set'] == True):
                 if 'compose_required' in group and group['compose_required'] == True:
-                    result =  separator.join((result, group['default_value']))
+                    result.append(group['default_value'])
             else:
                 for i in range (1, height - 1):  # clear all the old lines out, just in case
                     screen.addstr(i, 0, " " * (width - 1))
                 screen.addstr(3, 0, "Container Variable: {}".format(group['display_name']))
                 screen.addstr(4, 0, "Container Variable: {}".format(group['user_description']))
-                if result == "":
-                    if 'variable_type' not in group or group['variable_type'] == "string":
-                        result = handle_string(screen, group, key, height, width)
-                    elif group['variable_type'] == "multi-choice":
-                        result = handle_multi_choice(screen, group, key, height, width)
+
+                if 'variable_type' not in group or group['variable_type'] == "string":
+                    result = handle_string(screen, group, key, height, width)
+                elif group['variable_type'] == "multi-choice":
+                    result = handle_multi_choice(screen, group, key, height, width)
+
+                if result == -1:
+                    sub_iterator = index - 1
+
+                    while True:
+                        if sub_iterator < 0:
+                            sub_iterator -= 1
+                            break
+
+                        if advanced or (('disable_user_set' not in group_items[sub_iterator] or group_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in group_items[sub_iterator] or group_items[sub_iterator]['advanced'] == False)):
+                            sub_iterator -= 1
+                            break
+                        else:
+                            sub_iterator -= 1
+                    
+                    index = sub_iterator
                 else:
-                    if 'variable_type' not in group or group['variable_type'] == "string":
-                        result = separator.join((result, handle_string(screen, group, key, height, width)))
-                    elif group['variable_type'] == "multi-choice":
-                        result = separator.join((result, handle_multi_choice(screen, group, key, height, width)))
+                    output.append(result)
+
         elif re.findall(r"^group_\d", key):
-            if result == "":
-                    result = handle_groups(screen, group, key, height, width)
+            result = handle_groups(screen, group, key, height, width)
+
+            if result == -1:
+                sub_iterator = index - 1
+
+                while True:
+                    if sub_iterator < 0:
+                        sub_iterator -= 1
+                        break
+
+                    if advanced or (('disable_user_set' not in group_items[sub_iterator] or group_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in group_items[sub_iterator] or group_items[sub_iterator]['advanced'] == False)):
+                        sub_iterator -= 1
+                        break
+                    else:
+                        sub_iterator -= 1
+                index = sub_iterator
             else:
-                result = separator.join((result, handle_groups(screen, group, key, height, width)))
-    return result
+                output.append(result)
+        if index <= -1:
+            return -1
+        index += 1
+    return separator.join(i for i in output)
 
 
 def handle_string(screen, option_values, options, height, width, previous=None):
@@ -834,7 +886,6 @@ def handle_multi_choice(screen, option_values, options, height, width, previous=
                     return item['env_text']
                 index += 1
         elif k == curses.KEY_PPAGE:
-            print("here")
             return -1
         elif k == curses.KEY_NPAGE:
             return -1
@@ -875,6 +926,10 @@ def do_run_section(screen, user_question, user_question_after=None, first=True, 
                 selection = 0
         elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
             return not bool(selection)
+        elif k == curses.KEY_PPAGE:
+            return -1
+        elif k == curses.KEY_NPAGE:
+            return -1
         if selection == 0:
             screen.attron(curses.A_REVERSE)
             screen.addstr(8, 0, "YES")

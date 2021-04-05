@@ -22,7 +22,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Groups](#groups)
   * [Template Variables](#template-variables)
   * [Validating User Input](#validating-user-input)
-  * [Special YAML Cases][#special-yaml-cases]
+  * [Special YAML Cases](#special-yaml-cases)
   * [Beautifying Text Displayed to User](#beautifying-text-displayed-to-user)
 * [Sample Configuration](#sample-config)
 
