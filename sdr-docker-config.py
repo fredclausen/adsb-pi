@@ -87,6 +87,9 @@ def select_containers(screen):
     screen.attron(curses.color_pair(2))
     k = ""
     selected_containers = list()
+    for container in containers:
+        if 'selected' in containers[container] and containers[container]['selected'] == True:
+            selected_containers.append(containers[container]['index'])
     while True:
         show_warning = False
         if k == ord('q'):
@@ -268,6 +271,7 @@ def config_container(screen):
     global containers
     global volumes
     global advanced
+    global output_container_config
 
     height, width = screen.getmaxyx()
 
@@ -298,7 +302,7 @@ def config_container(screen):
             container_list.append(item)
     num_containers = 0
 
-    while num_containers < len(container_list):
+    while num_containers < len(container_list) and num_containers >= 0:
         item = container_list[num_containers]
         # clear the first line
         screen.addstr(0, 0, " " * (width - 1))
@@ -308,217 +312,262 @@ def config_container(screen):
         container_keys = []
         container_values = []
 
-        show_proceed_screen(screen, item['container_display_name'], height, width)
-        for section, section_values in container_config.items():
-            container_keys.append(section)
-            container_values.append(section_values)
+        response = show_proceed_screen(screen, item['container_display_name'], height, width)
+        if response is None:
+            for section, section_values in container_config.items():
+                if len(re.findall(r"^section_\d+", section)) == 1:
+                    container_keys.append(section)
+                    container_values.append(section_values)
 
-        value_index = 0
+            section_index = 0
 
-        while value_index < len(container_keys):
-            section_values = container_values[value_index]
-            section = container_keys[value_index]
-            if len(re.findall(r"^section_\d+", section)) == 1:
-                run_section = False
-                loops = 0
-                starting_value = 0
+            while section_index < len(container_keys) and section_index >= 0:
+                section_values = container_values[section_index]
+                section = container_keys[section_index]
+                if len(re.findall(r"^section_\d+", section)) == 1:
+                    run_section = False
+                    loops = 0
+                    starting_value = 0
 
-                if 'loops' in section_values and 'starting_value' in section_values['loops']:
-                    starting_value = section_values['loops']['starting_value']
+                    if 'loops' in section_values and 'starting_value' in section_values['loops']:
+                        starting_value = section_values['loops']['starting_value']
 
-                if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
-                    run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
-                elif 'depends_on' in section_values:
-                    if section_values['depends_on']['env_name'] in env_settings:  # config file has a value set that should trigger running of this section
-                        if 'env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value'])):  # need to cast the json value to string because it may be a boolean
-                            run_section = True
-                        else:  # we need to grab the default value for the original variable and see if we need to run
-                            for key_depends, item_depends in container_config.items():
-                                if len(re.findall(r"^section_\d+", key_depends)) == 1:
-                                    for key_depends_in, item_depends_in in item_depends.items():
-                                        default_value = ""
-                                        if len(re.findall(r"^option_\d+", key_depends_in)) == 1 or len(re.findall(r"^group_\d+", key_depends_in)) == 1:
-                                            if 'env_name' in item_depends_in and item_depends_in['env_name'] == section_values['depends_on']['env_name']:
-                                                if 'env_name_value' in item_depends_in:
-                                                    default_value = str(item_depends_in['env_name_value'])
-                                                elif 'variable_type' in item_depends_in and item_depends_in['variable_type'] == "boolean":
-                                                    if ('default_value' in item_depends_in and item_depends_in['default_value'] == False) or 'default_value' not in item_depends_in:
-                                                        if 'boolean_override_false' in item_depends_in:
-                                                            default_value = item_depends_in['boolean_override_false']
-                                                        else:
-                                                            default_value = "False"
-                                                    elif 'default_value' in item_depends_in and item_depends_in['default_value'] == True:
-                                                        if 'boolean_override_true' in item_depends_in:
-                                                            default_value = item_depends_in['boolean_override_true']
-                                                        else:
-                                                            default_value = "True"
-                                                elif ('variable_type' in item_depends_in and item_depends_in['variable_type'] == "string") or 'variable_type' not in item_depends_in:
-                                                    if 'default_value' in item_depends_in:
-                                                        default_value = item_depends_in['default_value']
-                                                if default_value == env_settings[section_values['depends_on']['env_name']]:
-                                                    run_section = True
-                                                continue
+                    if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
+                        run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
+                    elif 'depends_on' in section_values:
+                        if section_values['depends_on']['env_name'] in env_settings:  # config file has a value set that should trigger running of this section
+                            if 'env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value'])):  # need to cast the json value to string because it may be a boolean
+                                run_section = True
+                            else:  # we need to grab the default value for the original variable and see if we need to run
+                                for key_depends, item_depends in container_config.items():
+                                    if len(re.findall(r"^section_\d+", key_depends)) == 1:
+                                        for key_depends_in, item_depends_in in item_depends.items():
+                                            default_value = ""
+                                            if len(re.findall(r"^option_\d+", key_depends_in)) == 1 or len(re.findall(r"^group_\d+", key_depends_in)) == 1:
+                                                if 'env_name' in item_depends_in and item_depends_in['env_name'] == section_values['depends_on']['env_name']:
+                                                    if 'env_name_value' in item_depends_in:
+                                                        default_value = str(item_depends_in['env_name_value'])
+                                                    elif 'variable_type' in item_depends_in and item_depends_in['variable_type'] == "boolean":
+                                                        if ('default_value' in item_depends_in and item_depends_in['default_value'] == False) or 'default_value' not in item_depends_in:
+                                                            if 'boolean_override_false' in item_depends_in:
+                                                                default_value = item_depends_in['boolean_override_false']
+                                                            else:
+                                                                default_value = "False"
+                                                        elif 'default_value' in item_depends_in and item_depends_in['default_value'] == True:
+                                                            if 'boolean_override_true' in item_depends_in:
+                                                                default_value = item_depends_in['boolean_override_true']
+                                                            else:
+                                                                default_value = "True"
+                                                    elif ('variable_type' in item_depends_in and item_depends_in['variable_type'] == "string") or 'variable_type' not in item_depends_in:
+                                                        if 'default_value' in item_depends_in:
+                                                            default_value = item_depends_in['default_value']
+                                                    if default_value == env_settings[section_values['depends_on']['env_name']]:
+                                                        run_section = True
+                                                    continue
 
-                else:
-                    run_section = True
-
-                if 'volumes' in section_values:
-                    volumes = True
-                
-                if run_section:
-                    option_keys = []
-                    option_items = []
-                    for key, value in section_values.items():
-                        if len(re.findall(r"^option_\d+", key)) == 1 or len(re.findall(r"^group_\d+", key)) == 1:
-                            option_keys.append(key)
-                            option_items.append(value)
-                    if 'user_description' in section_values:
-                        show_section_info(screen, section_values['user_description'], height, width)
-
-                while run_section:
-                    loops += 1
-                    options_index = 0
-                    while options_index < len(option_keys):
-                        options = option_keys[options_index]
-                        option_values = option_items[options_index]
-
-                        if len(re.findall(r"^group_\d+", options)) == 1:
-                            result = handle_groups(screen, option_values, options, height, width)
-                            if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] =  option_values['field_combine'].join((env_settings[option_values['env_name']], result))
-                            else:
-                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] = result
-                        elif len(re.findall(r"^option_\d+", options)) == 1:
-                            if ('advanced' in option_values and option_values['advanced'] == True and advanced == False) or ('disable_user_set' in option_values and option_values['disable_user_set'] == True):
-                                if 'compose_required' in option_values and option_values['compose_required'] == True:
-                                    if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
-                                    elif option_values['variable_type'] == 'boolean':
-                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
-                            elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
-                                for i in range (1, height - 1):  # clear all the old lines out, just in case
-                                    screen.addstr(i, 0, " " * (width - 1))
-                                screen.addstr(3, 0, "Container Variable: {}".format(option_values['display_name']))
-                                screen.addstr(4, 0, "Container Variable: {}".format(option_values['user_description']))
-                                if 'user_required_description' in option_values:
-                                    screen.addstr(5, 0, "Required Formatting: {}".format(option_values['user_required_description']))
-                                
-                                if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                    previous = None
-                                    if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                        previous = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                        del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                    response = handle_string(screen, option_values, options, height, width, previous)
-
-                                    if response == -1:
-                                        sub_iterator = options_index - 1
-                                        while True:
-                                            if sub_iterator < 0:
-                                                break
-
-                                            if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
-                                                sub_iterator -= 1
-                                                break
-                                            else:
-                                                sub_iterator -= 1
-
-                                        options_index = sub_iterator
-                                    elif ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
-                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
-
-                                elif option_values['variable_type'] == 'boolean':
-                                    previous = None
-                                    if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                        temp_working_value = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                        del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                        if ('boolean_override_false' in option_values and temp_working_value == option_values['boolean_override_false']) or temp_working_value == "False":
-                                            previous = False
-                                        else:
-                                            previous = True
-                                    response = handle_boolean(screen, option_values, options, previous)
-                                    if response == -1:
-                                        sub_iterator = options_index - 1
-                                        while True:
-                                            if sub_iterator < 0:
-                                                break
-
-                                            if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
-                                                sub_iterator -= 1
-                                                break
-                                            else:
-                                                sub_iterator -= 1
-
-                                        options_index = sub_iterator
-
-                                    elif response == 0:
-                                        if option_values['default_value'] == False or option_values['compose_required'] == True:
-                                            if 'boolean_override_true' in option_values:
-                                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
-                                            else:
-                                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "True"
-                                    else:
-                                        if option_values['default_value'] == True or option_values['compose_required'] == True:
-                                            if 'boolean_override_false' in option_values:
-                                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
-                                            else:
-                                                env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "False"
-                                elif option_values['variable_type'] == 'multi-choice':
-                                    previous = None
-                                    if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                        temp_working_value = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                        del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                        multi_counter = 0
-                                        for multi_key, multi_item in option_values['multi_choice_options'].items():
-                                            if multi_item['env_text'] == temp_working_value:
-                                                previous = multi_counter
-                                            else:
-                                                multi_counter += 1
-
-                                    response = handle_multi_choice(screen, option_values, options, height, width, previous)
-                                    
-                                    if response == -1:
-                                        sub_iterator = options_index - 1
-                                        while True:
-                                            if sub_iterator < 0:
-                                                break
-
-                                            if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
-                                                sub_iterator -= 1
-                                                break
-                                            else:
-                                                sub_iterator -= 1
-
-                                        options_index = sub_iterator
-                                    else:
-                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
-
-                        options_index += 1
-                    starting_value += 1
-
-                    if 'run_if' in section_values:
-                        # first, lets make sure the loop actually ran if required
-                        did_run_check = False
-                        
-                        if 'loops' in section_values:
-                            if 'min_loops' in section_values['loops'] and loops < section_values['loops']['min_loops']:
-                                for i in range (1, height - 1):  # clear all the old lines out, just in case
-                                    screen.addstr(i, 0, " " * (width - 1))
-                                did_run_check = True
-                                screen.addstr(3, 0, "This section needs to be ran at least once. Please select yes on the next screen")
-                                run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=True, height=height, width=width)
-                            elif 'max_loops' in section_values['loops'] and section_values['loops']['max_loops'] >= loops:
-                                did_run_check = True
-                                run_section = False                                    
-
-                        if not did_run_check and 'user_question_after' not in section_values['run_if']:
-                            run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=False, height=height, width=width)
-                        elif not did_run_check:
-                            run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
                     else:
-                        run_section = False
-            value_index += 1
-        output_container_config[item['container_name']] = env_settings
-        num_containers += 1
+                        run_section = True
+
+                    if 'volumes' in section_values:
+                        volumes = True
+                    
+                    if run_section:
+                        option_keys = []
+                        option_items = []
+                        for key, value in section_values.items():
+                            if len(re.findall(r"^option_\d+", key)) == 1 or len(re.findall(r"^group_\d+", key)) == 1:
+                                option_keys.append(key)
+                                option_items.append(value)
+                        if 'user_description' in section_values:
+                            show_section_info(screen, section_values['user_description'], height, width)
+
+                    while run_section:
+                        loops += 1
+                        options_index = 0
+                        while options_index < len(option_keys) and options_index >= 0:
+                            options = option_keys[options_index]
+                            option_values = option_items[options_index]
+                            if len(re.findall(r"^group_\d+", options)) == 1:
+                                result = handle_groups(screen, option_values, options, height, width)
+                                if result != -1:
+                                    if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
+                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] =  option_values['field_combine'].join((env_settings[option_values['env_name']], result))
+                                    else:
+                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = result
+                                else:
+                                    sub_iterator = options_index - 1
+                                    while True:
+                                        if sub_iterator < 0:
+                                            break
+
+                                        if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
+                                            sub_iterator -= 1
+                                            break
+                                        else:
+                                            sub_iterator -= 1
+
+                                    options_index = sub_iterator
+
+                            elif len(re.findall(r"^option_\d+", options)) == 1:
+                                if ('advanced' in option_values and option_values['advanced'] == True and advanced == False) or ('disable_user_set' in option_values and option_values['disable_user_set'] == True):
+                                    if 'compose_required' in option_values and option_values['compose_required'] == True:
+                                        if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
+                                        elif option_values['variable_type'] == 'boolean':
+                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
+                                elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
+                                    for i in range (1, height - 1):  # clear all the old lines out, just in case
+                                        screen.addstr(i, 0, " " * (width - 1))
+                                    screen.addstr(3, 0, "Container Variable: {}".format(option_values['display_name']))
+                                    screen.addstr(4, 0, "Container Variable: {}".format(option_values['user_description']))
+                                    if 'user_required_description' in option_values:
+                                        screen.addstr(5, 0, "Required Formatting: {}".format(option_values['user_required_description']))
+                                    
+                                    if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                                        previous = None
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
+                                            previous = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                        response = handle_string(screen, option_values, options, height, width, previous)
+
+                                        if response == -1:
+                                            sub_iterator = options_index - 1
+                                            while True:
+                                                if sub_iterator < 0:
+                                                    sub_iterator -= 1
+                                                    break
+
+                                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
+                                                    sub_iterator -= 1
+                                                    break
+                                                else:
+                                                    sub_iterator -= 1
+
+                                            options_index = sub_iterator
+                                        elif ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
+                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
+
+                                    elif option_values['variable_type'] == 'boolean':
+                                        previous = None
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
+                                            temp_working_value = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                            if ('boolean_override_false' in option_values and temp_working_value == option_values['boolean_override_false']) or temp_working_value == "False":
+                                                previous = False
+                                            else:
+                                                previous = True
+                                        response = handle_boolean(screen, option_values, options, previous)
+                                        if response == -1:
+                                            sub_iterator = options_index - 1
+                                            while True:
+                                                if sub_iterator < 0:
+                                                    sub_iterator -= 1
+                                                    break
+
+                                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
+                                                    sub_iterator -= 1
+                                                    break
+                                                else:
+                                                    sub_iterator -= 1
+
+                                            options_index = sub_iterator
+                                            print(options_index)
+                                        elif response == 0:
+                                            if option_values['default_value'] == False or option_values['compose_required'] == True:
+                                                if 'boolean_override_true' in option_values:
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
+                                                else:
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "True"
+                                        else:
+                                            if option_values['default_value'] == True or option_values['compose_required'] == True:
+                                                if 'boolean_override_false' in option_values:
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
+                                                else:
+                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "False"
+                                    elif option_values['variable_type'] == 'multi-choice':
+                                        previous = None
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
+                                            temp_working_value = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                            multi_counter = 0
+                                            for multi_key, multi_item in option_values['multi_choice_options'].items():
+                                                if multi_item['env_text'] == temp_working_value:
+                                                    previous = multi_counter
+                                                else:
+                                                    multi_counter += 1
+
+                                        response = handle_multi_choice(screen, option_values, options, height, width, previous)
+                                        
+                                        if response == -1:
+                                            sub_iterator = options_index - 1
+                                            while True:
+                                                if sub_iterator < 0:
+                                                    break
+
+                                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] == False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] == False)):
+                                                    sub_iterator -= 1
+                                                    break
+                                                else:
+                                                    sub_iterator -= 1
+
+                                            options_index = sub_iterator
+                                        else:
+                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
+                            if options_index < -1:
+                                run_section = False
+                                section_index -= 1
+                                print(section_index)
+                            else:
+                                options_index += 1
+                        starting_value += 1
+
+                        if 'run_if' in section_values and run_section:
+                            # first, lets make sure the loop actually ran if required
+                            did_run_check = False
+                            
+                            if 'loops' in section_values:
+                                if 'min_loops' in section_values['loops'] and loops < section_values['loops']['min_loops']:
+                                    for i in range (1, height - 1):  # clear all the old lines out, just in case
+                                        screen.addstr(i, 0, " " * (width - 1))
+                                    did_run_check = True
+                                    screen.addstr(3, 0, "This section needs to be ran at least once. Please select yes on the next screen")
+                                    run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=True, height=height, width=width)
+                                elif 'max_loops' in section_values['loops'] and section_values['loops']['max_loops'] >= loops:
+                                    did_run_check = True
+                                    run_section = False                                    
+
+                            if not did_run_check and 'user_question_after' not in section_values['run_if']:
+                                run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=False, height=height, width=width)
+                            elif not did_run_check:
+                                run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
+                        else:
+                            run_section = False
+                if section_index < 0:
+                    num_containers -= 1
+                else:
+                    section_index += 1
+            
+            if num_containers < 0:
+                page = 2
+                output_container_config = collections.OrderedDict()
+                return
+            else:
+                output_container_config[item['container_name']] = env_settings
+                num_containers += 1
+        else:
+            num_containers -= 1
+
+            if num_containers < 0:
+                page = 2
+                output_container_config = collections.OrderedDict()
+                return
+    if num_containers < 0:
+        print("jere")
+        import time
+        time.sleep(4)
+        page = 2
+        output_container_config = collections.OrderedDict()
+        return
     page = 0
 
 
@@ -532,11 +581,11 @@ def show_proceed_screen(screen, container_name, height, width):
         k = screen.getch()
 
         if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
-            return (None, None)
+            return None
         elif k == curses.KEY_PPAGE:
-            return (None, -1)
+            return -1
         elif k == curses.KEY_NPAGE:
-            return (None, 1)
+            return -1
 
 
 def show_section_info(screen, info, height, width):
