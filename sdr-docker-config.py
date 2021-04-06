@@ -791,6 +791,10 @@ def handle_string(screen, option_values, options, height, width, previous=None):
             curs_x += 1
             if curs_x > width:
                 curs_x = width
+        elif k == curses.KEY_HOME:  # secret sauce to bypass validator
+            if ('user_required' in option_values and option_values['user_required'] == True and variable_string != option_values['default_value']) or 'user_required' not in option_values or ('user_required' in option_values and option_values['user_required'] == False):
+                if 'validator' not in option_values or len(re.findall(option_values['validator'], variable_string)) == 1:
+                    return variable_string
         elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
             if ('user_required' in option_values and option_values['user_required'] == True and variable_string != option_values['default_value']) or 'user_required' not in option_values or ('user_required' in option_values and option_values['user_required'] == False):
                 if 'validator' not in option_values or len(re.findall(option_values['validator'], variable_string)) == 1:
