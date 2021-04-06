@@ -6,6 +6,8 @@ import re
 import os
 import argparse
 import collections
+import traceback
+import copy
 # some bs to get the correct python library imported
 try:
     import urllib.request
@@ -266,7 +268,7 @@ def clear_screen(screen):
     screen.refresh()
 
 
-def config_container(screen):
+def config_container(screen, f):
     global page
     global containers
     global volumes
@@ -320,7 +322,6 @@ def config_container(screen):
                     container_values.append(section_values)
 
             section_index = 0
-
             while section_index < len(container_keys) and section_index >= 0:
                 section_values = container_values[section_index]
                 section = container_keys[section_index]
@@ -338,8 +339,9 @@ def config_container(screen):
                             section_index -= 2
                             run_section = False
                     elif 'depends_on' in section_values:
-                        if section_values['depends_on']['env_name'] in env_settings:  # config file has a value set that should trigger running of this section
-                            if 'env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value'])):  # need to cast the json value to string because it may be a boolean
+                        if section_values['depends_on']['env_name'] in env_settings or section_values['depends_on']['env_name'] in section_responses:  # config file has a value set that should trigger running of this section
+                            if ('env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value']))) or \
+                                ('env_name_value' in section_values['depends_on'] and (section_responses[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value']))):  # need to cast the json value to string because it may be a boolean
                                 run_section = True
                             else:  # we need to grab the default value for the original variable and see if we need to run
                                 for key_depends, item_depends in container_config.items():
@@ -364,7 +366,7 @@ def config_container(screen):
                                                     elif ('variable_type' in item_depends_in and item_depends_in['variable_type'] == "string") or 'variable_type' not in item_depends_in:
                                                         if 'default_value' in item_depends_in:
                                                             default_value = item_depends_in['default_value']
-                                                    if default_value == env_settings[section_values['depends_on']['env_name']]:
+                                                    if default_value == section_responses[section_values['depends_on']['env_name']]:
                                                         run_section = True
                                                     continue
 
@@ -373,7 +375,13 @@ def config_container(screen):
 
                     if 'volumes' in section_values:
                         volumes = True
-                    
+                    previous_responses = {}
+                    section_responses = {}
+                    print("env_settings", env_settings, "section", section, file=f) # TODO Remove
+                    if section in env_settings:
+                        previous_respose = env_settings[section]
+                        del env_settings[section]
+                    print("after", env_settings, file=f)
                     if run_section:
                         option_keys = []
                         option_items = []
@@ -389,19 +397,26 @@ def config_container(screen):
                                 run_section = False
 
                     while run_section:
+                        print("running section", file=f)                        
                         loops += 1
                         options_index = 0
+
                         while options_index < len(option_keys) and options_index >= 0:
                             options = option_keys[options_index]
                             option_values = option_items[options_index]
+                            print("key ", options, file=f) # TODO Remove
                             if len(re.findall(r"^group_\d+", options)) == 1:
                                 result = handle_groups(screen, option_values, options, height, width)
                                 if result != -1:
-                                    if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] =  option_values['field_combine'].join((env_settings[option_values['env_name']], result))
+                                    if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
+                                        section_responses[option_values['env_name'].replace("[]", str(starting_value))] = option_values['field_combine'].join((section_responses[option_values['env_name'].replace("[]", str(starting_value))], result))
                                     else:
-                                        env_settings[option_values['env_name'].replace("[]", str(starting_value))] = result
+                                        section_responses[option_values['env_name'].replace("[]", str(starting_value))] = result
                                 else:
+                                    if option_values['env_name'].replace("[]", str(starting_value - 1)) in section_responses:
+                                        del section_responses[option_values['env_name'].replace("[]", str(starting_value - 1))]
+                                    if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
+                                        del section_responses[option_values['env_name'].replace("[]", str(starting_value))]
                                     sub_iterator = options_index - 1
                                     while True:
                                         if sub_iterator < 0:
@@ -413,14 +428,15 @@ def config_container(screen):
                                         else:
                                             sub_iterator -= 1
                                     options_index = sub_iterator
+                                    starting_value -= 1
 
                             elif len(re.findall(r"^option_\d+", options)) == 1:
                                 if ('advanced' in option_values and option_values['advanced'] == True and advanced == False) or ('disable_user_set' in option_values and option_values['disable_user_set'] == True):
                                     if 'compose_required' in option_values and option_values['compose_required'] == True:
                                         if 'variable_type' not in option_values or option_values['variable_type'] == "string":
-                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
+                                            section_responses[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
                                         elif option_values['variable_type'] == 'boolean':
-                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
+                                            section_responses[option_values['env_name'].replace("[]", str(starting_value))] = option_values['default_value']
                                 elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] == False):
                                     for i in range (1, height - 1):  # clear all the old lines out, just in case
                                         screen.addstr(i, 0, " " * (width - 1))
@@ -431,9 +447,11 @@ def config_container(screen):
                                     
                                     if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                                         previous = None
-                                        if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                            previous = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                            del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
+                                            previous = section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                        elif option_values['env_name'].replace("[]", str(starting_value)) in previous_responses:
+                                            previous = previous_responses[option_values['env_name'].replace("[]", str(starting_value))]
                                         response = handle_string(screen, option_values, options, height, width, previous)
 
                                         if response == -1:
@@ -450,13 +468,23 @@ def config_container(screen):
                                                     sub_iterator -= 1
 
                                             options_index = sub_iterator
+                                            starting_value -= 1
                                         elif ('default_value' in option_values and response != option_values['default_value']) or ('compose_required' in option_values and option_values['compose_required'] == True):
-                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
+                                            print(response, option_values['env_name'].replace("[]", str(starting_value)), file=f)
+                                            section_responses[option_values['env_name'].replace("[]", str(starting_value))] = response
+                                            print(section_responses, file=f)
                                     elif option_values['variable_type'] == 'boolean':
                                         previous = None
-                                        if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                            temp_working_value = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                            del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
+                                            temp_working_value = section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            if ('boolean_override_false' in option_values and temp_working_value == option_values['boolean_override_false']) or temp_working_value == "False":
+                                                previous = False
+                                            else:
+                                                previous = True
+                                        elif option_values['env_name'].replace("[]", str(starting_value)) in previous_responses:
+                                            temp_working_value = previous_responses[option_values['env_name'].replace("[]", str(starting_value))]
+
                                             if ('boolean_override_false' in option_values and temp_working_value == option_values['boolean_override_false']) or temp_working_value == "False":
                                                 previous = False
                                             else:
@@ -476,23 +504,33 @@ def config_container(screen):
                                                     sub_iterator -= 1
 
                                             options_index = sub_iterator
+                                            starting_value -= 1
                                         elif response == 0:
                                             if option_values['default_value'] == False or option_values['compose_required'] == True:
                                                 if 'boolean_override_true' in option_values:
-                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
+                                                    section_responses[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_true']
                                                 else:
-                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "True"
+                                                    section_responses[option_values['env_name'].replace("[]", str(starting_value))] = "True"
                                         else:
                                             if option_values['default_value'] == True or option_values['compose_required'] == True:
                                                 if 'boolean_override_false' in option_values:
-                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
+                                                    section_responses[option_values['env_name'].replace("[]", str(starting_value))] = option_values['boolean_override_false']
                                                 else:
-                                                    env_settings[option_values['env_name'].replace("[]", str(starting_value))] = "False"
+                                                    section_responses[option_values['env_name'].replace("[]", str(starting_value))] = "False"
                                     elif option_values['variable_type'] == 'multi-choice':
                                         previous = None
-                                        if option_values['env_name'].replace("[]", str(starting_value)) in env_settings:
-                                            temp_working_value = env_settings[option_values['env_name'].replace("[]", str(starting_value))]
-                                            del env_settings[option_values['env_name'].replace("[]", str(starting_value))]
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
+                                            temp_working_value = section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            multi_counter = 0
+                                            for multi_key, multi_item in option_values['multi_choice_options'].items():
+                                                if multi_item['env_text'] == temp_working_value:
+                                                    previous = multi_counter
+                                                else:
+                                                    multi_counter += 1
+                                        elif option_values['env_name'].replace("[]", str(starting_value)) in previous_responses:
+                                            temp_working_value = previous_responses[option_values['env_name'].replace("[]", str(starting_value))]
+
                                             multi_counter = 0
                                             for multi_key, multi_item in option_values['multi_choice_options'].items():
                                                 if multi_item['env_text'] == temp_working_value:
@@ -515,9 +553,10 @@ def config_container(screen):
                                                     sub_iterator -= 1
 
                                             options_index = sub_iterator
+                                            starting_value -= 1
                                         else:
-                                            env_settings[option_values['env_name'].replace("[]", str(starting_value))] = response
-                            print(options_index)
+                                            section_responses[option_values['env_name'].replace("[]", str(starting_value))] = response
+                            print("end of options loop. options_index", options_index, "starting value ", starting_value, file=f)
                             if options_index <= -1:
                                 run_section = False
                                 section_index -= 1
@@ -545,16 +584,38 @@ def config_container(screen):
                                 if run_section == -1:
                                     run_section = False
                                     section_index -= 2
+                                elif not run_section:
+                                    if len(section_responses):
+                                        print("writing values", section_responses, section, file=f) # TODO Remove
+                                        env_settings[section] = copy.deepcopy(section_responses)
+                                        section_responses = {}
+                                        print("wrote sections", env_settings, file=f) # TODO Remove
                             elif not did_run_check:
                                 run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
                                 if run_section == -1:
                                     run_section = False
                                     section_index -= 2
+                                elif not run_section:
+                                    if len(section_responses):
+                                        print("writing values", section_responses, section,file=f) # TODO Remove
+                                        env_settings[section] = copy.deepcopy(section_responses)
+                                        section_responses = {}
+                                        print("wrote sections", env_settings, file=f) # TODO Remove
+                            elif did_run_check:
+                                if len(section_responses):
+                                    print("writing values", section_responses, section,file=f) # TODO Remove
+                                    env_settings[section] = copy.deepcopy(section_responses)
+                                    section_responses = {}
+                                    print("wrote sections", env_settings, file=f) # TODO Remove
                         else:
                             run_section = False
-                print(section_index)
-                import time
-                time.sleep(3)
+                            if len(section_responses):
+                                print("writing values", section_responses, section, file=f) # TODO Remove
+                                env_settings[section] = copy.deepcopy(section_responses)
+                                section_responses = {}
+                                print("wrote sections", env_settings, file=f) # TODO Remove
+                            print("ending container", file=f) # TODO Remove
+                                
                 if section_index < -1:
                     num_containers -= 1
                 else:
@@ -565,7 +626,9 @@ def config_container(screen):
                 output_container_config = collections.OrderedDict()
                 return
             else:
-                output_container_config[item['container_name']] = env_settings
+                print(env_settings, file=f)
+                for env_key, env_item in env_settings.items():
+                    output_container_config[item['container_name']] = {k:v for k, v in env_item.items()}
                 num_containers += 1
         else:
             num_containers -= 1
@@ -980,13 +1043,13 @@ def write_compose(screen):
     addtional_setup_required = []
 
     try:
-        if os.path.isfile("./docker-compose.yaml"):
+        if os.path.isfile("./docker-compose.yml"):
             exit = False
             clear_screen(screen)
             height, width = screen.getmaxyx()
 
             screen.addstr(7, 0, "Make your selection below")
-            screen.addstr(0, 0, "There is already a docker-compose.yaml file in the current directory. Would you like to overwrite or backup this file?")
+            screen.addstr(0, 0, "There is already a docker-compose.yml file in the current directory. Would you like to overwrite or backup this file?")
             selection = 0
             
             curses.curs_set(0)
@@ -1004,7 +1067,7 @@ def write_compose(screen):
                     if selection == 0:
                         break
                     elif selection == 1:
-                        shutil.copyfile("docker-compose.yaml",  "docker-compose.yaml.backup" + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
+                        shutil.copyfile("docker-compose.yml",  "docker-compose.yml.backup" + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
                         break
                 if not exit:
                     if selection == 0:
@@ -1021,7 +1084,7 @@ def write_compose(screen):
                     k = screen.getch()
 
         tab = "  "
-        with open("docker-compose.yaml", "w") as compose:
+        with open("docker-compose.yml", "w") as compose:
             compose.write("version: '3.8'\n\n")
             # write the volumes first
             compose.write("volumes:\n")
@@ -1214,7 +1277,10 @@ if __name__ == "__main__":
             elif page == 2:
                 curses.wrapper(select_containers)
             elif page == 3:
-                curses.wrapper(config_container)
+            # TODO: Remove this. Debugging
+                with open('output.txt', "w", buffering=1) as f:
+                    print("starting program", file=f)
+                    curses.wrapper(config_container, f)
             elif page == 4:
                 curses.wrapper(ask_advanced)
             elif page == 0:
@@ -1229,5 +1295,6 @@ if __name__ == "__main__":
         print("Duplicate key detected: ", e)
         exit_app()
     except Exception as e:
-        print("Exception: ", e)
+        print("Exception: ", e, repr(e))
+        traceback.print_exc()
         exit_app()
