@@ -14,6 +14,7 @@ try:
 except Exception:
     import urllib2
 
+SOFTWARE_VERSION = "0.5.0"
 page = 1
 config = collections.OrderedDict()
 containers = collections.OrderedDict()
@@ -27,6 +28,7 @@ def init(screen):
     screen = curses.initscr()
     height, width = screen.getmaxyx()
     global page
+    global SOFTWARE_VERSION
     
     curses.noecho()
     curses.curs_set(0)
@@ -37,7 +39,7 @@ def init(screen):
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen.attron(curses.color_pair(2))
 
-    welcome = "WELCOME TO SDR DOCKER CONFIG"
+    welcome = "WELCOME TO SDR DOCKER CONFIG version {}".format(SOFTWARE_VERSION)
     help_string = "This utility will walk you through setting up containers that will recieve, display, and feed ADSB data."
     help_string_next = "As well as containers that can receive and/or display ACARS/VDLM and airband VHF communications"
     status_bar = "Press 'n' or 'Enter' to Proceed | Press 'q' or Control + C to exit"
