@@ -19,6 +19,8 @@ page = 1
 config = collections.OrderedDict()
 containers = collections.OrderedDict()
 advanced = False
+exit_message = None
+yaml_path = "/opt/adsb/"
 
 volumes = False
 output_container_config = collections.OrderedDict()
@@ -27,6 +29,9 @@ def init(screen):
     # Create the curses enviornment
     screen = curses.initscr()
     height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
+
     global page
     global SOFTWARE_VERSION
     
@@ -254,9 +259,12 @@ def container_info(screen=None, container=None):
 
 
 def exit_app():
+    global exit_message
     curses.nocbreak()
     curses.echo()
     curses.endwin()
+    if exit_message is not None:
+        print(exit_message)
     sys.exit(0)
 
 
@@ -278,6 +286,8 @@ def config_container(screen, f):
     global output_container_config
 
     height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
 
     clear_screen(screen)
     curses.noecho()
@@ -316,7 +326,7 @@ def config_container(screen, f):
         container_keys = []
         container_values = []
 
-        response = show_proceed_screen(screen, item['container_display_name'], height, width)
+        response = show_proceed_screen(screen, item['container_display_name'])
         if response is None:
             for section, section_values in container_config.items():
                 if len(re.findall(r"^section_\d+", section)) == 1:
@@ -392,7 +402,7 @@ def config_container(screen, f):
                                 option_keys.append(key)
                                 option_items.append(value)
                         if 'user_description' in section_values:
-                            response = show_section_info(screen, section_values['user_description'], height, width)
+                            response = show_section_info(screen, section_values['user_description'])
 
                             if response is not None:
                                 section_index -= 2
@@ -408,7 +418,7 @@ def config_container(screen, f):
                             option_values = option_items[options_index]
                             print("key ", options, file=f) # TODO Remove
                             if len(re.findall(r"^group_\d+", options)) == 1:
-                                result = handle_groups(screen, option_values, options, height, width)
+                                result = handle_groups(screen, option_values, options)
                                 if result != -1:
                                     if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
                                         section_responses[option_values['env_name'].replace("[]", str(starting_value))] = option_values['field_combine'].join((section_responses[option_values['env_name'].replace("[]", str(starting_value))], result))
@@ -540,7 +550,7 @@ def config_container(screen, f):
                                                 else:
                                                     multi_counter += 1
 
-                                        response = handle_multi_choice(screen, option_values, options, height, width, previous)
+                                        response = handle_multi_choice(screen, option_values, options, previous)
                                         
                                         if response == -1:
                                             sub_iterator = options_index - 1
@@ -576,13 +586,13 @@ def config_container(screen, f):
                                         screen.addstr(i, 0, " " * (width - 1))
                                     did_run_check = True
                                     screen.addstr(3, 0, "This section needs to be ran at least once. Please select yes on the next screen")
-                                    run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=True, height=height, width=width)
+                                    run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=True)
                                 elif 'max_loops' in section_values['loops'] and section_values['loops']['max_loops'] >= loops:
                                     did_run_check = True
                                     run_section = False                                    
 
                             if not did_run_check and 'user_question_after' not in section_values['run_if']:
-                                run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=False, height=height, width=width)
+                                run_section =  do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], first=False)
                                 if run_section == -1:
                                     run_section = False
                                     section_index -= 2
@@ -593,7 +603,7 @@ def config_container(screen, f):
                                         section_responses = {}
                                         print("wrote sections", env_settings, file=f) # TODO Remove
                             elif not did_run_check:
-                                run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False, height=height, width=width)
+                                run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], user_question_after=section_values['run_if']['user_question_after'], first=False)
                                 if run_section == -1:
                                     run_section = False
                                     section_index -= 2
@@ -646,13 +656,19 @@ def config_container(screen, f):
     page = 0
 
 
-def show_proceed_screen(screen, container_name, height, width):
+def show_proceed_screen(screen, container_name):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
     output = "It it now time to configure {}. Press enter to proceed.".format(container_name)
     screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2),output)
     screen.refresh()
     while True:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         k = screen.getch()
 
         if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
@@ -663,13 +679,19 @@ def show_proceed_screen(screen, container_name, height, width):
             return -1
 
 
-def show_section_info(screen, info, height, width):
+def show_section_info(screen, info):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
     output = "{}. Press enter to proceed.".format(info)
     screen.addstr(int(height // 2),int((width // 2) - (len(output) // 2) - len(output) % 2),output)
     screen.refresh()
     while True:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         k = screen.getch()
 
         if k == curses.KEY_ENTER or k == ord("\n") or k == ord("\r"):
@@ -682,7 +704,10 @@ def show_section_info(screen, info, height, width):
             return -1
 
 
-def handle_groups(screen, option_values, option, height, width):
+def handle_groups(screen, option_values, option):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     global advanced
     output = []
     separator = option_values['field_combine']
@@ -756,7 +781,10 @@ def handle_groups(screen, option_values, option, height, width):
     return separator.join(i for i in output)
 
 
-def handle_string(screen, option_values, options, height, width, previous=None):
+def handle_string(screen, option_values, options, previous=None):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     curses.curs_set(1)
     curs_x = 0
     curs_y = height - 2
@@ -772,6 +800,9 @@ def handle_string(screen, option_values, options, height, width, previous=None):
     screen.addstr(curs_y, 0, variable_string)
     screen.move(curs_y, curs_x)
     while not exit:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         k = screen.getch()
         if k == curses.KEY_LEFT:
             curs_x -= 1
@@ -822,6 +853,9 @@ def handle_string(screen, option_values, options, height, width, previous=None):
 
 
 def handle_boolean(screen, option_values, options, value_override=None):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     exit = False
     curses.noecho()
     screen.addstr(7, 0, "Make your selection below")
@@ -838,6 +872,9 @@ def handle_boolean(screen, option_values, options, value_override=None):
     curses.curs_set(0)
     k = ""
     while not exit:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         if k == curses.KEY_UP:
             selection -= 1
             if selection < 0:
@@ -877,6 +914,8 @@ def ask_advanced(screen):
     global page
     exit = False
     height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     clear_screen(screen)
     curses.noecho()
     screen.addstr(2, 0, "Some containers may have advanced configuration settings. These configuration options are not necessary")
@@ -896,6 +935,9 @@ def ask_advanced(screen):
     curses.curs_set(0)
     k = ""
     while not exit:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         if k == curses.KEY_UP:
             selection -= 1
             if selection < 0:
@@ -928,7 +970,10 @@ def ask_advanced(screen):
             k = screen.getch()
 
 
-def handle_multi_choice(screen, option_values, options, height, width, previous=None):
+def handle_multi_choice(screen, option_values, options, previous=None):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     exit = False
     curses.noecho()
     screen.addstr(7, 0, "Make your selection below")
@@ -940,6 +985,9 @@ def handle_multi_choice(screen, option_values, options, height, width, previous=
     k = ""
 
     while not exit:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         if k == curses.KEY_UP:
             selection -= 1
             if selection < 0:
@@ -972,7 +1020,10 @@ def handle_multi_choice(screen, option_values, options, height, width, previous=
             k = screen.getch()
 
 
-def do_run_section(screen, user_question, user_question_after=None, first=True, height=0, width=0):
+def do_run_section(screen, user_question, user_question_after=None, first=True):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
     for i in range (1, height - 1):  # clear all the old lines out, just in case
         screen.addstr(i, 0, " " * (width - 1))
 
@@ -985,6 +1036,9 @@ def do_run_section(screen, user_question, user_question_after=None, first=True, 
     exit = False
     k = ""
     while not exit:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
         if k == curses.KEY_UP:
             selection -= 1
             if selection < 0:
@@ -1043,19 +1097,26 @@ def write_compose(screen):
     global volumes
     global output_container_config
     global containers
+    global exit_message
+    global yaml_path
+    yaml_file = "docker-compose.yml"
     ports = []
     ports_output = []
     installed_containers = []
     addtional_setup_required = []
+    exit_message = ""
 
     try:
-        if os.path.isfile("./docker-compose.yml"):
+        if not os.path.isdir(yaml_path):
+            os.makedirs(yaml_path)
+
+        if os.path.isfile(yaml_path + yaml_file):
             exit = False
             clear_screen(screen)
             height, width = screen.getmaxyx()
 
             screen.addstr(7, 0, "Make your selection below")
-            screen.addstr(0, 0, "There is already a docker-compose.yml file in the current directory. Would you like to overwrite or backup this file?")
+            screen.addstr(0, 0, "There is already a {} file in the {} directory. Would you like to overwrite or backup this file?".format(yaml_file, yaml_path))
             selection = 0
             
             curses.curs_set(0)
@@ -1073,7 +1134,7 @@ def write_compose(screen):
                     if selection == 0:
                         break
                     elif selection == 1:
-                        shutil.copyfile("docker-compose.yml",  "docker-compose.yml.backup" + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
+                        shutil.copyfile(yaml_path + yaml_file,  yaml_path + yaml_file + ".backup." + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
                         break
                 if not exit:
                     if selection == 0:
@@ -1090,7 +1151,7 @@ def write_compose(screen):
                     k = screen.getch()
 
         tab = "  "
-        with open("docker-compose.yml", "w") as compose:
+        with open(yaml_path + yaml_file, "w") as compose:
             compose.write("version: '3.8'\n\n")
             # write the volumes first
             compose.write("volumes:\n")
@@ -1213,11 +1274,13 @@ def write_compose(screen):
                             compose.write(line)
                 
                     exit = False
-            
+
             # display summary screen
             clear_screen(screen)
-
-            screen.addstr(0, 0, "Your docker-compose.yaml file has been written. After you have reviewed this press enter to exit")
+            exit_message += "Your {}{} file has been written.".format(yaml_path, yaml_file)
+            exit_message += "\n\n" + "The following containers have been set up:\n\n"
+            
+            screen.addstr(0, 0, "Your {}{} file has been written. After you have reviewed this press enter to exit".format(yaml_path, yaml_file))
             screen.addstr(2, 0, "The following containers have been set up:")
 
             container_index = 3
@@ -1225,18 +1288,26 @@ def write_compose(screen):
                 information = ""
                 if item in addtional_setup_required:
                     information = " (*****!!!!!ADDITONAL SETUP REQUIRED!!!!!*****)"
+                exit_message += item + information + "\n"
                 screen.addstr(container_index, 0, item + information)
                 container_index += 1
             
             container_index += 2
 
-            screen.addstr(container_index, 0, "The following ports have been mapped and will be accessable at this computer's LAN IP address:")
+            if len(ports_output):
+                exit_message += "\nThe following ports have been mapped and will be accessable at this computer's LAN IP address:\n\n"
+                screen.addstr(container_index, 0, "The following ports have been mapped and will be accessable at this computer's LAN IP address:")
 
-            container_index += 1
-            for name, item, port_description in ports_output:
-                screen.addstr(container_index, 0, name + ": " + str(item) + " " + port_description)
                 container_index += 1
+                for name, item, port_description in ports_output:
+                    exit_message += name + ": " + str(item) + " " + port_description + "\n"
+                    screen.addstr(container_index, 0, name + ": " + str(item) + " " + port_description)
+                    container_index += 1
             
+            if len(addtional_setup_required):
+                exit_message += "\nSome containers require addtional setup. Please review the www.sdrdockerconfig.com website (link for each container is above) for specifics on what each container needs\n"
+            
+            exit_message += "\nPlease see the www.sdrdockerconfig.com tutorial section for next steps. Once all pre-requisites have been met you can 'cd {}' and run 'docker-compose up -d' to start all of the containers".format(yaml_path)
             curses.curs_set(0)
             k = ""
             exit = False
@@ -1259,7 +1330,19 @@ if __name__ == "__main__":
         required=False,
     )
 
+    parser.add_argument(
+        '--yaml', '-y',
+        type=str,
+        help='override the yaml path (no filename!)',
+        required=False,
+    )
+
     args = parser.parse_args()
+
+    if args.yaml is not None:
+        yaml_path = args.yaml
+        if not yaml_path.endswith("/") or not yaml_path.endswith("\\"):
+            yaml_path += "/"  # going to assume unix pathing...too lazy to figure out if it's windows
     try:
         if args.files is not None:
             config = json.load(open(args.files), object_pairs_hook=raise_on_duplicate_keys)
@@ -1299,6 +1382,9 @@ if __name__ == "__main__":
         exit_app()
     except ValueError as e:
         print("Duplicate key detected: ", e)
+        exit_app()
+    except EnvironmentError as e:
+        print(e)
         exit_app()
     except Exception as e:
         print("Exception: ", e, repr(e))
