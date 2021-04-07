@@ -1571,54 +1571,69 @@ def write_compose(screen):
                 for env_key, env_item in global_vars.items():
                     env.write(env_key + "=" + env_item + "\n")
             if len(post_run_commands):
-                import subprocess
-                clear_screen(screen)
-                command_index = 0
-                while command_index < len(post_run_commands):
-                    exit = False
-                    height, width = screen.getmaxyx()
-                    command_container, description, command = post_run_commands[command_index]
-                    screen.addstr(7, 0, "Make your selection below")
-                    screen.addstr(0, 0, "The container {} requires addtional setup.\n{}".format(command_container, description))
-                    selection = 0
+                if not auto_run_post_install:
+                    import subprocess
+                    clear_screen(screen)
+                    command_index = 0
+                    while command_index < len(post_run_commands):
+                        exit = False
+                        height, width = screen.getmaxyx()
+                        command_container, description, command = post_run_commands[command_index]
+                        screen.addstr(7, 0, "Make your selection below")
+                        screen.addstr(0, 0, "The container {} requires addtional setup.\n{}".format(command_container, description))
+                        selection = 0
 
-                    curses.curs_set(0)
-                    k = ""
-                    while not exit:
-                        if k == curses.KEY_UP:
-                            selection -= 1
-                            if selection < 0:
-                                selection = 1
-                        elif k == curses.KEY_DOWN:
-                            selection += 1
-                            if selection > 1:
-                                selection = 0
-                        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
-                            if selection == 0:
-                                try:
-                                    run_command = subprocess.run(command.replace("{path}", install_path), stdout=subprocess.DEVNULL, shell=True)
-                                    run_command.wait()
-                                except Exception as e:
-                                    print(e)
-                                    print(command)
-                                    traceback.print_exc()
-                                break
-                            elif selection == 1:
-                                break
-                        if not exit:
-                            if selection == 0:
-                                screen.attron(curses.A_REVERSE)
-                                screen.addstr(8, 0, "Run Command")
-                                screen.attroff(curses.A_REVERSE)
-                                screen.addstr(9, 0, "Skip Command")
-                            else:
-                                screen.addstr(8, 0, "Run Command")
-                                screen.attron(curses.A_REVERSE)
-                                screen.addstr(9, 0, "Skip Command")
-                                screen.attroff(curses.A_REVERSE)
-                            screen.refresh()
-                            k = screen.getch()
-                    command_index += 1
+                        curses.curs_set(0)
+                        k = ""
+                        while not exit:
+                            if k == curses.KEY_UP:
+                                selection -= 1
+                                if selection < 0:
+                                    selection = 1
+                            elif k == curses.KEY_DOWN:
+                                selection += 1
+                                if selection > 1:
+                                    selection = 0
+                            elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                                if selection == 0:
+                                    try:
+                                        run_command = subprocess.run(command.replace("{path}", install_path), stdout=subprocess.DEVNULL, shell=True)
+                                        run_command.wait()
+                                    except Exception as e:
+                                        print(e)
+                                        print(command)
+                                        traceback.print_exc()
+                                    break
+                                elif selection == 1:
+                                    break
+                            if not exit:
+                                if selection == 0:
+                                    screen.attron(curses.A_REVERSE)
+                                    screen.addstr(8, 0, "Run Command")
+                                    screen.attroff(curses.A_REVERSE)
+                                    screen.addstr(9, 0, "Skip Command")
+                                else:
+                                    screen.addstr(8, 0, "Run Command")
+                                    screen.attron(curses.A_REVERSE)
+                                    screen.addstr(9, 0, "Skip Command")
+                                    screen.attroff(curses.A_REVERSE)
+                                screen.refresh()
+                                k = screen.getch()
+                        command_index += 1
+                else:
+                    clear_screen(screen)
+                    screen.addstr(0,0, "Some containers require additional setup. Running these commands now. Please stand by!")
+                    try:
+                        for command_container, description, command in post_run_commands:
+                            run_command = subprocess.run(command.replace("{path}", install_path), stdout=subprocess.DEVNULL, shell=True)
+                            run_command.wait()
+                    except Exception as e:
+                        print(e)
+                        print(command)
+                        traceback.print_exc()
+
+                    time.sleep(4)  # these commands probably will finish lighting fast. Adding a delay in just to let the user know something is happening
+
             # display summary screen
             clear_screen(screen)
             exit_message += "Your {}{}{} file has been written. This is the file docker-compose will get all of its information from.\n\n".format(install_path, yaml_file, yaml_extension)

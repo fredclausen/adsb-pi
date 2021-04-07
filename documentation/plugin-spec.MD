@@ -30,7 +30,9 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 
 ## **Overview and Best Practices**
 
-The goal of this project is to provide an easy to use, extensible website that an end user can use to quickly and seamlessly generate docker-compose files that they can use in their infrastructure. The idea is to provide the user a functional docker-compose file, built on their responses to questions, that should deploy a workable container.
+The goal of this project is to provide an easy to use, highly configurable set of tools that an end user can use to quickly and seamlessly set up a system to use their SDR dongles.
+
+To this end, part of the tool set required is a tool to generate docker-compose files that they can use in their infrastructure. The idea is to provide the user a functional docker-compose file, built on their responses to questions, that should deploy a workable container.
 
 In order to facilitate this, and to make the project scalable and usable far in to the future, the "brain" of this is going to be author-provided plugin(s) for their containers that describe how the user needs to configure their container. The thought process behind the plugin architecture is to allow a docker container author to specify the configuration options for a container that allows any tool that uses this plugin spec to assist the user in generating docker-compose files.
 
@@ -38,7 +40,7 @@ The plugin file is set up in `JSON` format and uses `JSON` conventions. Many con
 
 ## Best Practices
 
-For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined [below](#sections) in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option.
+It is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined [below](#sections) in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option.
 
 The primary mode of operation for this tool should be to set up a basic configuration of your container that works for most users. As such, more advanced configuration settings should either be not included, included but set as `disable_user_set` (which allows for writing of the default value specified in the `option` configuration for the variable in to the docker-compose file), or should be exposed with `advanced` (which hides the option from the user unless they choose to configure advanced options, and also allows writing the default value if the flag is specified in the `option` configuration and the user is not using `advanced` config), and not required to be configured by default.
 
@@ -57,6 +59,7 @@ The plugin file will start out with the following items:
 ```json
 {
     "docker_config_version": 1.0,
+    "global+
     "container_1": {
         "config_version": 1.0,
         "container_name": "name_of_container",
@@ -82,9 +85,11 @@ The plugin file will start out with the following items:
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
 | `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
 
+Addtionally, in this top level
+
 ## Global Variables
 
-Variables are covered more in depth in the [section](#sections), but at the top level of a plugin you can define global variables that container's can grab a value from. This is useful for variables that should be globally applied such as `time zones`.
+Variables are covered more in depth in the [section](#sections), but at the top level of the json file you can define global variables that container's can grab a value from. This is useful for variables that should be globally applied such as `time zones`.
 
 The global variable declaration follows the syntax of the `sections` with the exception that only the `options` can be used. There is no looping, groups, or anything else. Addtionally, there is one other kind of variable type not available to the container sections, which is `timezone`
 
@@ -93,9 +98,17 @@ The parser will attempt to grab the user's IANA timezone (aka standard Unix time
 To apply a global variable in a container, for the default value use the following syntax:
 
 ```json
-"option_1": {
-    "env_name": "TZ",
-    "default_value": "${TZ}"
+"global_vars": {
+    # normal var options
+    "env_name": "USER_TZ"
+}
+"container_1":
+    "section_1":
+        "option_1": {
+            "env_name": "TZ",
+            "default_value": "${USER_TZ}"
+        }
+    }
 }
 ```
 
