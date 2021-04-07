@@ -1,5 +1,16 @@
 {
     "docker_config_version": 1.0,
+    "global_vars": {
+        "option_1": {
+            "env_name": "TZ",
+            "default_value": "Etc/UTC",
+            "advanced": true,
+            "compose_required": true,
+            "display_name": "Time Zone",
+            "user_description": "Enter your local timezone",
+            "variable_type": "timezone"
+        }
+    },
     "container_1": {
         "config_version": 1.0,
         "container_name": "acars_hub",
@@ -184,7 +195,7 @@
                                 "option_1": { "user_text": "2.0 M/S (most common)",
                                               "env_text": "160" },
                                 "option_2": { "user_text": "2.4 M/S",
-                                              "env_text": "192" }        
+                                              "env_text": "192" }
                             }
                         }
                     }
@@ -564,7 +575,7 @@
                     "disable_user_set": true,
                     "advanced": true,
                     "compose_required": false
-                },                
+                },
                 "option_4": {
                     "display_name": "FR24 Sharing Key",
                     "user_description": "Your station's sharing key",
@@ -737,7 +748,7 @@
                     "disable_user_set": true,
                     "advanced": true,
                     "compose_required": false
-                },                
+                },
                 "option_4": {
                     "display_name": "Open Sky user name",
                     "user_description": "Your open sky username",
@@ -1550,49 +1561,6 @@
     },
     "container_12": {
         "config_version": 1.0,
-        "container_name": "rawflight",
-        "container_display_name": "Raw Flight Feeder",
-        "container_image": "mikenye/rawflight:latest",
-        "container_website": "https://github.com/mikenye/docker-rawflight",
-        "user_full_description": "Feeder for rawflight.eu from a BEAST source\n\nRequires: readsb or another beast source of data",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "Feeder for rawflight.eu from a BEAST source",
-            "section_1": {
-                "user_description": "In this first section we'll set up some global configuration options",
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "Beast HOST",
-                    "user_description": "Source for BEAST data",
-                    "env_name": "BEASTHOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true
-                },
-                "option_3": {
-                    "display_name": "Beast PORT",
-                    "user_description": "BEAST data port",
-                    "env_name": "BEASTPORT",
-                    "default_value": "30005",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true
-                }
-            }
-        }
-    },
-    "container_13": {
-        "config_version": 1.0,
         "container_name": "tar1090",
         "container_display_name": "tar1090",
         "container_image": "mikenye/tar1090:latest",
@@ -1824,7 +1792,7 @@
                     "multi_choice_options": {
                         "option_1": {
                             "user_text": "Nautical",
-                            "env_text": "nautical" 
+                            "env_text": "nautical"
                         },
                        "option_2": {
                             "user_text": "Metric",

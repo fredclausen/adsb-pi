@@ -9,6 +9,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 * [Overview](#overview)
 * [Best Practices](best-practices)
 * [General Structure of the file](#general-structure)
+* [Global Variables](#global-variables)
 * [Container Config](#container-config)
   * [Recommends and Requirements](#recommends-and-requirements)
   * [Volumes](#volumes)
@@ -80,6 +81,27 @@ The plugin file will start out with the following items:
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
 | `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
 
+## Global Variables
+
+Variables are covered more in depth in the [section](#sections), but at the top level of a plugin you can define global variables that container's can grab a value from. This is useful for variables that should be globally applied such as `time zones`.
+
+The global variable declaration follows the syntax of the `sections` with the exception that only the `options` can be used. There is no looping, groups, or anything else. Addtionally, there is one other kind of variable type not available to the container sections, which is `timezone`
+
+The parser will attempt to grab the user's IANA timezone (aka standard Unix timezone format) from `/etc/localtime` or `/etc/timezone`. If neither can be found, the default value will be either `Etc/UTC`.
+
+To apply a global variable in a container, for the default value use the following syntax:
+
+```json
+"option_1": {
+    "env_name": "TZ",
+    "default_value": "{TZ}"
+}
+```
+
+Where the value between the `{}` is the `env_name` present in the global_vars section.
+
+For best practices it is suggested that if you have a global variable to set the value in the container to be `advanced` so that the user isn't presented with the same option over and over again as they go through the configuration of each container.
+
 ## **Container Config**
 
 ### **Recommends and Requirements**
@@ -122,7 +144,7 @@ Example:
                 }
             },
             "section1": {
-            }     
+            }
         }
     }
 }
@@ -350,7 +372,7 @@ The `multi_choice_options` list should be formatted as follows
     "option_1": { "user_text": "Text displayed to the user",
                   "env_text": "value_written_to_env_file" },
     "option_2": { "user_text": "Second option text displayed to the user",
-                  "env_text": "alternative_value_written_to_env_file" },        
+                  "env_text": "alternative_value_written_to_env_file" },
 }
 ```
 

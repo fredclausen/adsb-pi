@@ -17,6 +17,7 @@ SOFTWARE_VERSION = "0.5.0"
 page = 1
 config = collections.OrderedDict()
 containers = collections.OrderedDict()
+global_vars = collections.OrderedDict()
 advanced = False
 exit_message = None
 yaml_path = "/opt/adsb/"
@@ -77,6 +78,201 @@ def init(screen):
     screen.refresh()
 
 
+def global_configs(screen):
+    global global_vars
+    global advanced
+    global page
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
+    import time
+    if 'global_vars' in config:
+        response = show_proceed_screen(screen, "some global configuration options")
+        if response is None:
+            iterate_global_vars = config['global_vars']
+            global_var_keys = []
+            global_var_values = []
+
+            for key, value in iterate_global_vars.items():
+                if len(re.findall(r"^option_+\d+", key)):
+                    global_var_keys.append(key)
+                    global_var_values.append(value)
+            options_index = 0
+            section_responses = {}
+            previous_responses = copy.deepcopy(global_vars)
+            global_vars = {}
+            while options_index < len(global_var_keys) and options_index >= 0:
+                option_values = global_var_values[options_index]
+                option_key = global_var_keys[options_index]
+
+                if ('advanced' in option_values and option_values['advanced'] is True and advanced is False) or ('disable_user_set' in option_values and option_values['disable_user_set'] is True):
+                    if 'compose_required' in option_values and option_values['compose_required'] is True:
+                        if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                            section_responses[option_values['env_name']] = option_values['default_value']
+                        elif option_values['variable_type'] == 'boolean':
+                            section_responses[option_values['env_name']] = option_values['default_value']
+                        elif option_values['variable_type'] == 'timezone':
+                            user_timezone = option_values['default_value']
+
+                            if os.path.isfile("/etc/localtime"):
+                                user_timezone = '/'.join(os.path.realpath('/etc/localtime').split('/')[-2:])
+                            elif os.path.isfile("/etc/timezone"):
+                                user_timezone = '/'.join(os.path.realpath('/etc/timezone').split('/')[-2:])
+                            section_responses[option_values['env_name']] = user_timezone
+                elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] is False):
+                    if 'variable_type' not in option_values or option_values['variable_type'] == "string":
+                        previous = None
+                        if option_values['env_name'] in section_responses:
+                            previous = section_responses[option_values['env_name']]
+                        elif option_values['env_name'] in previous_responses:
+                            previous = previous_responses[option_values['env_name']]
+                        response = handle_string(screen, option_values, options, previous)
+                        if response == -1:
+                            sub_iterator = options_index - 1
+                            while True:
+                                if sub_iterator < 0:
+                                    sub_iterator -= 1
+                                    break
+
+                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] is False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] is False)):
+                                    sub_iterator -= 1
+                                    break
+                                else:
+                                    sub_iterator -= 1
+
+                            options_index = sub_iterator
+                        elif response == 0:
+                            section_responses[option_values['env_name']] = response
+                    elif option_values['variable_type'] == "boolean":
+                        previous = None
+                        if option_values['env_name'] in section_responses:
+                            temp_working_value = section_responses[option_values['env_name']]
+
+                            if ('boolean_override_false' in option_values and temp_working_value == option_values['boolean_override_false']) or temp_working_value == "False":
+                                previous = False
+                            else:
+                                previous = True
+                        elif option_values['env_name'] in previous_responses:
+                            temp_working_value = previous_responses[option_values['env_name']]
+
+                            if ('boolean_override_false' in option_values and temp_working_value == option_values['boolean_override_false']) or temp_working_value == "False":
+                                previous = False
+                            else:
+                                previous = True
+                        response = handle_boolean(screen, option_values, options, previous)
+                        if response == -1:
+                            sub_iterator = options_index - 1
+                            while True:
+                                if sub_iterator < 0:
+                                    sub_iterator -= 1
+                                    break
+
+                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] is False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] is False)):
+                                    sub_iterator -= 1
+                                    break
+                                else:
+                                    sub_iterator -= 1
+
+                            options_index = sub_iterator
+                        elif response == 0:
+                            if option_values['default_value'] is False or option_values['compose_required'] is True:
+                                if 'boolean_override_true' in option_values:
+                                    section_responses[option_values['env_name']] = option_values['boolean_override_true']
+                                else:
+                                    section_responses[option_values['env_name']] = "True"
+                        else:
+                            if option_values['default_value'] is True or option_values['compose_required'] is True:
+                                if 'boolean_override_false' in option_values:
+                                    section_responses[option_values['env_name']] = option_values['boolean_override_false']
+                                else:
+                                    section_responses[option_values['env_name']] = "False"
+                    elif option_values['variable_type'] == "timezone":
+                        user_timezone = option_values['default_value']
+
+                        if option_values['env_name'] in section_responses:
+                            user_timezone = section_responses[option_values['env_name']]
+                            del section_responses[option_values['env_name']]
+                        elif option_values['env_name'] in previous_responses:
+                            user_timezone = section_responses[option_values['env_name']]
+                        else:
+                            if os.path.isfile("/etc/localtime"):
+                                user_timezone = '/'.join(os.path.realpath('/etc/localtime').split('/')[-2:])
+                            elif os.path.isfile("/etc/timezone"):
+                                user_timezone = '/'.join(os.path.realpath('/etc/timezone').split('/')[-2:])
+
+                        response = handle_string(screen, option_values, options, user_timezone)
+
+                        if response == -1:
+                            sub_iterator = options_index - 1
+                            while True:
+                                if sub_iterator < 0:
+                                    sub_iterator -= 1
+                                    break
+
+                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] is False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] is False)):
+                                    sub_iterator -= 1
+                                    break
+                                else:
+                                    sub_iterator -= 1
+
+                            options_index = sub_iterator
+                        elif response == 0:
+                            section_responses[option_values['env_name']] = response
+                    elif option_values['variable_type'] == 'multi-choice':
+                        previous = None
+                        if option_values['env_name'] in section_responses:
+                            temp_working_value = section_responses[option_values['env_name']]
+                            del section_responses[option_values['env_name']]
+                            multi_counter = 0
+                            for multi_key, multi_item in option_values['multi_choice_options'].items():
+                                if multi_item['env_text'] == temp_working_value:
+                                    previous = multi_counter
+                                else:
+                                    multi_counter += 1
+                        elif option_values['env_name'] in previous_responses:
+                            temp_working_value = previous_responses[option_values['env_name']]
+
+                            multi_counter = 0
+                            for multi_key, multi_item in option_values['multi_choice_options'].items():
+                                if multi_item['env_text'] == temp_working_value:
+                                    previous = multi_counter
+                                else:
+                                    multi_counter += 1
+
+                        response = handle_multi_choice(screen, option_values, options, previous)
+
+                        if response == -1:
+                            sub_iterator = options_index - 1
+                            while True:
+                                if sub_iterator < 0:
+                                    break
+
+                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] is False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] is False)):
+                                    sub_iterator -= 1
+                                    break
+                                else:
+                                    sub_iterator -= 1
+
+                            options_index = sub_iterator
+                            starting_value -= 1
+                        else:
+                            section_responses[option_values['env_name']] = response
+                options_index += 1
+
+            if options_index <= -1:
+                page = 1
+                return
+            else:
+                global_vars.update(section_responses)
+                page = 3
+                return
+        else:
+            page = 1
+            return
+    page = 3
+    return
+
+
 def select_containers(screen):
     global page
     global containers
@@ -84,6 +280,8 @@ def select_containers(screen):
     curs_y = 2
 
     height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
 
     clear_screen(screen)
     curses.noecho()
@@ -100,11 +298,15 @@ def select_containers(screen):
         if 'selected' in containers[container] and containers[container]['selected'] is True:
             selected_containers.append(containers[container]['index'])
     while True:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
+
         show_warning = False
         if k == ord('q'):
             exit_app()
         elif k == ord('n') or k == ord("\n") or k == ord('\r') or k == curses.KEY_ENTER:
-            page = 3
+            page = 5
             if len(selected_containers):
                 for container in containers:
                     if containers[container]['index'] in selected_containers:
@@ -268,6 +470,10 @@ def exit_app():
 
 
 def clear_screen(screen):
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
+
     screen.clear()
     curses.start_color()
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -1363,6 +1569,8 @@ if __name__ == "__main__":
         while True:
             if page == 1:
                 curses.wrapper(init)
+            elif page == 5:
+                curses.wrapper(global_configs)
             elif page == 2:
                 curses.wrapper(select_containers)
             elif page == 3:
