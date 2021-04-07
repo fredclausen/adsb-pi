@@ -25,6 +25,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
   * [Validating User Input](#validating-user-input)
   * [Special YAML Cases](#special-yaml-cases)
   * [Beautifying Text Displayed to User](#beautifying-text-displayed-to-user)
+  * [Post Install Actions](#post-install-actions)
 * [Sample Configuration](#sample-config)
 
 ## **Overview and Best Practices**
@@ -169,6 +170,7 @@ To set up a `docker_volume` include the following under `volumes`
 | `volume_x`| For each docker volume you want to create, include `volume_x`, , where x is an incremented number of devices you are passing in. | No | |
 | `docker_volume_name` | The name of the docker volume for the container | No | `Standard docker volume naming` |
 | `container_path` | The path the `docker_volume_name` should be mapped to in the container | Yes, if `docker_volume_name` is included | `Standard unix path naming` |
+| `volume_options` | If you wish to specify options for the volume, ie to set a volume as local storage, include the YAML here. The parser does not format the data, so it should be correctly formatted YAML | No | `String/YAML` |
 
 If you wish to create a `tmpfs` volume, specify the following under `volumes`
 
@@ -508,6 +510,15 @@ For the following fields
 * `user_full_description`
 
 It may be desirable to apply text-formatting to enhance the readability of the text. Standard markdown syntax can be applied in the text strings of these fields. Not all clients that use the plugins will support the use of markdown, so any field that uses markdown should have `_markdown` appended to the field name, such as `user_question_markdown`. You should **always** include the non-markdown field, and if you want markdown, also include the markdown version of that setting. The client will choose the correct field to use. If no markdown field is present, the client will always use the appropriate non-markdown field.
+
+### Post Install Actions
+
+If your container requires any post installation commands to be run, ie create a directory, or a file, etc, you can input the command line terms to run in the `post_install_actions` keyword under the `container_X`. Addtionally, if you use `{path}` in the command list that will fill in the installation path. The `path` keyword should always end in the file system path folder delimiter.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `post_install_actions` | List of *nix commands that should be run post installation | No | `String` | Blank |
+| `post_install_user_description` | By default the user will be asked if they want to run the command. This will variable will describe the actions about to be performed | Yes, if `post_install_actions` is included | `String` | Blank |
 
 ## **Sample Config**
 

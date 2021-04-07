@@ -13,7 +13,8 @@
 
             "args": [
                 "-f", "plugins/plugin.json",
-                "-y", "~/Git/sdr-docker-config"
+                "-i", "~/Git/sdr-docker-config",
+                "-y"
             ]
         }
     ]

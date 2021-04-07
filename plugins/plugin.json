@@ -1520,11 +1520,20 @@
         "container_image": "mikenye/radarbox:latest",
         "container_website": "https://github.com/mikenye/docker-radarbox",
         "user_full_description": "Feeder for Radar Box from a BEAST source\n\nRequires: readsb or another beast source of data\n\nAlso requires a sharing key. If you do not have one please visit the container's website",
+        "post_install_actions": "mkdir -p {path}data/radarbox_segfault_fix/thermal_zone0 && echo 24000 > {path}data/radarbox_segfault_fix/thermal_zone0/temp",
+        "post_install_user_description": "As the rbfeeder binary is designed to run on a Raspberry Pi, the rbfeeder binary expects a file /sys/class/thermal/thermal_zone0/temp to be present, and contain the CPU temperature. If this file doesn't exist, the rbfeeder binary will crash and restart every few minutes. This command will fix those issues.",
         "requires": {
             "container_1": "readsb"
         },
         "container_config": {
             "user_description": "Feeder for Radar Box from a BEAST source",
+            "volumes": {
+                "volume_1": {
+                    "container_path": "/sys/class/thermal",
+                    "docker_volume_name": "radar_box_segfault_fix",
+                    "volume_options": "    driver: local\n    driver_opts:\n      type: none\n      device: /opt/adsb/data/radarbox_segfault_fix\n      o: bind"
+                }
+            },
             "section_1": {
                 "option_1": {
                     "display_name": "Time Zone",

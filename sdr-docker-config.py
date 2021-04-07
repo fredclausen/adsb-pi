@@ -20,8 +20,9 @@ containers = collections.OrderedDict()
 global_vars = collections.OrderedDict()
 advanced = False
 exit_message = None
-yaml_path = "/opt/adsb/"
+install_path = "/opt/adsb/"
 yaml_extension = ".yml"
+auto_run_post_install = False
 
 volumes = False
 output_container_config = collections.OrderedDict()
@@ -1331,28 +1332,30 @@ def write_compose(screen):
     global output_container_config
     global containers
     global exit_message
-    global yaml_path
+    global install_path
     global global_vars
     global yaml_extension
+    global auto_run_post_install
     yaml_file = "docker-compose"
     env_file = ".env"
     ports = []
     ports_output = []
     installed_containers = []
     addtional_setup_required = []
+    post_run_commands = []  # tuple with container name, desription, command string
     exit_message = ""
 
     try:
-        if not os.path.isdir(yaml_path):
-            os.makedirs(yaml_path)
+        if not os.path.isdir(install_path):
+            os.makedirs(install_path)
 
-        if os.path.isfile(yaml_path + yaml_file + yaml_extension):
+        if os.path.isfile(install_path + yaml_file + yaml_extension):
             exit = False
             clear_screen(screen)
             height, width = screen.getmaxyx()
 
             screen.addstr(7, 0, "Make your selection below")
-            screen.addstr(0, 0, "There is already a {}{} file in the {} directory. Would you like to overwrite or backup this file?".format(yaml_file, yaml_extension, yaml_path))
+            screen.addstr(0, 0, "There is already a {}{} file in the {} directory. Would you like to overwrite or backup this file?".format(yaml_file, yaml_extension, install_path))
             selection = 0
 
             curses.curs_set(0)
@@ -1370,7 +1373,47 @@ def write_compose(screen):
                     if selection == 0:
                         break
                     elif selection == 1:
-                        shutil.copyfile(yaml_path + yaml_file, yaml_path + yaml_file + yaml_extension + ".backup." + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
+                        shutil.copyfile(install_path + yaml_file + yaml_extension, install_path + yaml_file + yaml_extension + ".backup." + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
+                        break
+                if not exit:
+                    if selection == 0:
+                        screen.attron(curses.A_REVERSE)
+                        screen.addstr(8, 0, "Overwrite")
+                        screen.attroff(curses.A_REVERSE)
+                        screen.addstr(9, 0, "Backup")
+                    else:
+                        screen.addstr(8, 0, "Overwrite")
+                        screen.attron(curses.A_REVERSE)
+                        screen.addstr(9, 0, "Backup")
+                        screen.attroff(curses.A_REVERSE)
+                    screen.refresh()
+                    k = screen.getch()
+
+        if os.path.isfile(install_path + env_file):
+            exit = False
+            clear_screen(screen)
+            height, width = screen.getmaxyx()
+
+            screen.addstr(7, 0, "Make your selection below")
+            screen.addstr(0, 0, "There is already a {} file in the {} directory. Would you like to overwrite or backup this file?".format(env_file, install_path))
+            selection = 0
+
+            curses.curs_set(0)
+            k = ""
+            while not exit:
+                if k == curses.KEY_UP:
+                    selection -= 1
+                    if selection < 0:
+                        selection = 1
+                elif k == curses.KEY_DOWN:
+                    selection += 1
+                    if selection > 1:
+                        selection = 0
+                elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                    if selection == 0:
+                        break
+                    elif selection == 1:
+                        shutil.copyfile(install_path + env_file, install_path + env_file + ".backup." + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
                         break
                 if not exit:
                     if selection == 0:
@@ -1387,7 +1430,7 @@ def write_compose(screen):
                     k = screen.getch()
 
         tab = "  "
-        with open(yaml_path + yaml_file + yaml_extension, "w") as compose:
+        with open(install_path + yaml_file + yaml_extension, "w") as compose:
             compose.write("version: '3.8'\n\n")
             # write the volumes first
             compose.write("volumes:\n")
@@ -1395,11 +1438,16 @@ def write_compose(screen):
                 if 'volumes' in containers[container_volumes]['container_config']:
                     for key, volume in containers[container_volumes]['container_config']['volumes'].items():
                         if 'docker_volume_name' in volume:
-                            compose.write(tab + volume['docker_volume_name'] + "\n")
+                            volume_options = ""
+                            if 'volume_options' in volume:
+                                volume_options += "\n" + volume['volume_options']
+                            compose.write(tab + volume['docker_volume_name'] + ":" + volume_options + "\n")
 
             compose.write("services:\n")
             for container in output_container_config:
                 installed_containers.append(containers[container]['container_display_name'])
+                if 'post_install_actions' in containers[container]:
+                    post_run_commands.append((containers[container]['container_display_name'], containers[container]['post_install_user_description'], containers[container]['post_install_actions']))
                 compose.write(tab + container + ":\n")
                 compose.write(tab + tab + "image: " + containers[container]['container_image'] + '\n')
                 compose.write(tab + tab + "tty: true\n")
@@ -1519,20 +1567,69 @@ def write_compose(screen):
                             compose.write(line)
 
                     exit = False
-            with open(yaml_path + env_file, "w") as env:
+            with open(install_path + env_file, "w") as env:
                 for env_key, env_item in global_vars.items():
                     env.write(env_key + "=" + env_item + "\n")
+            if len(post_run_commands):
+                import subprocess
+                clear_screen(screen)
+                command_index = 0
+                while command_index < len(post_run_commands):
+                    exit = False
+                    height, width = screen.getmaxyx()
+                    command_container, description, command = post_run_commands[command_index]
+                    screen.addstr(7, 0, "Make your selection below")
+                    screen.addstr(0, 0, "The container {} requires addtional setup.\n{}".format(command_container, description))
+                    selection = 0
+
+                    curses.curs_set(0)
+                    k = ""
+                    while not exit:
+                        if k == curses.KEY_UP:
+                            selection -= 1
+                            if selection < 0:
+                                selection = 1
+                        elif k == curses.KEY_DOWN:
+                            selection += 1
+                            if selection > 1:
+                                selection = 0
+                        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+                            if selection == 0:
+                                try:
+                                    run_command = subprocess.run(command.replace("{path}", install_path), stdout=subprocess.DEVNULL, shell=True)
+                                    run_command.wait()
+                                except Exception as e:
+                                    print(e)
+                                    print(command)
+                                    traceback.print_exc()
+                                break
+                            elif selection == 1:
+                                break
+                        if not exit:
+                            if selection == 0:
+                                screen.attron(curses.A_REVERSE)
+                                screen.addstr(8, 0, "Run Command")
+                                screen.attroff(curses.A_REVERSE)
+                                screen.addstr(9, 0, "Skip Command")
+                            else:
+                                screen.addstr(8, 0, "Run Command")
+                                screen.attron(curses.A_REVERSE)
+                                screen.addstr(9, 0, "Skip Command")
+                                screen.attroff(curses.A_REVERSE)
+                            screen.refresh()
+                            k = screen.getch()
+                    command_index += 1
             # display summary screen
             clear_screen(screen)
-            exit_message += "Your {}{}{} file has been written. This is the file docker-compose will get all of its information from.\n".format(yaml_path, yaml_file, yaml_extension)
-            exit_message += "Your {}{} file has been written. This file saves sensitive or common values that are shared between a lot of containers.".format(yaml_path, env_file)
+            exit_message += "Your {}{}{} file has been written. This is the file docker-compose will get all of its information from.\n\n".format(install_path, yaml_file, yaml_extension)
+            exit_message += "Your {}{} file has been written. This file saves sensitive or common values that are shared between a lot of containers.".format(install_path, env_file)
             exit_message += "\n\n" + "The following containers have been set up:\n\n"
 
-            screen.addstr(0, 0, "Your {}{}{} file has been written. After you have reviewed this press enter to exit".format(yaml_path, yaml_file, yaml_extension))
-            screen.addstr(1, 0, "Your {}{} file has been written. This file saves sensitive or common values that are shared between a lot of containers.".format(yaml_path, env_file))
-            screen.addstr(3, 0, "The following containers have been set up:")
+            screen.addstr(0, 0, "Your {}{}{} file has been written. After you have reviewed this press enter to exit".format(install_path, yaml_file, yaml_extension))
+            screen.addstr(1, 0, "Your {}{} file has been written. This file saves sensitive or common values that are shared between a lot of containers.".format(install_path, env_file))
+            screen.addstr(4, 0, "The following containers have been set up:")
 
-            container_index = 4
+            container_index = 6
             for item in installed_containers:
                 information = ""
                 if item in addtional_setup_required:
@@ -1556,7 +1653,7 @@ def write_compose(screen):
             if len(addtional_setup_required):
                 exit_message += "\nSome containers require addtional setup. Please review the www.sdrdockerconfig.com website (link for each container is above) for specifics on what each container needs\n"
 
-            exit_message += "\nPlease see the www.sdrdockerconfig.com tutorial section for next steps. Once all pre-requisites have been met you can 'cd {}' and run 'docker-compose up -d' to start all of the containers".format(yaml_path)
+            exit_message += "\nPlease see the www.sdrdockerconfig.com tutorial section for next steps. Once all pre-requisites have been met you can 'cd {}' and run 'docker-compose up -d' to start all of the containers".format(install_path)
             curses.curs_set(0)
             k = ""
             exit = False
@@ -1575,32 +1672,41 @@ if __name__ == "__main__":
     parser.add_argument(
         '--files', '-f',
         type=str,
-        help='the plugin file to use',
+        help='The plugin file to use. By default the program will grab the plugin file from the www.sdrdockerconfig.com website. Using this option you can override and use a local copy',
+        required=False,
+    )
+
+    parser.add_argument(
+        '--install', '-i',
+        type=str,
+        help='Override the install path. Default path is /opt/adsb/',
         required=False,
     )
 
     parser.add_argument(
         '--yaml', '-y',
-        type=str,
-        help='override the yaml path (no filename!)',
-        required=False,
+        action='store_true',
+        help='Use .yaml instead of .yml for the docker-compose file'
     )
 
     parser.add_argument(
-        '--use-yaml', '-u',
+        '--auto', '-a',
         action='store_true',
-        help='use .yaml instead of .yml'
+        help='Auto run any post-installation commands required by the container.'
     )
 
     args = parser.parse_args()
 
-    if args.use_yaml:
+    if args.yaml:
         yaml_extension = ".yaml"
 
-    if args.yaml is not None:
-        yaml_path = args.yaml
-        if not yaml_path.endswith("/") or not yaml_path.endswith("\\"):
-            yaml_path += "/"  # going to assume unix pathing...too lazy to figure out if it's windows
+    if args.auto:
+        auto_run_post_install = True
+
+    if args.install is not None:
+        install_path = args.install
+        if not install_path.endswith("/") or not install_path.endswith("\\"):
+            install_path += "/"  # going to assume unix pathing...too lazy to figure out if it's windows
     try:
         if args.files is not None:
             config = json.load(open(args.files), object_pairs_hook=raise_on_duplicate_keys)

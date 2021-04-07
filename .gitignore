@@ -111,3 +111,5 @@ docker-compose.yaml*
 docker-compose.yml*
 output.txt
 .env
+data/*
+plugins/plugin_testing.json
