@@ -9,7 +9,12 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+
+            "args": [
+                "-f", "plugins/plugin.json",
+                "-y", "~/Git/sdr-docker-config"
+            ]
         }
     ]
 }

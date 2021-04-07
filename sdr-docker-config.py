@@ -21,6 +21,7 @@ global_vars = collections.OrderedDict()
 advanced = False
 exit_message = None
 yaml_path = "/opt/adsb/"
+yaml_extension = ".yml"
 
 volumes = False
 output_container_config = collections.OrderedDict()
@@ -89,6 +90,25 @@ def global_configs(screen):
     if 'global_vars' in config:
         response = show_proceed_screen(screen, "some global configuration options")
         if response is None:
+            clear_screen(screen)
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(1)
+            curses.start_color()
+            curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+            curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
+            curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+            screen.attron(curses.color_pair(2))
+            status_bar = "Press enter to save option and proceed"
+
+            # show status bar
+            if len(status_bar) > width - 1:
+                status_bar = status_bar[:width - 1]
+            screen.attron(curses.color_pair(3))
+            screen.addstr(height - 1, 0, status_bar)
+            screen.addstr(height - 1, len(status_bar), " " * (width - len(status_bar) - 1))
+            screen.attroff(curses.color_pair(3))
+
             iterate_global_vars = config['global_vars']
             global_var_keys = []
             global_var_values = []
@@ -120,13 +140,19 @@ def global_configs(screen):
                                 user_timezone = '/'.join(os.path.realpath('/etc/timezone').split('/')[-2:])
                             section_responses[option_values['env_name']] = user_timezone
                 elif advanced or ('disable_user_set' not in option_values or option_values['disable_user_set'] is False):
+                    for i in range(1, height - 1):  # clear all the old lines out, just in case
+                        screen.addstr(i, 0, " " * (width - 1))
+                    screen.addstr(3, 0, "Container Variable: {}".format(option_values['display_name']))
+                    screen.addstr(4, 0, "Container Variable: {}".format(option_values['user_description']))
+                    if 'user_required_description' in option_values:
+                        screen.addstr(5, 0, "Required Formatting: {}".format(option_values['user_required_description']))
                     if 'variable_type' not in option_values or option_values['variable_type'] == "string":
                         previous = None
                         if option_values['env_name'] in section_responses:
                             previous = section_responses[option_values['env_name']]
                         elif option_values['env_name'] in previous_responses:
                             previous = previous_responses[option_values['env_name']]
-                        response = handle_string(screen, option_values, options, previous)
+                        response = handle_string(screen, option_values, option_key, previous)
                         if response == -1:
                             sub_iterator = options_index - 1
                             while True:
@@ -489,6 +515,7 @@ def config_container(screen, f):
     global volumes
     global advanced
     global output_container_config
+    global global_vars
 
     height, width = screen.getmaxyx()
     if height < 30 or width < 110:
@@ -553,7 +580,7 @@ def config_container(screen, f):
                         starting_value = section_values['loops']['starting_value']
 
                     if 'run_if' in section_values and ('loops' not in section_values or (('loops' in section_values and 'min_loops' in section_values['loops'] and section_values['loops']['min_loops'] == 0)) or (('loops' in section_values and 'min_loops' not in section_values['loops']))):
-                        run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'], height=height, width=width)
+                        run_section = do_run_section(screen=screen, user_question=section_values['run_if']['user_question'])
                         if run_section == -1:
                             section_index -= 2
                             run_section = False
@@ -670,7 +697,7 @@ def config_container(screen, f):
                                             del section_responses[option_values['env_name'].replace("[]", str(starting_value))]
                                         elif option_values['env_name'].replace("[]", str(starting_value)) in previous_responses:
                                             previous = previous_responses[option_values['env_name'].replace("[]", str(starting_value))]
-                                        response = handle_string(screen, option_values, options, height, width, previous)
+                                        response = handle_string(screen, option_values, options, previous)
 
                                         if response == -1:
                                             sub_iterator = options_index - 1
@@ -1305,7 +1332,10 @@ def write_compose(screen):
     global containers
     global exit_message
     global yaml_path
-    yaml_file = "docker-compose.yml"
+    global global_vars
+    global yaml_extension
+    yaml_file = "docker-compose"
+    env_file = ".env"
     ports = []
     ports_output = []
     installed_containers = []
@@ -1316,13 +1346,13 @@ def write_compose(screen):
         if not os.path.isdir(yaml_path):
             os.makedirs(yaml_path)
 
-        if os.path.isfile(yaml_path + yaml_file):
+        if os.path.isfile(yaml_path + yaml_file + yaml_extension):
             exit = False
             clear_screen(screen)
             height, width = screen.getmaxyx()
 
             screen.addstr(7, 0, "Make your selection below")
-            screen.addstr(0, 0, "There is already a {} file in the {} directory. Would you like to overwrite or backup this file?".format(yaml_file, yaml_path))
+            screen.addstr(0, 0, "There is already a {}{} file in the {} directory. Would you like to overwrite or backup this file?".format(yaml_file, yaml_extension, yaml_path))
             selection = 0
 
             curses.curs_set(0)
@@ -1340,7 +1370,7 @@ def write_compose(screen):
                     if selection == 0:
                         break
                     elif selection == 1:
-                        shutil.copyfile(yaml_path + yaml_file, yaml_path + yaml_file + ".backup." + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
+                        shutil.copyfile(yaml_path + yaml_file, yaml_path + yaml_file + yaml_extension + ".backup." + datetime.datetime.now().strftime("%Y%m%d-%H%M"))
                         break
                 if not exit:
                     if selection == 0:
@@ -1357,7 +1387,7 @@ def write_compose(screen):
                     k = screen.getch()
 
         tab = "  "
-        with open(yaml_path + yaml_file, "w") as compose:
+        with open(yaml_path + yaml_file + yaml_extension, "w") as compose:
             compose.write("version: '3.8'\n\n")
             # write the volumes first
             compose.write("volumes:\n")
@@ -1401,12 +1431,16 @@ def write_compose(screen):
                     try:
                         bypass_yaml = ""
                         output_string = value
+                        add_to_env = False
                         # now we need to decide if the yaml should be bypassed
+                        # TODO: rewrite this to loop once and save each value to a list we can check against
                         for section_key, section_item in containers[container]['container_config'].items():
                             if len(re.findall(r"^section_\d+", section_key)) > 0:
                                 for option_key, option_item in section_item.items():
                                     if len(re.findall(r"option_\d+", option_key)):
                                         if option_item['env_name'] == variable:
+                                            if 'env' in option_item and option_item['env']== True:
+                                                add_to_env = True
                                             if 'addtional_setup_required' in option_item and value == option_item['default_value']:
                                                 if containers[container]['container_display_name'] not in addtional_setup_required:
                                                     addtional_setup_required.append(containers[container]['container_display_name'])
@@ -1416,7 +1450,12 @@ def write_compose(screen):
                                                     for character in option_item['replace_characters']:
                                                         output_string = output_string.replace(character, character * 2)
                                             continue
-                        compose.write(tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=" + str(output_string) + "{}\n".format(bypass_yaml))
+                        if not add_to_env:
+                            compose.write(tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=" + str(output_string) + "{}\n".format(bypass_yaml))
+                        else:
+                            compose.write(tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=${" + container.upper() + "_" + variable.upper() + "}" + "{}\n".format(bypass_yaml))
+                            if container.upper() + "_" + variable.upper() not in global_vars:
+                                global_vars[container.upper() + "_" + variable.upper()] = str(output_string)
                     except Exception as e:
                         import time
                         print(e)
@@ -1480,16 +1519,20 @@ def write_compose(screen):
                             compose.write(line)
 
                     exit = False
-
+            with open(yaml_path + env_file, "w") as env:
+                for env_key, env_item in global_vars.items():
+                    env.write(env_key + "=" + env_item + "\n")
             # display summary screen
             clear_screen(screen)
-            exit_message += "Your {}{} file has been written.".format(yaml_path, yaml_file)
+            exit_message += "Your {}{}{} file has been written. This is the file docker-compose will get all of its information from.\n".format(yaml_path, yaml_file, yaml_extension)
+            exit_message += "Your {}{} file has been written. This file saves sensitive or common values that are shared between a lot of containers.".format(yaml_path, env_file)
             exit_message += "\n\n" + "The following containers have been set up:\n\n"
 
-            screen.addstr(0, 0, "Your {}{} file has been written. After you have reviewed this press enter to exit".format(yaml_path, yaml_file))
-            screen.addstr(2, 0, "The following containers have been set up:")
+            screen.addstr(0, 0, "Your {}{}{} file has been written. After you have reviewed this press enter to exit".format(yaml_path, yaml_file, yaml_extension))
+            screen.addstr(1, 0, "Your {}{} file has been written. This file saves sensitive or common values that are shared between a lot of containers.".format(yaml_path, env_file))
+            screen.addstr(3, 0, "The following containers have been set up:")
 
-            container_index = 3
+            container_index = 4
             for item in installed_containers:
                 information = ""
                 if item in addtional_setup_required:
@@ -1543,7 +1586,16 @@ if __name__ == "__main__":
         required=False,
     )
 
+    parser.add_argument(
+        '--use-yaml', '-u',
+        action='store_true',
+        help='use .yaml instead of .yml'
+    )
+
     args = parser.parse_args()
+
+    if args.use_yaml:
+        yaml_extension = ".yaml"
 
     if args.yaml is not None:
         yaml_path = args.yaml

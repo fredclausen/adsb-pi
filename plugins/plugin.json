@@ -2,13 +2,46 @@
     "docker_config_version": 1.0,
     "global_vars": {
         "option_1": {
-            "env_name": "TZ",
+            "env_name": "TIMEZONE",
             "default_value": "Etc/UTC",
             "advanced": true,
             "compose_required": true,
             "display_name": "Time Zone",
             "user_description": "Enter your local timezone",
             "variable_type": "timezone"
+        },
+        "option_2": {
+            "env_name": "USER_ALT",
+            "default_value": "",
+            "compose_required": true,
+            "user_required": true,
+            "display_name": "Station altitude",
+            "user_description": "Your station altitude IN METERS!",
+            "variable_type": "string",
+            "validator": "\\d+",
+            "user_required_description": "Please enter whole numbers only"
+        },
+        "option_3": {
+            "env_name": "USER_LAT",
+            "default_value": "",
+            "compose_required": true,
+            "user_required": true,
+            "display_name": "Station latitude",
+            "user_description": "Your station latitude in decimal degrees to five places, ie 35.55555",
+            "variable_type": "string",
+            "validator": "(^[-+]{0,1}[1]\\d{2}\\.\\d{5}$)|(^[-+]{0,1}\\d{1,2}\\.\\d{5})",
+            "user_required_description": "Please enter decimal degrees to five places, ie 35.55555"
+        },
+        "option_4": {
+            "env_name": "USER_LON",
+            "default_value": "",
+            "compose_required": true,
+            "user_required": true,
+            "display_name": "Station longitude",
+            "user_description": "Your station longitude in decimal degrees to five places, ie 35.55555",
+            "variable_type": "string",
+            "validator": "(^[-+]{0,1}[1]\\d{2}\\.\\d{5}$)|(^[-+]{0,1}\\d{1,2}\\.\\d{5})",
+            "user_required_description": "Please enter decimal degrees to five places, ie 35.55555"
         }
     },
     "container_1": {
@@ -336,39 +369,44 @@
                     "default_value": "",
                     "user_required": false,
                     "compose_required": true,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 },
                 "option_4": {
                     "display_name": "Station Latitude",
                     "user_description": "Your station's latitude, in decimal format, up to 5 decimals of precision",
                     "env_name": "LAT",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${USER_LAT}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_5": {
                     "display_name": "Station Longitude",
                     "user_description": "Your station's longitude, in decimal format, up to 5 decimals of precision",
                     "env_name": "LON",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_6": {
                     "display_name": "Station Altitude",
                     "user_description": "Your station's altitude. If using feet, append ft to the alitude. If using metres, append m to the alitude",
                     "env_name": "ALT",
-                    "default_value": "",
-                    "user_required": true,
+                    "default_value": "${USER_ALT}m",
+                    "user_required": false,
+                    "advanced": true,
                     "compose_required": true
                 },
                 "option_7": {
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 }
             }
         }
@@ -410,8 +448,9 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "advanced": true,
                     "compose_required": true
                 },
                 "option_4": {
@@ -423,7 +462,8 @@
                     "default_value": "",
                     "user_required": false,
                     "compose_required": true,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 }
             }
         }
@@ -456,9 +496,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "Dump 978 SDR Device Type",
@@ -552,9 +593,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "BEAST Host",
@@ -583,7 +625,8 @@
                     "default_value": "",
                     "user_required": false,
                     "compose_required": true,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 },
                 "option_5": {
                     "display_name": "MLAT",
@@ -653,9 +696,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "Performance graphs",
@@ -725,9 +769,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "BEAST Host",
@@ -756,7 +801,8 @@
                     "default_value": "",
                     "user_required": true,
                     "compose_required": true,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 },
                 "option_5": {
                     "display_name": "Open Sky Serial",
@@ -765,31 +811,35 @@
                     "default_value": "",
                     "compose_required": true,
                     "user_required": false,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 },
                 "option_6": {
                     "display_name": "LAT",
                     "user_description": "Your site's latitude",
                     "env_name": "LAT",
-                    "default_value": "",
+                    "default_value": "${USER_LAT}",
                     "compose_required": true,
-                    "user_required": true
+                    "user_required": true,
+                    "advanced": true
                 },
                 "option_7": {
                     "display_name": "LON",
                     "user_description": "Your site's longitude",
                     "env_name": "LON",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": true
+                    "default_value": "${USER_LON}",
+                    "compose_required": false,
+                    "user_required": true,
+                    "advanced": true
                 },
                 "option_8": {
                     "display_name": "ALT",
                     "user_description": "Your site's altitude in METERS",
                     "env_name": "ALT",
-                    "default_value": "",
+                    "default_value": "${USER_ALT}",
                     "compose_required": true,
-                    "user_required": true
+                    "user_required": false,
+                    "advanced": true
                 }
             }
         }
@@ -848,9 +898,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "Feeder ID",
@@ -859,7 +910,8 @@
                     "default_value": "",
                     "user_required": false,
                     "compose_required": true,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 },
                 "option_3": {
                     "display_name": "Bing Map API Key",
@@ -885,17 +937,19 @@
                     "display_name": "Latitude",
                     "user_description": "Your site's latitude",
                     "env_name": "LAT",
-                    "default_value": "",
+                    "default_value": "${USER_LAT}",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_6": {
                     "display_name": "Longitude",
                     "user_description": "Your site's longitude",
                     "env_name": "LONG",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 }
             },
             "section_2": {
@@ -1046,9 +1100,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "Verbose Logging",
@@ -1351,17 +1406,19 @@
                     "env_name": "READSB_LAT",
                     "user_description": "Site Latitude",
                     "display_name": "Latitude",
-                    "default_value": "",
+                    "default_value": "${USER_LAT}",
                     "compose_required": true,
-                    "user_required": true
+                    "user_required": true,
+                    "advnaced": true
                 },
                 "option_9": {
                     "env_name": "READSB_LON",
                     "user_description": "Site Longitude",
                     "display_name": "Longitude",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": true
+                    "default_value": "${USER_LON}",
+                    "compose_required": false,
+                    "user_required": true,
+                    "advanced": true
                 },
                 "option_10": {
                     "env_name": "READSB_MAX_RANGE",
@@ -1473,9 +1530,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "Beast HOST",
@@ -1502,30 +1560,34 @@
                     "default_value": "",
                     "user_required": false,
                     "compose_required": true,
-                    "addtional_setup_required": true
+                    "addtional_setup_required": true,
+                    "env": true
                 },
                 "option_5": {
                     "display_name": "Site Latitude",
                     "user_description": "Site latitude",
                     "env_name": "LAT",
-                    "default_value": "",
+                    "default_value": "${USER_LAT}",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_6": {
                     "display_name": "Site Longitude",
                     "user_description": "Site longitude",
                     "env_name": "LONG",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_7": {
                     "display_name": "Site Altitude",
                     "user_description": "Site Altitude In METERS",
                     "env_name": "ALT",
-                    "default_value": "",
-                    "user_required": true,
+                    "default_value": "${USER_ALT}",
+                    "user_required": false,
+                    "advanced": true,
                     "compose_required": true
                 },
                 "option_8": {
@@ -1649,8 +1711,8 @@
                     "display_name": "Site latitude",
                     "user_description": "Your site's latitude",
                     "env_name": "LAT",
-                    "default_value": "",
-                    "user_required": true,
+                    "default_value": "${USER_LAT}",
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true
                 },
@@ -1667,9 +1729,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
+                    "default_value": "${TIMEZONE}",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_6": {
                     "display_name": "Hey What's That Panorama ID",

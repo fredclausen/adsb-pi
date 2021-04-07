@@ -110,3 +110,4 @@ acars-decoder-typescript.tgz
 docker-compose.yaml*
 docker-compose.yml*
 output.txt
+.env

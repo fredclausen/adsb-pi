@@ -94,13 +94,13 @@ To apply a global variable in a container, for the default value use the followi
 ```json
 "option_1": {
     "env_name": "TZ",
-    "default_value": "{TZ}"
+    "default_value": "${TZ}"
 }
 ```
 
 Where the value between the `{}` is the `env_name` present in the global_vars section.
 
-For best practices it is suggested that if you have a global variable to set the value in the container to be `advanced` so that the user isn't presented with the same option over and over again as they go through the configuration of each container.
+The values set in the global section will be be written to a `.env` file.
 
 ## **Container Config**
 
@@ -364,6 +364,7 @@ Below is the configuration for an environment variable in a section, also known 
 | `compose_required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | No | `boolean` | `false` |
 | `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
 | `additional_setup_required` | If this is set, and the user inputs the default value, the user will be informed that the container requires additional setup | No | `boolean` | `false` |
+| `env` | If this flag is set the variable will be written to the .env file with the appropriate formatting of the variable in the `yaml` file and the name of the variable will have the container name prepended to it. | No | `boolean` | `false` |
 
 The `multi_choice_options` list should be formatted as follows
 
