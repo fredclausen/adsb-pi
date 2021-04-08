@@ -1532,6 +1532,80 @@
     "container_10": {
         "config_version": 1.0,
         "category": "feeders",
+        "container_name": "planefinder",
+        "container_display_name": "Plane Finder",
+        "container_image": "mikenye/planefinder:latest",
+        "container_website": "https://github.com/mikenye/docker-planefinder",
+        "user_full_description": "This container is used to feed Plane Finder from a BEAST source of data like readsb. It will require additional setup if you do not have a share code. Please see the container's website for details.",
+        "container_config": {
+            "user_description": "This container is used to feed Plane Finder from a BEAST source of data like readsb",
+            "ports": {
+                "port_1": {
+                    "container_port": 30053
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Plane Finder Share Code",
+                    "user_description": "The sharing code from Plane Finder",
+                    "env_name": "SHARECODE",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_5": {
+                    "display_name": "Site Latitude",
+                    "user_description": "Site latitude",
+                    "env_name": "LAT",
+                    "default_value": "${USER_LAT}",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_6": {
+                    "display_name": "Site Longitude",
+                    "user_description": "Site longitude",
+                    "env_name": "LONG",
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_11": {
+        "config_version": 1.0,
+        "category": "feeders",
         "display_order": 6,
         "container_name": "radar_box",
         "container_display_name": "Radar Box Feeder",
@@ -1649,7 +1723,7 @@
         }
     },
 
-    "container_11": {
+    "container_12": {
         "config_version": 1.0,
         "category": "misc",
         "container_name": "acars_hub",
@@ -1928,5 +2002,8 @@
                 }
             }
         }
+    },
+    "container_13": {
+
     }
 }
