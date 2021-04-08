@@ -2008,8 +2008,8 @@
     "container_13": {
         "config_version": 1.0,
         "category": "support",
-        "container_name": "watchtower",
-        "container_display_name": "Watchtower",
+        "container_name": "autoheal",
+        "container_display_name": "Auto Heal",
         "container_image": "willfarrell/autoheal:latest",
         "container_website": "https://mikenye.gitbook.io/ads-b/useful-extras/auto-restart-unhealthy-containers",
         "user_full_description": "This container is used to monitor all containers and restart any that stop working.",
@@ -2019,6 +2019,12 @@
             "ports": {
                 "port_1": {
                     "container_port": 30053
+                }
+            },
+            "volumes": {
+                "volume_1": {
+                    "container_path": "/var/run/docker.sock",
+                    "volume_override": "/var/run/docker.sock"
                 }
             },
             "section_1": {
@@ -2036,6 +2042,65 @@
                     "user_description": "This will configure which container(s) that will be monitored. Default is 'all', and it is recommended to leave unchanged",
                     "env_name": "AUTOHEAL_CONTAINER_LABEL",
                     "default_value": "all",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_14": {
+        "config_version": 1.0,
+        "category": "support",
+        "container_name": "watchtower",
+        "container_display_name": "Watch Tower",
+        "container_image": "containrrr/watchtower:latest",
+        "container_website": "https://mikenye.gitbook.io/ads-b/useful-extras/auto-upgrade-containers",
+        "user_full_description": "This container is used to automatically upgrade any container that is out of date",
+        "advanced": true,
+        "container_config": {
+            "user_description": "This container is used to automatically upgrade any container that is out of date",
+            "volumes": {
+                "volume_1": {
+                    "container_path": "/var/run/docker.sock",
+                    "volume_override": "/var/run/docker.sock"
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Watchtower Cleanup",
+                    "user_description": "Removes old images after updating",
+                    "env_name": "WATCHTOWER_CLEANUP",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Watchtower Rolling Restart",
+                    "user_description": "Restart one container at a time instead of all at once",
+                    "env_name": "WATCHTOWER_ROLLING_RESTART",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Polling Interval",
+                    "user_description": "How often watchtower will check for new images. Value is in seconds. Default of 86400, or one day.",
+                    "env_name": "WATCHTOWER_POLL_INTERVAL",
+                    "default_value": "86400",
                     "user_required": false,
                     "compose_required": true,
                     "advanced": true

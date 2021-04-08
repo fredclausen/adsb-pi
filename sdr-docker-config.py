@@ -1477,10 +1477,11 @@ def write_compose(screen):
                 if 'volumes' in containers[container_volumes]['container_config']:
                     for key, volume in containers[container_volumes]['container_config']['volumes'].items():
                         if 'docker_volume_name' in volume:
-                            volume_options = ""
-                            if 'volume_options' in volume:
-                                volume_options += "\n" + volume['volume_options']
-                            compose.write(tab + volume['docker_volume_name'] + ":" + volume_options + "\n")
+                            if 'volume_override' not in volume or volume['volume_override'] == "":
+                                volume_options = ""
+                                if 'volume_options' in volume:
+                                    volume_options += "\n" + volume['volume_options']
+                                compose.write(tab + volume['docker_volume_name'] + ":" + volume_options + "\n")
 
             compose.write("services:\n")
             for container in output_container_config:
@@ -1592,7 +1593,10 @@ def write_compose(screen):
                     tmpfs_strings = []
                     for volume, volumes_config in containers[container]['container_config']['volumes'].items():
                         if len(re.findall(r"^volume_\d+", volume)):
-                            volumes_strings.append(tab + tab + tab + "- {}:{}\n".format(volumes_config['docker_volume_name'], volumes_config['container_path']))
+                            if 'volume_override' in volumes_config and volumes_config['volume_override'] != "":
+                                volumes_strings.append(tab + tab + tab + "- {}:{}\n".format(volumes_config['volume_override'], volumes_config['container_path']))
+                            else:
+                                volumes_strings.append(tab + tab + tab + "- {}:{}\n".format(volumes_config['docker_volume_name'], volumes_config['container_path']))
                         elif len(re.findall(r"^tmpfs_\d+", volume)):
                             tmpfs_strings.append(tab + tab + tab + "- {}:{}\n".format(volumes_config['container_path'], volumes_config['tmpfs_options']))
 

@@ -207,6 +207,7 @@ To set up a `docker_volume` include the following under `volumes`
 | `docker_volume_name` | The name of the docker volume for the container | No | `Standard docker volume naming` |
 | `container_path` | The path the `docker_volume_name` should be mapped to in the container | Yes, if `docker_volume_name` is included | `Standard unix path naming` |
 | `volume_options` | If you wish to specify options for the volume, ie to set a volume as local storage, include the YAML here. The parser does not format the data, so it should be correctly formatted YAML | No | `String/YAML` |
+| `volume_override` | If set, the volume will not be created as a docker volume. Instead, whatever text is in this field will be set to the host path and mounted to the `container_path` | No | `String` |
 
 If you wish to create a `tmpfs` volume, specify the following under `volumes`
 
