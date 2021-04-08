@@ -113,3 +113,4 @@ output.txt
 .env
 data/*
 plugins/plugin_testing.json
+.env.backup*
