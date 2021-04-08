@@ -1,968 +1,60 @@
 {
     "docker_config_version": 1.0,
+    "global_vars": {
+        "option_1": {
+            "env_name": "TIMEZONE",
+            "default_value": "Etc/UTC",
+            "advanced": true,
+            "compose_required": true,
+            "display_name": "Time Zone",
+            "user_description": "Enter your local timezone",
+            "variable_type": "timezone"
+        },
+        "option_2": {
+            "env_name": "USER_ALT",
+            "default_value": "",
+            "compose_required": true,
+            "user_required": true,
+            "display_name": "Station altitude",
+            "user_description": "Your station altitude IN METERS!",
+            "variable_type": "string",
+            "validator": "\\d+",
+            "user_required_description": "Please enter whole numbers only"
+        },
+        "option_3": {
+            "env_name": "USER_LAT",
+            "default_value": "",
+            "compose_required": true,
+            "user_required": true,
+            "display_name": "Station latitude",
+            "user_description": "Your station latitude in decimal degrees to five places, ie 35.55555",
+            "variable_type": "string",
+            "validator": "(^[-+]{0,1}[1]\\d{2}\\.{,1}\\d{,5}$)|(^[-+]{0,1}\\d{1,2}\\.{,1}\\d{,5}$)",
+            "user_required_description": "Please enter decimal degrees to five places, ie 35.55555"
+        },
+        "option_4": {
+            "env_name": "USER_LON",
+            "default_value": "",
+            "compose_required": true,
+            "user_required": true,
+            "display_name": "Station longitude",
+            "user_description": "Your station longitude in decimal degrees to five places, ie 35.55555",
+            "variable_type": "string",
+            "validator": "(^[-+]{0,1}[1]\\d{2}\\.{,1}\\d{,5}$)|(^[-+]{0,1}\\d{1,2}\\.{,1}\\d{,5}$)",
+            "user_required_description": "Please enter decimal degrees to five places, ie 35.55555"
+        }
+    },
+    "categories": {
+        "required": "Required for ADSB 1090Mhz Decoding",
+        "recommended": "Recommended addtional ADSB Software",
+        "uat": "Required for 978mhz/UAT Decoding. US ONLY!",
+        "feeders": "ADSB Feeders",
+        "acars": "Required for ACARS/VDLM Decoding/Feeding",
+        "support": "Container Management Tools"
+    },
     "container_1": {
         "config_version": 1.0,
-        "container_name": "acars_hub",
-        "container_display_name": "ACARS Hub",
-        "container_image": "fredclausen/acarshub:latest",
-        "container_website": "http://www.github.com/fredclausen/acarshub",
-        "user_full_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page.\nRequires one or more SDRs.",
-        "container_config": {
-            "user_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
-            "volumes": {
-                "volume_1": {
-                    "docker_volume_name": "acarshub",
-                    "container_path": "/run/acars/"
-                },
-
-                "tmpfs_1": {
-                    "container_path": "/database/",
-                    "tmpfs_options": "exec,size=64M"
-                }
-            },
-            "ports": {
-                "port_1": {
-                    "container_port": 80
-                }
-            },
-            "devices": {
-                "usb": true
-            },
-            "privileged": false,
-            "section_1": {
-                "user_description": "This first section will define some global configuration parameters for ACARS Hub",
-                "option_1": {
-                    "display_name": "Feed",
-                    "user_description": "Would you like to feed received messages to airframes.io?",
-                    "env_name": "FEED",
-                    "default_value": false,
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "user_required": false,
-                    "compose_required": false
-                },
-
-                "option_2": {
-                    "display_name": "QUIET LOGS",
-                    "user_description": "Would you like to log all received messages to the container's standard output?",
-                    "env_name": "QUIET_LOGS",
-                    "default_value": true,
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "user_required": false,
-                    "compose_required": false
-                },
-
-                "option_3": {
-                    "display_name": "Database Save All Messages",
-                    "user_description": "Would you like to save all received messages in to the database, including messages that are 'blank'? This will take up more disk space",
-                    "env_name": "DB_SAVEALL",
-                    "default_value": true,
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "user_required": false,
-                    "compose_required": false
-                }
-            },
-
-            "section_2": {
-                "run_if": {
-                    "user_question": "Would you like to enable ACARS?"
-                },
-                "loops": {
-                    "max_loops": 1
-                },
-                "option_1": {
-                    "display_name": "Enable ACARS",
-                    "user_description": "Enable acarsdec",
-                    "env_name": "ENABLE_ACARS",
-                    "default_value": true,
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "disable_user_set": true
-                },
-                "option_2": {
-                    "display_name": "STATION_ID_ACARS",
-                    "user_description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
-                    "env_name": "STATION_ID_ACARS",
-                    "default_value": "",
-                    "variable_type": "string",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "FREQS_ACARS",
-                    "user_description": "The list of frequencies for ACARS you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
-                    "env_name": "FREQS_ACARS",
-                    "default_value": "",
-                    "variable_type": "string",
-                    "user_required": true,
-                    "compose_required": true
-                }
-            },
-
-            "section_3": {
-                "run_if": {
-                    "user_question": "Would you like to enable VDLM?"
-                },
-                "loops": {
-                    "max_loops": 1
-                },
-                "option_1": {
-                    "display_name": "Enable VDLM",
-                    "user_description": "Enable vdlm2dec",
-                    "env_name": "ENABLE_VDLM",
-                    "default_value": true,
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "disable_user_set": true
-                },
-                "option_2": {
-                    "display_name": "STATION_ID_VDLM",
-                    "user_description": "The ID used to uniquely identifiy your VDLM station. This will be used both in displaying of messages on the local website and on airframes.io",
-                    "env_name": "STATION_ID_VDLM",
-                    "default_value": "",
-                    "variable_type": "string",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "FREQS_VDLM",
-                    "user_description": "The list of frequencies for VDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
-                    "env_name": "FREQS_VDLM",
-                    "default_value": "",
-                    "variable_type": "string",
-                    "user_required": true,
-                    "compose_required": true
-                }
-            },
-
-            "section_4": {
-                "run_if": {
-                    "user_question": "It is now time to set up the first SDR in the container. In this section, these SDRs will be auto-assigned to ACARS and or VDLM as appropriate. If you wish to assign SDRs to a specific decoder, please use the next section for those SDRs. Would you like to setup auto-assignment of SDRS?",
-                    "user_question_after": "Do you have another SDR you would like to set up?"
-                },
-                "loops": {
-                    "min_loops": 0
-                },
-                "group_1": {
-                    "env_name": "SERIAL",
-                    "field_combine": ";",
-                    "group_1": {
-                        "env_name": "SERIAL",
-                        "field_combine": ",",
-                        "option_1": {
-                            "display_name": "Serial Number",
-                            "variable_type": "string",
-                            "user_description": "Please input the serial number of the SDR",
-                            "default_value": "",
-                            "user_required": true
-                        },
-                        "option_2": {
-                            "variable_type": "string",
-                            "display_name": "PPM",
-                            "user_description": "Please input the PPM correction of the SDR",
-                            "default_value": "0",
-                            "validator": "\\d+",
-                            "user_required_description": "The value should be a digit only, with no decimal places"
-                        },
-                        "option_3": {
-                            "variable_type": "string",
-                            "display_name": "Gain",
-                            "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
-                            "default_value": "A36.0"
-                        },
-                        "option_4": {
-                            "display_name": "Bandwidth",
-                            "user_description": "Please select the SDR bandwidth. Most common is 2.0M/S",
-                            "variable_type": "multi-choice",
-                            "multi_choice_options": {
-                                "option_1": { "user_text": "2.0 M/S (most common)",
-                                              "env_text": "160" },
-                                "option_2": { "user_text": "2.4 M/S",
-                                              "env_text": "192" }        
-                            }
-                        }
-                    }
-                }
-            },
-
-            "section_5": {
-                "run_if": {
-                    "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for ACARS?",
-                    "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for ACARS?"
-                },
-                "loops": {
-                    "min_loops": 0,
-                    "starting_value": 0
-                },
-                "group_1": {
-                    "env_name": "ACARS_[]",
-                    "field_combine": ",",
-                    "option_1": {
-                        "display_name": "Serial Number",
-                        "user_description": "Please input the serial number of the SDR",
-                        "default_value": "",
-                        "user_required": true
-                    },
-                    "option_2": {
-                        "display_name": "PPM",
-                        "user_description": "Please input the PPM correction of the SDR",
-                        "default_value": "0"
-                    },
-                    "option_3": {
-                        "display_name": "Gain",
-                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
-                        "default_value": "A36.0"
-                    },
-                    "option_4": {
-                        "display_name": "Bandwidth",
-                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
-                        "default_value": "160"
-                    }
-                },
-                "option_1": {
-                    "display_name": "ACARS Frequenices",
-                    "user_description": "The ACARS frequencies that should be assigned to this SDR",
-                    "env_name": "ACARS_FREQ_[]",
-                    "default_value": "",
-                    "variable_type": "string",
-                    "user_required": true
-                }
-            },
-            "section_6": {
-                "run_if": {
-                    "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for just VDLM?",
-                    "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for just VDLM?"
-                },
-                "loops": {
-                    "min_loops": 0,
-                    "starting_value": 0
-                },
-                "group_1": {
-                    "env_name": "VDLM_[]",
-                    "field_combine": ",",
-                    "option_1": {
-                        "display_name": "Serial Number",
-                        "user_description": "Please input the serial number of the SDR",
-                        "default_value": "",
-                        "user_required": true
-                    },
-                    "option_2": {
-                        "display_name": "PPM",
-                        "user_description": "Please input the PPM correction of the SDR",
-                        "default_value": "0"
-                    },
-                    "option_3": {
-                        "display_name": "Gain",
-                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
-                        "default_value": "A36.0"
-                    },
-                    "option_4": {
-                        "display_name": "Bandwidth",
-                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
-                        "default_value": "160"
-                    }
-                },
-                "option_1": {
-                    "display_name": "VDLM Frequenices",
-                    "user_description": "The VDLM frequencies that should be assigned to this SDR",
-                    "env_name": "VDLM_FREQ_[]",
-                    "default_value": "",
-                    "variable_type": "string",
-                    "user_required": true
-                }
-            }
-        }
-    },
-    "container_2": {
-        "config_version": 1.0,
-        "container_name": "adsbx",
-        "container_display_name": "ADSB Exchange Feeder",
-        "container_image": "mikenye/adsbexchange:latest",
-        "container_website": "https://github.com/mikenye/docker-adsbexchange",
-        "user_full_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired.\n\nRequires a beast source such as readsb\n\nRecommends MLAT Hub so that MLAT data returned from ADSB Exchange can be displayed\n\nAlso requires a UUID. If you do not have a UUID please see the container's webpage",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired",
-            "ports": {
-                "port_1": {
-                    "container_port": 30105
-                },
-                "port_2": {
-                    "container_port": 80
-                }
-            },
-            "section_1": {
-                "option_1": {
-                    "display_name": "BEAST Host",
-                    "user_description": "The host for BEAST data",
-                    "env_name": "BEAST_HOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "BEAST Port",
-                    "user_description": "The host for BEAST data",
-                    "env_name": "BEAST_PORT",
-                    "default_value": "30005",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "ADSB Exchange Unique ID",
-                    "user_description": "Your ADSBX UUID. If you don't have one yet, please leave blank and follow the setup instructions at the source repo to aquire one.",
-                    "env_name": "UUID",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "addtional_setup_required": true
-                },
-                "option_4": {
-                    "display_name": "Station Latitude",
-                    "user_description": "Your station's latitude, in decimal format, up to 5 decimals of precision",
-                    "env_name": "LAT",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_5": {
-                    "display_name": "Station Longitude",
-                    "user_description": "Your station's longitude, in decimal format, up to 5 decimals of precision",
-                    "env_name": "LON",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_6": {
-                    "display_name": "Station Altitude",
-                    "user_description": "Your station's altitude. If using feet, append ft to the alitude. If using metres, append m to the alitude",
-                    "env_name": "ALT",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_7": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                }
-            }
-        }
-    },
-    "container_3": {
-        "config_version": 1.0,
-        "container_name": "adsbhub",
-        "container_display_name": "ADSB Hub Feeder",
-        "container_image": "mikenye/adsbhub:latest",
-        "container_website": "https://github.com/mikenye/docker-adsbhub",
-        "user_full_description": "The ADSB Hub container is used to feed ADSB data from a SBS source such as readsb.\n\nRequires: a beast source such as readsb\n\nAlso Requires a client key. If you do not have a client key please see the container's website",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "The ADSB Hub container is used to feed ADSB data from a SBS source",
-            "section_1": {
-                "option_1": {
-                    "display_name": "SBS Host",
-                    "user_description": "The host for SBS data",
-                    "env_name": "SBSHOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "SBS Port",
-                    "user_description": "The port for SBS data",
-                    "env_name": "SBSPORT",
-                    "default_value": "30003",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": false
-                },
-                "option_3": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_4": {
-                    "display_name": "Client Key",
-                    "bypass_yaml": true,
-                    "replace_characters": ["$"],
-                    "user_description": "Your station's client key",
-                    "env_name": "CLIENTKEY",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "addtional_setup_required": true
-                }
-            }
-        }
-    },
-    "container_4": {
-        "config_version": 1.0,
-        "container_name": "dump978",
-        "container_display_name": "dump978",
-        "container_image": "mikenye/dump978:latest",
-        "container_website": "https://github.com/mikenye/docker-dump978",
-        "user_full_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only\n\nRequires a SDR to receive UAT",
-        "container_config": {
-            "user_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only",
-            "ports": {
-                "port_1": {
-                    "container_port": 30978
-                },
-                "port_2": {
-                    "container_port": 30979
-                },
-                "port_3": {
-                    "container_port": 37981
-                }
-            },
-            "devices": {
-                "usb": true
-            },
-            "section_1": {
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "Dump 978 SDR Device Type",
-                    "user_description": "The type of SDR for dump 978. Currently, only 'rtlsdr' is supported",
-                    "env_name": "DUMP978_DEVICE_TYPE",
-                    "default_value": "rtlsdr",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "SDR Serial Number",
-                    "user_description": "The serial number of the SDR",
-                    "env_name": "DUMP978_RTLSDR_DEVICE",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_4": {
-                    "display_name": "SDR Automatic Gain Control",
-                    "user_description": "Enable automatic gain control for the SDR",
-                    "env_name": "DUMP978_SDR_AGC",
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "default_value": false,
-                    "user_required": false,
-                    "compose_required": true
-                },
-                "option_5": {
-                    "display_name": "SDR PPM Correction",
-                    "user_description": "PPM correction for the SDR if required",
-                    "env_name": "DUMP978_SDR_PPM",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": true
-                },
-                "option_6": {
-                    "display_name": "Dump 978 JSON Out",
-                    "user_description": "Write JSON to the container log. Useful for debugging. Recommended to keep disabled!",
-                    "env_name": "DUMP978_JSON_STDOUT",
-                    "variable_type": "boolean",
-                    "default_value": false,
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": true
-                }
-            },
-            "section_2": {
-                "user_description": "AGC is not enabled. We will need to set the gain manually",
-                "depends_on": {
-                    "env_name": "DUMP978_SDR_AGC"
-                },
-                "option_1": {
-                    "display_name": "SDR Gain",
-                    "user_description": "The desired gain value for the SDR",
-                    "env_name": "DUMP978_SDR_GAIN",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                }
-            }
-        }
-    },
-    "container_5": {
-        "config_version": 1.0,
-        "container_name": "flightradar24",
-        "container_display_name": "Flight Radar 24 Feeder",
-        "container_image": "mikenye/fr24feed:latest",
-        "container_website": "https://github.com/mikenye/docker-flightradar24",
-        "user_full_description": "Feeder for Flight Radar 24 from a BEAST source such as readsb.\n\nRequires a beast source such as readsb.\n\nIf you do not have a sharing key please see container website",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "Feeder for Flight Radar 24 from a BEAST source. Requires some initial setup. Please see container website",
-            "ports": {
-                "port_1": {
-                    "container_port": 8754
-                },
-                "port_2": {
-                    "container_port": 30003
-                },
-                "port_3": {
-                    "container_port": 30334
-                }
-            },
-            "section_1": {
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "BEAST Host",
-                    "user_description": "The host for beast data",
-                    "env_name": "BEASTHOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "BEAST Port",
-                    "user_description": "The port for beast data",
-                    "env_name": "BEASTPORT",
-                    "default_value": "30005",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": false
-                },                
-                "option_4": {
-                    "display_name": "FR24 Sharing Key",
-                    "user_description": "Your station's sharing key",
-                    "env_name": "FR24KEY",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "addtional_setup_required": true
-                },
-                "option_5": {
-                    "display_name": "MLAT",
-                    "user_description": "Enable MLAT",
-                    "env_name": "MLAT",
-                    "default_value": false,
-                    "compose_required": false,
-                    "user_required": false,
-                    "advanced": true,
-                    "variable_type": "boolean"
-                },
-                "option_6": {
-                    "display_name": "VERBOSE LOGGING",
-                    "user_description": "Enable verbose logging",
-                    "env_name": "VERBOSE_LOGGING",
-                    "default_value": false,
-                    "compose_required": false,
-                    "user_required": false,
-                    "advanced": true,
-                    "variable_type": "boolean"
-                }
-            }
-        }
-    },
-    "container_6": {
-        "config_version": 1.0,
-        "container_name": "mlat",
-        "container_display_name": "MLAT Hub",
-        "container_image": "mikenye/readsb-protobuf:latest",
-        "container_website": "https://github.com/mikenye/docker-readsb-protobuf",
-        "user_full_description": "MLAT Hub is used to aggregate MLAT data from feeders that support it and then feed it to readsb so that utilities that can use that data will have it\n\nRequires readsb, which will receive the MLAT data to distribute out to clients that support it\n\nRecommends piaware, ADSB Exchange, Radar Box and tar1090",
-        "recommends": {
-            "container_1": "piaware",
-            "container_2": "adsbx",
-            "container_3": "radar_box",
-            "container_4": "tar1090"
-        },
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "MLAT Hub is used to aggregate MLAT data from feeders that support it and then feed it to readsb so that utilities that can use that data will have it",
-            "template_01": {
-                "env_name_out": "READSB_NET_CONNECTOR",
-                "separator": ";",
-                "include_01": {
-                    "container": "piaware",
-                    "env_name": "TZ",
-                    "value_is_not": "",
-                    "value": "piaware,30105,beast_in"
-                },
-                "include_02": {
-                    "container": "adsbx",
-                    "env_name": "TZ",
-                    "value_is_not": "",
-                    "value": "dump978,30105,beast_in"
-                },
-                "include_03": {
-                    "container": "radar_box",
-                    "env_name": "TZ",
-                    "value_is_not": "",
-                    "value": "radar_box,30105,beast_in"
-                }
-            },
-            "section_1": {
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "Performance graphs",
-                    "user_description": "Disable performance graphs",
-                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "default_value": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "DISABLE_WEBAPP",
-                    "user_description": "Disable webapp",
-                    "env_name": "DISABLE_WEBAPP",
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "default_value": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_4": {
-                    "display_name": "Net enable",
-                    "user_description": "Enable networking",
-                    "env_name": "READSB_NET_ENABLE",
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "default_value": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_5": {
-                    "display_name": "Net only",
-                    "user_description": "READSB_NET_ONLY",
-                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "default_value": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_6": {
-                    "display_name": "READSB_NET_BEAST_OUTPUT_PORT",
-                    "user_description": "Beast output port",
-                    "env_name": "READSB_NET_BEAST_OUTPUT_PORT",
-                    "default_value": "30105",
-                    "advanced": true,
-                    "compose_required": true
-                }
-            }
-        }
-    },
-    "container_7": {
-        "config_version": 1.0,
-        "container_name": "opensky",
-        "container_display_name": "Open Sky Feeder",
-        "container_image": "mikenye/opensky-network:latest",
-        "container_website": "https://github.com/mikenye/docker-opensky-network",
-        "user_full_description": "Feeder for Open Sky from a BEAST source\r\rRequires: readsb or another beast source of data\n\nIf you do not have a client key for OpenSky please see the container's website",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "Feeder for Open Sky from a BEAST source. Requires some initial setup. Please see container website",
-            "section_1": {
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "BEAST Host",
-                    "user_description": "The host for beast data",
-                    "env_name": "BEASTHOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": true
-                },
-                "option_3": {
-                    "display_name": "BEAST Port",
-                    "user_description": "The port for beast data",
-                    "env_name": "BEASTPORT",
-                    "default_value": "30005",
-                    "user_required": false,
-                    "disable_user_set": true,
-                    "advanced": true,
-                    "compose_required": false
-                },                
-                "option_4": {
-                    "display_name": "Open Sky user name",
-                    "user_description": "Your open sky username",
-                    "env_name": "OPENSKY_USERNAME",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true,
-                    "addtional_setup_required": true
-                },
-                "option_5": {
-                    "display_name": "Open Sky Serial",
-                    "user_description": "Open sky station serial",
-                    "env_name": "OPENSKY_SERIAL",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": false,
-                    "addtional_setup_required": true
-                },
-                "option_6": {
-                    "display_name": "LAT",
-                    "user_description": "Your site's latitude",
-                    "env_name": "LAT",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": true
-                },
-                "option_7": {
-                    "display_name": "LON",
-                    "user_description": "Your site's longitude",
-                    "env_name": "LON",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": true
-                },
-                "option_8": {
-                    "display_name": "ALT",
-                    "user_description": "Your site's altitude in METERS",
-                    "env_name": "ALT",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": true
-                }
-            }
-        }
-    },
-    "container_8": {
-        "config_version": 1.0,
-        "container_name": "piaware",
-        "container_display_name": "PiAware",
-        "container_image": "mikenye/piaware:latest",
-        "container_website": "https://github.com/mikenye/docker-piaware",
-        "user_full_description": "Feeder for FlightAware.\n\nRequires: readsb or another beast source\n\nThis container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "Feeder for FlightAware. This container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
-            "volumes": {
-                "tmpfs_1": {
-                    "container_path": "/run/",
-                    "tmpfs_options": "exec,size=64M"
-                },
-                "tmpfs_2": {
-                    "container_path": "/var/log",
-                    "tmpfs_options": "exec,size=64M"
-                }
-            },
-            "ports": {
-                "port_1": {
-                    "container_port": 80
-                },
-                "port_2": {
-                    "container_port": 30105
-                }
-            },
-            "template_01": {
-                "env_name_out": "ALLOW_MLAT",
-                "include_01": {
-                    "container": "piaware",
-                    "env_name": "TZ",
-                    "value_is_not": "",
-                    "value": "yes"
-                }
-            },
-            "template_02": {
-                "env_name_out": "MLAT_RESULTS",
-                "include_01": {
-                    "container": "piaware",
-                    "env_name": "TZ",
-                    "value_is_not": "",
-                    "value": "yes"
-                }
-            },
-            "section_1": {
-                "user_description": "In this first section we'll set up some global configuration options",
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "Feeder ID",
-                    "user_description": "Your PiAware Feeder ID",
-                    "env_name": "FEEDER_ID",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "addtional_setup_required": true
-                },
-                "option_3": {
-                    "display_name": "Bing Map API Key",
-                    "user_description": "Bing Map's API Key",
-                    "env_name": "BINGMAPSAPIKEY",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": false,
-                    "advanced": true
-                },
-                "option_4": {
-                    "display_name": "Verbose Logging",
-                    "user_description": "Verbose Logging",
-                    "env_name": "VERBOSE_LOGGING",
-                    "user_required": false,
-                    "compose_required": false,
-                    "advanced": true,
-                    "variable_type": "boolean",
-                    "boolean_override_false": "",
-                    "default_value": false
-                },
-                "option_5": {
-                    "display_name": "Latitude",
-                    "user_description": "Your site's latitude",
-                    "env_name": "LAT",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_6": {
-                    "display_name": "Longitude",
-                    "user_description": "Your site's longitude",
-                    "env_name": "LONG",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                }
-            },
-            "section_2": {
-                "run_if": {
-                    "user_question": "Would you like to enable ADSB feeding?"
-                },
-                "loops": {
-                    "max_loops": 1
-                },
-                "option_1": {
-                    "display_name": "ADSB Receiver Type",
-                    "env_name": "RECEIVER_TYPE",
-                    "user_description": "Receiver type for ADSB. Only relay supported by this plugin.",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true,
-                    "default_value": "relay",
-                    "validator": "relay"
-                },
-                "option_2": {
-                    "display_name": "Beast HOST",
-                    "user_description": "Beast HOST",
-                    "env_name": "BEASTHOST",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true,
-                    "default_value": "readsb"
-                },
-                "option_3": {
-                    "display_name": "Beast Port",
-                    "user_description": "Beast PORT",
-                    "env_name": "BEASTPORT",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true,
-                    "default_value": "30005"
-                }
-            },
-            "section_3": {
-                "run_if": {
-                    "user_question": "Would you like to enable UAT/978mhz? US only, requires the dump978 container and a dedicated SDR"
-                },
-                "loops": {
-                    "max_loops": 1
-                },
-                "option_1": {
-                    "display_name": "UAT Receiver",
-                    "user_description": "UAT_RECEIVER_TYPE. Only relay supported by this plugin.",
-                    "env_name": "UAT_RECEIVER_TYPE",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true,
-                    "default_value": "relay",
-                    "validator": "relay"
-                },
-                "option_2": {
-                    "display_name": "UAT Receiver Host",
-                    "user_description": "UAT_RECEIVER_HOST",
-                    "env_name": "UAT_RECEIVER_HOST",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true,
-                    "default_value": "dump978"
-                },
-                "option_3": {
-                    "display_name": "UAT Reciever Port",
-                    "user_description": "UAT_RECEIVER_PORT",
-                    "env_name": "UAT_RECEIVER_HOST",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true,
-                    "default_value": "30978"
-                }
-            }
-        }
-    },
-    "container_10": {
-        "config_version": 1.0,
+        "category": "required",
         "container_name": "readsb",
         "container_display_name": "readsb",
         "container_image": "mikenye/readsb-protobuf:latest",
@@ -1035,9 +127,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_2": {
                     "display_name": "Verbose Logging",
@@ -1127,7 +220,7 @@
                     "env_name": "READSB_RTLSDR_PPM",
                     "display_name": "PPM Correction",
                     "user_description": "If your SDR requires PPM correction please input the value below.",
-                    "default_value": "",
+                    "default_value": "0",
                     "compose_required": false
                 }
             },
@@ -1340,17 +433,19 @@
                     "env_name": "READSB_LAT",
                     "user_description": "Site Latitude",
                     "display_name": "Latitude",
-                    "default_value": "",
+                    "default_value": "${USER_LAT}",
                     "compose_required": true,
-                    "user_required": true
+                    "user_required": true,
+                    "advanced": true
                 },
                 "option_9": {
                     "env_name": "READSB_LON",
                     "user_description": "Site Longitude",
                     "display_name": "Longitude",
-                    "default_value": "",
-                    "compose_required": true,
-                    "user_required": true
+                    "default_value": "${USER_LON}",
+                    "compose_required": false,
+                    "user_required": true,
+                    "advanced": true
                 },
                 "option_10": {
                     "env_name": "READSB_MAX_RANGE",
@@ -1445,154 +540,9 @@
             }
         }
     },
-    "container_11": {
+    "container_2": {
         "config_version": 1.0,
-        "container_name": "radar_box",
-        "container_display_name": "Radar Box Feeder",
-        "container_image": "mikenye/radarbox:latest",
-        "container_website": "https://github.com/mikenye/docker-radarbox",
-        "user_full_description": "Feeder for Radar Box from a BEAST source\n\nRequires: readsb or another beast source of data\n\nAlso requires a sharing key. If you do not have one please visit the container's website",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "Feeder for Radar Box from a BEAST source",
-            "section_1": {
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "Beast HOST",
-                    "user_description": "Source for BEAST data",
-                    "env_name": "BEASTHOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true
-                },
-                "option_3": {
-                    "display_name": "Beast PORT",
-                    "user_description": "BEAST data port",
-                    "env_name": "BEASTPORT",
-                    "default_value": "30005",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true
-                },
-                "option_4": {
-                    "display_name": "Radar Box Sharing Key",
-                    "user_description": "The sharing key from Radar Box",
-                    "env_name": "SHARING_KEY",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": true,
-                    "addtional_setup_required": true
-                },
-                "option_5": {
-                    "display_name": "Site Latitude",
-                    "user_description": "Site latitude",
-                    "env_name": "LAT",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_6": {
-                    "display_name": "Site Longitude",
-                    "user_description": "Site longitude",
-                    "env_name": "LONG",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_7": {
-                    "display_name": "Site Altitude",
-                    "user_description": "Site Altitude In METERS",
-                    "env_name": "ALT",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_8": {
-                    "display_name": "MLAT Input Type",
-                    "user_description": "Optional. Sets the input receiver type. Run docker run --rm -it --entrypoint mlat-client mikenye/radarbox --help and see --input-type for valid values.",
-                    "env_name": "MLAT_INPUT_TYPE",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": false,
-                    "advanced": true
-                },
-                "option_9": {
-                    "display_name": "MLAT Input Type",
-                    "user_description": "Optional. How often to print statistics, in minutes.",
-                    "env_name": "STATS_INTERVAL_MINUTES",
-                    "default_value": "",
-                    "user_required": false,
-                    "compose_required": false,
-                    "advanced": true
-                },
-                "option_10": {
-                    "display_name": "Verbose Logging",
-                    "user_description": "Optional. Set to true for no filtering of rbfeeder logs.",
-                    "env_name": "VERBOSE_LOGGING",
-                    "default_value": false,
-                    "variable_type": "boolean",
-                    "user_required": false,
-                    "compose_required": false,
-                    "advanced": true
-                }
-            }
-        }
-    },
-    "container_12": {
-        "config_version": 1.0,
-        "container_name": "rawflight",
-        "container_display_name": "Raw Flight Feeder",
-        "container_image": "mikenye/rawflight:latest",
-        "container_website": "https://github.com/mikenye/docker-rawflight",
-        "user_full_description": "Feeder for rawflight.eu from a BEAST source\n\nRequires: readsb or another beast source of data",
-        "requires": {
-            "container_1": "readsb"
-        },
-        "container_config": {
-            "user_description": "Feeder for rawflight.eu from a BEAST source",
-            "section_1": {
-                "user_description": "In this first section we'll set up some global configuration options",
-                "option_1": {
-                    "display_name": "Time Zone",
-                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
-                    "env_name": "TZ",
-                    "default_value": "",
-                    "user_required": true,
-                    "compose_required": true
-                },
-                "option_2": {
-                    "display_name": "Beast HOST",
-                    "user_description": "Source for BEAST data",
-                    "env_name": "BEASTHOST",
-                    "default_value": "readsb",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true
-                },
-                "option_3": {
-                    "display_name": "Beast PORT",
-                    "user_description": "BEAST data port",
-                    "env_name": "BEASTPORT",
-                    "default_value": "30005",
-                    "user_required": false,
-                    "compose_required": true,
-                    "advanced": true
-                }
-            }
-        }
-    },
-    "container_13": {
-        "config_version": 1.0,
+        "category": "recommended",
         "container_name": "tar1090",
         "container_display_name": "tar1090",
         "container_image": "mikenye/tar1090:latest",
@@ -1681,8 +631,8 @@
                     "display_name": "Site latitude",
                     "user_description": "Your site's latitude",
                     "env_name": "LAT",
-                    "default_value": "",
-                    "user_required": true,
+                    "default_value": "${USER_LAT}",
+                    "user_required": false,
                     "compose_required": true,
                     "advanced": true
                 },
@@ -1699,9 +649,10 @@
                     "display_name": "Time Zone",
                     "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
                     "env_name": "TZ",
-                    "default_value": "",
+                    "default_value": "${TIMEZONE}",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "advanced": true
                 },
                 "option_6": {
                     "display_name": "Hey What's That Panorama ID",
@@ -1824,7 +775,7 @@
                     "multi_choice_options": {
                         "option_1": {
                             "user_text": "Nautical",
-                            "env_text": "nautical" 
+                            "env_text": "nautical"
                         },
                        "option_2": {
                             "user_text": "Metric",
@@ -1862,6 +813,1298 @@
                     "default_value": "",
                     "user_required": false,
                     "compose_required": false
+                }
+            }
+        }
+    },
+
+    "container_3": {
+        "config_version": 1.0,
+        "category": "uat",
+        "container_name": "dump978",
+        "container_display_name": "dump978",
+        "container_image": "mikenye/dump978:latest",
+        "container_website": "https://github.com/mikenye/docker-dump978",
+        "user_full_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only\n\nRequires a SDR to receive UAT",
+        "container_config": {
+            "user_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only",
+            "ports": {
+                "port_1": {
+                    "container_port": 30978
+                },
+                "port_2": {
+                    "container_port": 30979
+                },
+                "port_3": {
+                    "container_port": 37981
+                }
+            },
+            "devices": {
+                "usb": true
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Dump 978 SDR Device Type",
+                    "user_description": "The type of SDR for dump 978. Currently, only 'rtlsdr' is supported",
+                    "env_name": "DUMP978_DEVICE_TYPE",
+                    "default_value": "rtlsdr",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "SDR Serial Number",
+                    "user_description": "The serial number of the SDR",
+                    "env_name": "DUMP978_RTLSDR_DEVICE",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_4": {
+                    "display_name": "SDR Automatic Gain Control",
+                    "user_description": "Enable automatic gain control for the SDR",
+                    "env_name": "DUMP978_SDR_AGC",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false,
+                    "user_required": false,
+                    "compose_required": true
+                },
+                "option_5": {
+                    "display_name": "SDR PPM Correction",
+                    "user_description": "PPM correction for the SDR if required",
+                    "env_name": "DUMP978_SDR_PPM",
+                    "default_value": "0",
+                    "user_required": false,
+                    "compose_required": true
+                },
+                "option_6": {
+                    "display_name": "Dump 978 JSON Out",
+                    "user_description": "Write JSON to the container log. Useful for debugging. Recommended to keep disabled!",
+                    "env_name": "DUMP978_JSON_STDOUT",
+                    "variable_type": "boolean",
+                    "default_value": false,
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                }
+            },
+            "section_2": {
+                "user_description": "AGC is not enabled. We will need to set the gain manually",
+                "depends_on": {
+                    "env_name": "DUMP978_SDR_AGC"
+                },
+                "option_1": {
+                    "display_name": "SDR Gain",
+                    "user_description": "The desired gain value for the SDR",
+                    "env_name": "DUMP978_SDR_GAIN",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true
+                }
+            }
+        }
+    },
+    "container_4": {
+        "config_version": 1.0,
+        "advanced": true,
+        "category": "recommended",
+        "display_order": 2,
+        "container_name": "mlat",
+        "container_display_name": "MLAT Hub",
+        "container_image": "mikenye/readsb-protobuf:latest",
+        "container_website": "https://github.com/mikenye/docker-readsb-protobuf",
+        "user_full_description": "MLAT Hub is used to aggregate MLAT data from feeders that support it and then feed it to readsb so that utilities that can use that data will have it\n\nRequires readsb, which will receive the MLAT data to distribute out to clients that support it\n\nRecommends piaware, ADSB Exchange, Radar Box and tar1090",
+        "recommends": {
+            "container_1": "piaware",
+            "container_2": "adsbx",
+            "container_3": "radar_box",
+            "container_4": "tar1090"
+        },
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "MLAT Hub is used to aggregate MLAT data from feeders that support it and then feed it to readsb so that utilities that can use that data will have it",
+            "template_01": {
+                "env_name_out": "READSB_NET_CONNECTOR",
+                "separator": ";",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "piaware,30105,beast_in"
+                },
+                "include_02": {
+                    "container": "adsbx",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "dump978,30105,beast_in"
+                },
+                "include_03": {
+                    "container": "radar_box",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "radar_box,30105,beast_in"
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Performance graphs",
+                    "user_description": "Disable performance graphs",
+                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "DISABLE_WEBAPP",
+                    "user_description": "Disable webapp",
+                    "env_name": "DISABLE_WEBAPP",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_4": {
+                    "display_name": "Net enable",
+                    "user_description": "Enable networking",
+                    "env_name": "READSB_NET_ENABLE",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_5": {
+                    "display_name": "Net only",
+                    "user_description": "READSB_NET_ONLY",
+                    "env_name": "DISABLE_PERFORMANCE_GRAPHS",
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_6": {
+                    "display_name": "READSB_NET_BEAST_OUTPUT_PORT",
+                    "user_description": "Beast output port",
+                    "env_name": "READSB_NET_BEAST_OUTPUT_PORT",
+                    "default_value": "30105",
+                    "advanced": true,
+                    "compose_required": true
+                }
+            }
+        }
+    },
+
+    "container_5": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "container_name": "adsbx",
+        "container_display_name": "ADSB Exchange Feeder",
+        "container_image": "mikenye/adsbexchange:latest",
+        "container_website": "https://github.com/mikenye/docker-adsbexchange",
+        "user_full_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired.\n\nRequires a beast source such as readsb\n\nRecommends MLAT Hub so that MLAT data returned from ADSB Exchange can be displayed\n\nAlso requires a UUID. If you do not have a UUID please see the container's webpage",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "The ADSB Exchange container is used to feed ADSB data from a BEAST source, as well as provide MLAT data if desired",
+            "ports": {
+                "port_1": {
+                    "container_port": 30105
+                },
+                "port_2": {
+                    "container_port": 80
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "BEAST Host",
+                    "user_description": "The host for BEAST data",
+                    "env_name": "BEAST_HOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "BEAST Port",
+                    "user_description": "The host for BEAST data",
+                    "env_name": "BEAST_PORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "ADSB Exchange Unique ID",
+                    "user_description": "Your ADSBX UUID. If you don't have one yet, please leave blank and follow the setup instructions at the source repo to aquire one.",
+                    "env_name": "UUID",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_4": {
+                    "display_name": "Station Latitude",
+                    "user_description": "Your station's latitude, in decimal format, up to 5 decimals of precision",
+                    "env_name": "LAT",
+                    "default_value": "${USER_LAT}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_5": {
+                    "display_name": "Station Longitude",
+                    "user_description": "Your station's longitude, in decimal format, up to 5 decimals of precision",
+                    "env_name": "LON",
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_6": {
+                    "display_name": "Station Altitude",
+                    "user_description": "Your station's altitude. If using feet, append ft to the alitude. If using metres, append m to the alitude",
+                    "env_name": "ALT",
+                    "default_value": "${USER_ALT}m",
+                    "user_required": false,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_7": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_6": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "container_name": "adsbhub",
+        "container_display_name": "ADSBHub Feeder",
+        "container_image": "mikenye/adsbhub:latest",
+        "container_website": "https://github.com/mikenye/docker-adsbhub",
+        "user_full_description": "The ADSB Hub container is used to feed ADSB data from a SBS source such as readsb.\n\nRequires: a beast source such as readsb\n\nAlso Requires a client key. If you do not have a client key please see the container's website",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "The ADSB Hub container is used to feed ADSB data from a SBS source",
+            "section_1": {
+                "option_1": {
+                    "display_name": "SBS Host",
+                    "user_description": "The host for SBS data",
+                    "env_name": "SBSHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_2": {
+                    "display_name": "SBS Port",
+                    "user_description": "The port for SBS data",
+                    "env_name": "SBSPORT",
+                    "default_value": "30003",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": false
+                },
+                "option_3": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_4": {
+                    "display_name": "Client Key",
+                    "bypass_yaml": true,
+                    "replace_characters": ["$"],
+                    "user_description": "Your station's client key",
+                    "env_name": "CLIENTKEY",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                }
+            }
+        }
+    },
+    "container_7": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "container_name": "flightradar24",
+        "container_display_name": "Flight Radar 24 Feeder",
+        "container_image": "mikenye/fr24feed:latest",
+        "container_website": "https://github.com/mikenye/docker-flightradar24",
+        "user_full_description": "Feeder for Flight Radar 24 from a BEAST source such as readsb.\n\nRequires a beast source such as readsb.\n\nIf you do not have a sharing key please see container website",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for Flight Radar 24 from a BEAST source. Requires some initial setup. Please see container website",
+            "ports": {
+                "port_1": {
+                    "container_port": 8754
+                },
+                "port_2": {
+                    "container_port": 30003
+                },
+                "port_3": {
+                    "container_port": 30334
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "BEAST Host",
+                    "user_description": "The host for beast data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "BEAST Port",
+                    "user_description": "The port for beast data",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": false
+                },
+                "option_4": {
+                    "display_name": "FR24 Sharing Key",
+                    "user_description": "Your station's sharing key",
+                    "env_name": "FR24KEY",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_5": {
+                    "display_name": "MLAT",
+                    "user_description": "Enable MLAT",
+                    "env_name": "MLAT",
+                    "default_value": false,
+                    "compose_required": false,
+                    "user_required": false,
+                    "advanced": true,
+                    "variable_type": "boolean"
+                },
+                "option_6": {
+                    "display_name": "VERBOSE LOGGING",
+                    "user_description": "Enable verbose logging",
+                    "env_name": "VERBOSE_LOGGING",
+                    "default_value": false,
+                    "compose_required": false,
+                    "user_required": false,
+                    "advanced": true,
+                    "variable_type": "boolean"
+                }
+            }
+        }
+    },
+    "container_8": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "container_name": "opensky",
+        "container_display_name": "Open Sky Feeder",
+        "container_image": "mikenye/opensky-network:latest",
+        "container_website": "https://github.com/mikenye/docker-opensky-network",
+        "user_full_description": "Feeder for Open Sky from a BEAST source\r\rRequires: readsb or another beast source of data\n\nIf you do not have a client key for OpenSky please see the container's website",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for Open Sky from a BEAST source. Requires some initial setup. Please see container website",
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "BEAST Host",
+                    "user_description": "The host for beast data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "BEAST Port",
+                    "user_description": "The port for beast data",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "disable_user_set": true,
+                    "advanced": true,
+                    "compose_required": false
+                },
+                "option_4": {
+                    "display_name": "Open Sky user name",
+                    "user_description": "Your open sky username",
+                    "env_name": "OPENSKY_USERNAME",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_5": {
+                    "display_name": "Open Sky Serial",
+                    "user_description": "Open sky station serial",
+                    "env_name": "OPENSKY_SERIAL",
+                    "default_value": "",
+                    "compose_required": true,
+                    "user_required": false,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_6": {
+                    "display_name": "LAT",
+                    "user_description": "Your site's latitude",
+                    "env_name": "LAT",
+                    "default_value": "${USER_LAT}",
+                    "compose_required": true,
+                    "user_required": true,
+                    "advanced": true
+                },
+                "option_7": {
+                    "display_name": "LON",
+                    "user_description": "Your site's longitude",
+                    "env_name": "LON",
+                    "default_value": "${USER_LON}",
+                    "compose_required": false,
+                    "user_required": true,
+                    "advanced": true
+                },
+                "option_8": {
+                    "display_name": "ALT",
+                    "user_description": "Your site's altitude in METERS",
+                    "env_name": "ALT",
+                    "default_value": "${USER_ALT}",
+                    "compose_required": true,
+                    "user_required": false,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_9": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "container_name": "piaware",
+        "container_display_name": "PiAware (Flight Aware) Feeder",
+        "container_image": "mikenye/piaware:latest",
+        "container_website": "https://github.com/mikenye/docker-piaware",
+        "user_full_description": "Feeder for FlightAware.\n\nRequires: readsb or another beast source\n\nThis container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for FlightAware. This container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
+            "volumes": {
+                "tmpfs_1": {
+                    "container_path": "/run/",
+                    "tmpfs_options": "exec,size=64M"
+                },
+                "tmpfs_2": {
+                    "container_path": "/var/log",
+                    "tmpfs_options": "exec,size=64M"
+                }
+            },
+            "ports": {
+                "port_1": {
+                    "container_port": 80
+                },
+                "port_2": {
+                    "container_port": 30105
+                }
+            },
+            "template_01": {
+                "env_name_out": "ALLOW_MLAT",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "yes"
+                }
+            },
+            "template_02": {
+                "env_name_out": "MLAT_RESULTS",
+                "include_01": {
+                    "container": "piaware",
+                    "env_name": "TZ",
+                    "value_is_not": "",
+                    "value": "yes"
+                }
+            },
+            "section_1": {
+                "user_description": "In this first section we'll set up some global configuration options",
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Feeder ID",
+                    "user_description": "Your PiAware Feeder ID",
+                    "env_name": "FEEDER_ID",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_3": {
+                    "display_name": "Bing Map API Key",
+                    "user_description": "Bing Map's API Key",
+                    "env_name": "BINGMAPSAPIKEY",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Verbose Logging",
+                    "user_description": "Verbose Logging",
+                    "env_name": "VERBOSE_LOGGING",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "default_value": false
+                },
+                "option_5": {
+                    "display_name": "Latitude",
+                    "user_description": "Your site's latitude",
+                    "env_name": "LAT",
+                    "default_value": "${USER_LAT}",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_6": {
+                    "display_name": "Longitude",
+                    "user_description": "Your site's longitude",
+                    "env_name": "LONG",
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            },
+            "section_2": {
+                "run_if": {
+                    "user_question": "Would you like to enable ADSB feeding?"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option_1": {
+                    "display_name": "ADSB Receiver Type",
+                    "env_name": "RECEIVER_TYPE",
+                    "user_description": "Receiver type for ADSB. Only relay supported by this plugin.",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "relay",
+                    "validator": "relay"
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Beast HOST",
+                    "env_name": "BEASTHOST",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "readsb"
+                },
+                "option_3": {
+                    "display_name": "Beast Port",
+                    "user_description": "Beast PORT",
+                    "env_name": "BEASTPORT",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "30005"
+                }
+            },
+            "section_3": {
+                "run_if": {
+                    "user_question": "Would you like to enable UAT/978mhz? US only, requires the dump978 container and a dedicated SDR"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option_1": {
+                    "display_name": "UAT Receiver",
+                    "user_description": "UAT_RECEIVER_TYPE. Only relay supported by this plugin.",
+                    "env_name": "UAT_RECEIVER_TYPE",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "relay",
+                    "validator": "relay"
+                },
+                "option_2": {
+                    "display_name": "UAT Receiver Host",
+                    "user_description": "UAT_RECEIVER_HOST",
+                    "env_name": "UAT_RECEIVER_HOST",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "dump978"
+                },
+                "option_3": {
+                    "display_name": "UAT Reciever Port",
+                    "user_description": "UAT_RECEIVER_PORT",
+                    "env_name": "UAT_RECEIVER_HOST",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true,
+                    "default_value": "30978"
+                }
+            }
+        }
+    },
+    "container_10": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "container_name": "planefinder",
+        "container_display_name": "Plane Finder",
+        "container_image": "mikenye/planefinder:latest",
+        "container_website": "https://github.com/mikenye/docker-planefinder",
+        "user_full_description": "This container is used to feed Plane Finder from a BEAST source of data like readsb. It will require additional setup if you do not have a share code. Please see the container's website for details.",
+        "container_config": {
+            "user_description": "This container is used to feed Plane Finder from a BEAST source of data like readsb",
+            "ports": {
+                "port_1": {
+                    "container_port": 30053
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Plane Finder Share Code",
+                    "user_description": "The sharing code from Plane Finder",
+                    "env_name": "SHARECODE",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_5": {
+                    "display_name": "Site Latitude",
+                    "user_description": "Site latitude",
+                    "env_name": "LAT",
+                    "default_value": "${USER_LAT}",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_6": {
+                    "display_name": "Site Longitude",
+                    "user_description": "Site longitude",
+                    "env_name": "LONG",
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_11": {
+        "config_version": 1.0,
+        "category": "feeders",
+        "display_order": 6,
+        "container_name": "radar_box",
+        "container_display_name": "Radar Box Feeder",
+        "container_image": "mikenye/radarbox:latest",
+        "container_website": "https://github.com/mikenye/docker-radarbox",
+        "user_full_description": "Feeder for Radar Box from a BEAST source\n\nRequires: readsb or another beast source of data\n\nAlso requires a sharing key. If you do not have one please visit the container's website",
+        "post_install_actions": "mkdir -p {path}data/radarbox_segfault_fix/thermal_zone0 && echo 24000 > {path}data/radarbox_segfault_fix/thermal_zone0/temp",
+        "post_install_user_description": "As the rbfeeder binary is designed to run on a Raspberry Pi, the rbfeeder binary expects a file /sys/class/thermal/thermal_zone0/temp to be present, and contain the CPU temperature. If this file doesn't exist, the rbfeeder binary will crash and restart every few minutes. This command will fix those issues.",
+        "requires": {
+            "container_1": "readsb"
+        },
+        "container_config": {
+            "user_description": "Feeder for Radar Box from a BEAST source",
+            "volumes": {
+                "volume_1": {
+                    "container_path": "/sys/class/thermal",
+                    "docker_volume_name": "radar_box_segfault_fix",
+                    "volume_options": "    driver: local\n    driver_opts:\n      type: none\n      device: /opt/adsb/data/radarbox_segfault_fix\n      o: bind"
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Radar Box Sharing Key",
+                    "user_description": "The sharing key from Radar Box",
+                    "env_name": "SHARING_KEY",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "addtional_setup_required": true,
+                    "env": true
+                },
+                "option_5": {
+                    "display_name": "Site Latitude",
+                    "user_description": "Site latitude",
+                    "env_name": "LAT",
+                    "default_value": "${USER_LAT}",
+                    "user_required": true,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_6": {
+                    "display_name": "Site Longitude",
+                    "user_description": "Site longitude",
+                    "env_name": "LONG",
+                    "default_value": "${USER_LON}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_7": {
+                    "display_name": "Site Altitude",
+                    "user_description": "Site Altitude In METERS",
+                    "env_name": "ALT",
+                    "default_value": "${USER_ALT}",
+                    "user_required": false,
+                    "advanced": true,
+                    "compose_required": true
+                },
+                "option_8": {
+                    "display_name": "MLAT Input Type",
+                    "user_description": "Optional. Sets the input receiver type. Run docker run --rm -it --entrypoint mlat-client mikenye/radarbox --help and see --input-type for valid values.",
+                    "env_name": "MLAT_INPUT_TYPE",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_9": {
+                    "display_name": "MLAT Input Type",
+                    "user_description": "Optional. How often to print statistics, in minutes.",
+                    "env_name": "STATS_INTERVAL_MINUTES",
+                    "default_value": "",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_10": {
+                    "display_name": "Verbose Logging",
+                    "user_description": "Optional. Set to true for no filtering of rbfeeder logs.",
+                    "env_name": "VERBOSE_LOGGING",
+                    "default_value": false,
+                    "variable_type": "boolean",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                }
+            }
+        }
+    },
+
+    "container_12": {
+        "config_version": 1.0,
+        "category": "acars",
+        "container_name": "acars_hub",
+        "container_display_name": "ACARS Hub",
+        "container_image": "fredclausen/acarshub:latest",
+        "container_website": "http://www.github.com/fredclausen/acarshub",
+        "user_full_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page.\nRequires one or more SDRs.",
+        "container_config": {
+            "user_description": "ACARS Hub is a container that uses RTL-SDRs to monitor ACARS and VDLM2 traffic, optionally feed that data to airframes.io, and display the messages on a locally hosted web page",
+            "volumes": {
+                "volume_1": {
+                    "docker_volume_name": "acarshub",
+                    "container_path": "/run/acars/"
+                },
+
+                "tmpfs_1": {
+                    "container_path": "/database/",
+                    "tmpfs_options": "exec,size=64M"
+                }
+            },
+            "ports": {
+                "port_1": {
+                    "container_port": 80
+                }
+            },
+            "devices": {
+                "usb": true
+            },
+            "privileged": false,
+            "section_1": {
+                "user_description": "This first section will define some global configuration parameters for ACARS Hub",
+                "option_1": {
+                    "display_name": "Feed",
+                    "user_description": "Would you like to feed received messages to airframes.io?",
+                    "env_name": "FEED",
+                    "default_value": false,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": false,
+                    "compose_required": false
+                },
+
+                "option_2": {
+                    "display_name": "QUIET LOGS",
+                    "user_description": "Would you like to log all received messages to the container's standard output?",
+                    "env_name": "QUIET_LOGS",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": false,
+                    "compose_required": false
+                },
+
+                "option_3": {
+                    "display_name": "Database Save All Messages",
+                    "user_description": "Would you like to save all received messages in to the database, including messages that are 'blank'? This will take up more disk space",
+                    "env_name": "DB_SAVEALL",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": false,
+                    "compose_required": false
+                }
+            },
+
+            "section_2": {
+                "run_if": {
+                    "user_question": "Would you like to enable ACARS?"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option_1": {
+                    "display_name": "Enable ACARS",
+                    "user_description": "Enable acarsdec",
+                    "env_name": "ENABLE_ACARS",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "disable_user_set": true
+                },
+                "option_2": {
+                    "display_name": "STATION_ID_ACARS",
+                    "user_description": "The ID used to uniquely identifiy your ACARS station. This will be used both in displaying of messages on the local website and on airframes.io",
+                    "env_name": "STATION_ID_ACARS",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "FREQS_ACARS",
+                    "user_description": "The list of frequencies for ACARS you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "env_name": "FREQS_ACARS",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": true,
+                    "compose_required": true
+                }
+            },
+
+            "section_3": {
+                "run_if": {
+                    "user_question": "Would you like to enable VDLM?"
+                },
+                "loops": {
+                    "max_loops": 1
+                },
+                "option_1": {
+                    "display_name": "Enable VDLM",
+                    "user_description": "Enable vdlm2dec",
+                    "env_name": "ENABLE_VDLM",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "boolean_override_false": "",
+                    "user_required": false,
+                    "compose_required": true,
+                    "disable_user_set": true
+                },
+                "option_2": {
+                    "display_name": "STATION_ID_VDLM",
+                    "user_description": "The ID used to uniquely identifiy your VDLM station. This will be used both in displaying of messages on the local website and on airframes.io",
+                    "env_name": "STATION_ID_VDLM",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": true,
+                    "compose_required": true
+                },
+                "option_3": {
+                    "display_name": "FREQS_VDLM",
+                    "user_description": "The list of frequencies for VDLM you wish to monitor. Please separate each frequency with a single semi-colon. For example: 136.5;135.7;135.4",
+                    "env_name": "FREQS_VDLM",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": true,
+                    "compose_required": true
+                }
+            },
+
+            "section_4": {
+                "run_if": {
+                    "user_question": "It is now time to set up the first SDR in the container. In this section, these SDRs will be auto-assigned to ACARS and or VDLM as appropriate. If you wish to assign SDRs to a specific decoder, please use the next section for those SDRs. Would you like to setup auto-assignment of SDRS?",
+                    "user_question_after": "Do you have another SDR you would like to set up?"
+                },
+                "loops": {
+                    "min_loops": 0
+                },
+                "group_1": {
+                    "env_name": "SERIAL",
+                    "field_combine": ";",
+                    "group_1": {
+                        "env_name": "SERIAL",
+                        "field_combine": ",",
+                        "option_1": {
+                            "display_name": "Serial Number",
+                            "variable_type": "string",
+                            "user_description": "Please input the serial number of the SDR",
+                            "default_value": "",
+                            "user_required": true
+                        },
+                        "option_2": {
+                            "variable_type": "string",
+                            "display_name": "PPM",
+                            "user_description": "Please input the PPM correction of the SDR",
+                            "default_value": "0",
+                            "validator": "\\d+",
+                            "user_required_description": "The value should be a digit only, with no decimal places"
+                        },
+                        "option_3": {
+                            "variable_type": "string",
+                            "display_name": "Gain",
+                            "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                            "default_value": "A36.0"
+                        },
+                        "option_4": {
+                            "display_name": "Bandwidth",
+                            "user_description": "Please select the SDR bandwidth. Most common is 2.0M/S",
+                            "variable_type": "multi-choice",
+                            "multi_choice_options": {
+                                "option_1": { "user_text": "2.0 M/S (most common)",
+                                              "env_text": "160" },
+                                "option_2": { "user_text": "2.4 M/S",
+                                              "env_text": "192" }
+                            }
+                        }
+                    }
+                }
+            },
+
+            "section_5": {
+                "run_if": {
+                    "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for ACARS?",
+                    "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for ACARS?"
+                },
+                "loops": {
+                    "min_loops": 0,
+                    "starting_value": 0
+                },
+                "group_1": {
+                    "env_name": "ACARS_[]",
+                    "field_combine": ",",
+                    "option_1": {
+                        "display_name": "Serial Number",
+                        "user_description": "Please input the serial number of the SDR",
+                        "default_value": "",
+                        "user_required": true
+                    },
+                    "option_2": {
+                        "display_name": "PPM",
+                        "user_description": "Please input the PPM correction of the SDR",
+                        "default_value": "0"
+                    },
+                    "option_3": {
+                        "display_name": "Gain",
+                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "default_value": "A36.0"
+                    },
+                    "option_4": {
+                        "display_name": "Bandwidth",
+                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "default_value": "160"
+                    }
+                },
+                "option_1": {
+                    "display_name": "ACARS Frequenices",
+                    "user_description": "The ACARS frequencies that should be assigned to this SDR",
+                    "env_name": "ACARS_FREQ_[]",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": true
+                }
+            },
+            "section_6": {
+                "run_if": {
+                    "user_question": "Do you have any SDRs that have not previously been assigned and that you wish to use for just VDLM?",
+                    "user_question_after": "Do you have any more SDRs that have not previously been assigned and that you wish to use for just VDLM?"
+                },
+                "loops": {
+                    "min_loops": 0,
+                    "starting_value": 0
+                },
+                "group_1": {
+                    "env_name": "VDLM_[]",
+                    "field_combine": ",",
+                    "option_1": {
+                        "display_name": "Serial Number",
+                        "user_description": "Please input the serial number of the SDR",
+                        "default_value": "",
+                        "user_required": true
+                    },
+                    "option_2": {
+                        "display_name": "PPM",
+                        "user_description": "Please input the PPM correction of the SDR",
+                        "default_value": "0"
+                    },
+                    "option_3": {
+                        "display_name": "Gain",
+                        "user_description": "Please input the gain of the SDR. If you wish to use autogain, please prepend the number with an A",
+                        "default_value": "A36.0"
+                    },
+                    "option_4": {
+                        "display_name": "Bandwidth",
+                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
+                        "default_value": "160"
+                    }
+                },
+                "option_1": {
+                    "display_name": "VDLM Frequenices",
+                    "user_description": "The VDLM frequencies that should be assigned to this SDR",
+                    "env_name": "VDLM_FREQ_[]",
+                    "default_value": "",
+                    "variable_type": "string",
+                    "user_required": true
+                }
+            }
+        }
+    },
+
+    "container_13": {
+        "config_version": 1.0,
+        "category": "support",
+        "container_name": "autoheal",
+        "container_display_name": "Auto Heal",
+        "container_image": "willfarrell/autoheal:latest",
+        "container_website": "https://mikenye.gitbook.io/ads-b/useful-extras/auto-restart-unhealthy-containers",
+        "user_full_description": "This container is used to monitor all containers and restart any that stop working.",
+        "advanced": true,
+        "container_config": {
+            "user_description": "This container is used to monitor all containers and restart any that stop working.",
+            "ports": {
+                "port_1": {
+                    "container_port": 30053
+                }
+            },
+            "volumes": {
+                "volume_1": {
+                    "container_path": "/var/run/docker.sock",
+                    "volume_override": "/var/run/docker.sock"
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Container Label",
+                    "user_description": "This will configure which container(s) that will be monitored. Default is 'all', and it is recommended to leave unchanged",
+                    "env_name": "AUTOHEAL_CONTAINER_LABEL",
+                    "default_value": "all",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_14": {
+        "config_version": 1.0,
+        "category": "support",
+        "container_name": "watchtower",
+        "container_display_name": "Watch Tower",
+        "container_image": "containrrr/watchtower:latest",
+        "container_website": "https://mikenye.gitbook.io/ads-b/useful-extras/auto-upgrade-containers",
+        "user_full_description": "This container is used to automatically upgrade any container that is out of date",
+        "advanced": true,
+        "container_config": {
+            "user_description": "This container is used to automatically upgrade any container that is out of date",
+            "volumes": {
+                "volume_1": {
+                    "container_path": "/var/run/docker.sock",
+                    "volume_override": "/var/run/docker.sock"
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Watchtower Cleanup",
+                    "user_description": "Removes old images after updating",
+                    "env_name": "WATCHTOWER_CLEANUP",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Watchtower Rolling Restart",
+                    "user_description": "Restart one container at a time instead of all at once",
+                    "env_name": "WATCHTOWER_ROLLING_RESTART",
+                    "default_value": true,
+                    "variable_type": "boolean",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Polling Interval",
+                    "user_description": "How often watchtower will check for new images. Value is in seconds. Default of 86400, or one day.",
+                    "env_name": "WATCHTOWER_POLL_INTERVAL",
+                    "default_value": "86400",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
                 }
             }
         }

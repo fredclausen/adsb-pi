@@ -9,6 +9,8 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 * [Overview](#overview)
 * [Best Practices](best-practices)
 * [General Structure of the file](#general-structure)
+* [Categories](#categories)
+* [Global Variables](#global-variables)
 * [Container Config](#container-config)
   * [Recommends and Requirements](#recommends-and-requirements)
   * [Volumes](#volumes)
@@ -22,13 +24,16 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
     * [Groups](#groups)
   * [Template Variables](#template-variables)
   * [Validating User Input](#validating-user-input)
-  * [Special YAML Cases][#special-yaml-cases]
+  * [Special YAML Cases](#special-yaml-cases)
   * [Beautifying Text Displayed to User](#beautifying-text-displayed-to-user)
+  * [Post Install Actions](#post-install-actions)
 * [Sample Configuration](#sample-config)
 
 ## **Overview and Best Practices**
 
-The goal of this project is to provide an easy to use, extensible website that an end user can use to quickly and seamlessly generate docker-compose files that they can use in their infrastructure. The idea is to provide the user a functional docker-compose file, built on their responses to questions, that should deploy a workable container.
+The goal of this project is to provide an easy to use, highly configurable set of tools that an end user can use to quickly and seamlessly set up a system to use their SDR dongles.
+
+To this end, part of the tool set required is a tool to generate docker-compose files that they can use in their infrastructure. The idea is to provide the user a functional docker-compose file, built on their responses to questions, that should deploy a workable container.
 
 In order to facilitate this, and to make the project scalable and usable far in to the future, the "brain" of this is going to be author-provided plugin(s) for their containers that describe how the user needs to configure their container. The thought process behind the plugin architecture is to allow a docker container author to specify the configuration options for a container that allows any tool that uses this plugin spec to assist the user in generating docker-compose files.
 
@@ -36,7 +41,7 @@ The plugin file is set up in `JSON` format and uses `JSON` conventions. Many con
 
 ## Best Practices
 
-For best practices, it is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined [below](#sections) in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option.
+It is best to design your plugins to cover only the really necessary configuration items. The term `sections` and `options` will be defined [below](#sections) in more detail, but if your container requires any default ENV variables that have to be set, but not specified by the user, it would be best to include them in their own section and set the appropriate flag so that the web front end includes them without asking the user to configure the option.
 
 The primary mode of operation for this tool should be to set up a basic configuration of your container that works for most users. As such, more advanced configuration settings should either be not included, included but set as `disable_user_set` (which allows for writing of the default value specified in the `option` configuration for the variable in to the docker-compose file), or should be exposed with `advanced` (which hides the option from the user unless they choose to configure advanced options, and also allows writing the default value if the flag is specified in the `option` configuration and the user is not using `advanced` config), and not required to be configured by default.
 
@@ -55,6 +60,9 @@ The plugin file will start out with the following items:
 ```json
 {
     "docker_config_version": 1.0,
+    "global_vars": {
+
+    },
     "container_1": {
         "config_version": 1.0,
         "container_name": "name_of_container",
@@ -62,6 +70,7 @@ The plugin file will start out with the following items:
         "container_image": "image",
         "container_website": "url",
         "user_full_description": "text",
+        "advanced": true,
         "container_config": {
 
         }
@@ -79,6 +88,56 @@ The plugin file will start out with the following items:
 | `container_website` | The URL for the container's website | No | `standard URL formatting` |
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
 | `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
+| `advanced` | If your container has ONLY options that a user will be setting if they've selected `advanced` for the options then you can set this flag to bypass displaying configuration screens to the user and the default values will be written | No | `boolean` |
+
+Addtionally, in this top level you will have `global_vars` and `categories`.
+
+## Categories
+
+Containers are required to be grouped in to categories. To define the categories for the plugin, use the structure:
+
+```json
+    "categories": {
+        "required": "Required ADSB",
+        "recommended": "Recommended ADSB SDR",
+        "feeders": "ADSB Feeders",
+        "misc": "Miscellancious Non-ADSB SDR receivers",
+        "support": "Docker Support Tools"
+    }
+```
+
+The key is the name of a category that the container will refer to, and the key value is the string that will be displayed to the user.
+
+Under a container it is requisite to include the key `category` which refers to a key name defined in this section.
+
+## Global Variables
+
+Variables are covered more in depth in the [section](#sections), but at the top level of the json file you can define global variables that container's can grab a value from. This is useful for variables that should be globally applied such as `time zones`.
+
+The global variable declaration follows the syntax of the `sections` with the exception that only the `options` can be used. There is no looping, groups, or anything else. Addtionally, there is one other kind of variable type not available to the container sections, which is `timezone`
+
+The parser will attempt to grab the user's IANA timezone (aka standard Unix timezone format) from `/etc/localtime` or `/etc/timezone`. If neither can be found, the default value will be either `Etc/UTC`.
+
+To apply a global variable in a container, for the default value use the following syntax:
+
+```json
+"global_vars": {
+    # normal var options
+    "env_name": "USER_TZ"
+}
+"container_1":
+    "section_1":
+        "option_1": {
+            "env_name": "TZ",
+            "default_value": "${USER_TZ}"
+        }
+    }
+}
+```
+
+Where the value between the `{}` is the `env_name` present in the global_vars section.
+
+The values set in the global section will be be written to a `.env` file.
 
 ## **Container Config**
 
@@ -122,7 +181,7 @@ Example:
                 }
             },
             "section1": {
-            }     
+            }
         }
     }
 }
@@ -147,6 +206,8 @@ To set up a `docker_volume` include the following under `volumes`
 | `volume_x`| For each docker volume you want to create, include `volume_x`, , where x is an incremented number of devices you are passing in. | No | |
 | `docker_volume_name` | The name of the docker volume for the container | No | `Standard docker volume naming` |
 | `container_path` | The path the `docker_volume_name` should be mapped to in the container | Yes, if `docker_volume_name` is included | `Standard unix path naming` |
+| `volume_options` | If you wish to specify options for the volume, ie to set a volume as local storage, include the YAML here. The parser does not format the data, so it should be correctly formatted YAML | No | `String/YAML` |
+| `volume_override` | If set, the volume will not be created as a docker volume. Instead, whatever text is in this field will be set to the host path and mounted to the `container_path` | No | `String` |
 
 If you wish to create a `tmpfs` volume, specify the following under `volumes`
 
@@ -240,12 +301,12 @@ You have two options to conditionally run a section. Neither is required, but if
 
 #### **Depends On**
 
-The first conditional execution section is `depends_on`. `depends_on` is used if you want to run a section based a previous user response to an ENV variable. The section will be run only once. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section.
+The first conditional execution section is `depends_on`. `depends_on` is used if you want to run a section based a previous user response to an ENV variable. The section will be run only once. An example useage of this would be if the user selected a non-default value for an ENV variable and now the container requires additional configuration options. `env_name` and `env_name_value` are dependent on those values existing in a previous section. This check for a user response only applies to the current container - it does not look at other container's values.
 
 | Variable | Description | Required | Formatting | Default |
 | -------- | ----------- | -------- | ---------- | ------- |
 | `depends_on` | Used to indicate if the section is dependent on previous user responses | No | None | Blank |
-| `env_name` | The name of the option that will trigger this section being included in the docker-compose | Yes, if `depends_on` is included in the section configuraton AND `run_if` is not included | `ENV name of the value being checked to see if the section should be run` | Blank |
+| `env_name` | The name of the option that will trigger this section being included in the docker-compose | Yes, if `depends_on` is included in the section configuraton | `ENV name of the value being checked to see if the section should be run` | Blank |
 | `env_name_value` | The value that will trigger the section to be run | No | `container's variable spec` | Not `default_value` of the `env_name` variable being checked |
 
 #### **Run If**
@@ -342,6 +403,7 @@ Below is the configuration for an environment variable in a section, also known 
 | `compose_required` | This is used to indicate that writing the variable, even if the default value is used, should be included in the docker-compose file. Note: if the user provides input on the value the variable will always be included in the output | No | `boolean` | `false` |
 | `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
 | `additional_setup_required` | If this is set, and the user inputs the default value, the user will be informed that the container requires additional setup | No | `boolean` | `false` |
+| `env` | If this flag is set the variable will be written to the .env file with the appropriate formatting of the variable in the `yaml` file and the name of the variable will have the container name prepended to it. | No | `boolean` | `false` |
 
 The `multi_choice_options` list should be formatted as follows
 
@@ -350,7 +412,7 @@ The `multi_choice_options` list should be formatted as follows
     "option_1": { "user_text": "Text displayed to the user",
                   "env_text": "value_written_to_env_file" },
     "option_2": { "user_text": "Second option text displayed to the user",
-                  "env_text": "alternative_value_written_to_env_file" },        
+                  "env_text": "alternative_value_written_to_env_file" },
 }
 ```
 
@@ -485,6 +547,15 @@ For the following fields
 * `user_full_description`
 
 It may be desirable to apply text-formatting to enhance the readability of the text. Standard markdown syntax can be applied in the text strings of these fields. Not all clients that use the plugins will support the use of markdown, so any field that uses markdown should have `_markdown` appended to the field name, such as `user_question_markdown`. You should **always** include the non-markdown field, and if you want markdown, also include the markdown version of that setting. The client will choose the correct field to use. If no markdown field is present, the client will always use the appropriate non-markdown field.
+
+### Post Install Actions
+
+If your container requires any post installation commands to be run, ie create a directory, or a file, etc, you can input the command line terms to run in the `post_install_actions` keyword under the `container_X`. Addtionally, if you use `{path}` in the command list that will fill in the installation path. The `path` keyword should always end in the file system path folder delimiter.
+
+| Variable | Description | Required | Formatting | Default |
+| -------- | ----------- | -------- | ---------- | ------- |
+| `post_install_actions` | List of *nix commands that should be run post installation | No | `String` | Blank |
+| `post_install_user_description` | By default the user will be asked if they want to run the command. This will variable will describe the actions about to be performed | Yes, if `post_install_actions` is included | `String` | Blank |
 
 ## **Sample Config**
 
