@@ -1506,6 +1506,15 @@ def write_compose(screen):
                 compose.write(tab + tab + "tty: true\n")
                 compose.write(tab + tab + "container_name: " + container + "\n")
                 compose.write(tab + tab + "restart: always\n")
+
+                if 'requires' in containers[container]:
+                    did_write = False
+                    for required_key, required_item in containers[container]['requires'].items():
+                        if required_item in output_container_config:
+                            if not did_write:
+                                compose.write(tab + tab + "depends_on:\n")
+                                did_write = True
+                            compose.write(tab + tab + tab + "- " + required_item + "\n")
                 if 'devices' in containers[container]['container_config']:
                     compose.write(tab + tab + "devices:\n")
                     for device, device_config in containers[container]['container_config']['devices'].items():
