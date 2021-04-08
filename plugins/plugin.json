@@ -45,11 +45,12 @@
         }
     },
     "categories": {
-        "required": "Required if running ADSB",
-        "recommended": "Recommended ADSB SDR",
+        "required": "Required for ADSB 1090Mhz Decoding",
+        "recommended": "Recommended addtional ADSB Software",
+        "uat": "Required for 978mhz/UAT Decoding. US ONLY!",
         "feeders": "ADSB Feeders",
-        "acars": "Required if Running ACARS/VDLM",
-        "support": "Docker Support Tools"
+        "acars": "Required for ACARS/VDLM Decoding/Feeding",
+        "support": "Container Management Tools"
     },
     "container_1": {
         "config_version": 1.0,
@@ -541,7 +542,7 @@
     },
     "container_2": {
         "config_version": 1.0,
-        "category": "required",
+        "category": "recommended",
         "container_name": "tar1090",
         "container_display_name": "tar1090",
         "container_image": "mikenye/tar1090:latest",
@@ -819,9 +820,9 @@
 
     "container_3": {
         "config_version": 1.0,
-        "category": "recommended",
+        "category": "uat",
         "container_name": "dump978",
-        "container_display_name": "dump978 (US Only!)",
+        "container_display_name": "dump978",
         "container_image": "mikenye/dump978:latest",
         "container_website": "https://github.com/mikenye/docker-dump978",
         "user_full_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only\n\nRequires a SDR to receive UAT",
@@ -1113,7 +1114,7 @@
         "config_version": 1.0,
         "category": "feeders",
         "container_name": "adsbhub",
-        "container_display_name": "ADSB Hub Feeder",
+        "container_display_name": "ADSBHub Feeder",
         "container_image": "mikenye/adsbhub:latest",
         "container_website": "https://github.com/mikenye/docker-adsbhub",
         "user_full_description": "The ADSB Hub container is used to feed ADSB data from a SBS source such as readsb.\n\nRequires: a beast source such as readsb\n\nAlso Requires a client key. If you do not have a client key please see the container's website",
@@ -1351,7 +1352,7 @@
         "config_version": 1.0,
         "category": "feeders",
         "container_name": "piaware",
-        "container_display_name": "PiAware",
+        "container_display_name": "PiAware (Flight Aware) Feeder",
         "container_image": "mikenye/piaware:latest",
         "container_website": "https://github.com/mikenye/docker-piaware",
         "user_full_description": "Feeder for FlightAware.\n\nRequires: readsb or another beast source\n\nThis container requires some pre-requisites (Feeder ID) so please visit the container's webpage for details",
