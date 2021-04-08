@@ -29,7 +29,7 @@
             "display_name": "Station latitude",
             "user_description": "Your station latitude in decimal degrees to five places, ie 35.55555",
             "variable_type": "string",
-            "validator": "(^[-+]{0,1}[1]\\d{2}\\.\\d{5}$)|(^[-+]{0,1}\\d{1,2}\\.\\d{5})",
+            "validator": "(^[-+]{0,1}[1]\\d{2}\\.{,1}\\d{,5}$)|(^[-+]{0,1}\\d{1,2}\\.{,1}\\d{,5}$)",
             "user_required_description": "Please enter decimal degrees to five places, ie 35.55555"
         },
         "option_4": {
@@ -40,7 +40,7 @@
             "display_name": "Station longitude",
             "user_description": "Your station longitude in decimal degrees to five places, ie 35.55555",
             "variable_type": "string",
-            "validator": "(^[-+]{0,1}[1]\\d{2}\\.\\d{5}$)|(^[-+]{0,1}\\d{1,2}\\.\\d{5})",
+            "validator": "(^[-+]{0,1}[1]\\d{2}\\.{,1}\\d{,5}$)|(^[-+]{0,1}\\d{1,2}\\.{,1}\\d{,5}$)",
             "user_required_description": "Please enter decimal degrees to five places, ie 35.55555"
         }
     },
