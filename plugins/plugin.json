@@ -917,6 +917,7 @@
     },
     "container_4": {
         "config_version": 1.0,
+        "advanced": true,
         "category": "recommended",
         "display_order": 2,
         "container_name": "mlat",
@@ -2003,7 +2004,43 @@
             }
         }
     },
-    "container_13": {
 
+    "container_13": {
+        "config_version": 1.0,
+        "category": "support",
+        "container_name": "watchtower",
+        "container_display_name": "Watchtower",
+        "container_image": "willfarrell/autoheal:latest",
+        "container_website": "https://mikenye.gitbook.io/ads-b/useful-extras/auto-restart-unhealthy-containers",
+        "user_full_description": "This container is used to monitor all containers and restart any that stop working.",
+        "advanced": true,
+        "container_config": {
+            "user_description": "This container is used to monitor all containers and restart any that stop working.",
+            "ports": {
+                "port_1": {
+                    "container_port": 30053
+                }
+            },
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Container Label",
+                    "user_description": "This will configure which container(s) that will be monitored. Default is 'all', and it is recommended to leave unchanged",
+                    "env_name": "AUTOHEAL_CONTAINER_LABEL",
+                    "default_value": "all",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                }
+            }
+        }
     }
 }

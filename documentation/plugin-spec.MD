@@ -60,7 +60,9 @@ The plugin file will start out with the following items:
 ```json
 {
     "docker_config_version": 1.0,
-    "global+
+    "global_vars": {
+
+    },
     "container_1": {
         "config_version": 1.0,
         "container_name": "name_of_container",
@@ -68,6 +70,7 @@ The plugin file will start out with the following items:
         "container_image": "image",
         "container_website": "url",
         "user_full_description": "text",
+        "advanced": true,
         "container_config": {
 
         }
@@ -85,8 +88,9 @@ The plugin file will start out with the following items:
 | `container_website` | The URL for the container's website | No | `standard URL formatting` |
 | `container_config` | The section where you will define the configuration parameters for the container. Described [below](#container-config) | Yes | None |
 | `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
+| `advanced` | If your container has ONLY options that a user will be setting if they've selected `advanced` for the options then you can set this flag to bypass displaying configuration screens to the user and the default values will be written | No | `boolean` |
 
-Addtionally, in this top level
+Addtionally, in this top level you will have `global_vars` and `categories`.
 
 ## Categories
 

@@ -580,16 +580,23 @@ def config_container(screen, f):
 
     while num_containers < len(container_list) and num_containers >= 0:
         item = container_list[num_containers]
+        container_advanced = False
+        if 'advanced'in item and item['advanced'] == True:
+            container_advanced = True
         # clear the first line
-        screen.addstr(0, 0, " " * (width - 1))
-        screen.addstr(0, 0, item['container_display_name'])
         container_config = item['container_config']
+        if not container_advanced or advanced:
+            screen.addstr(0, 0, " " * (width - 1))
+            screen.addstr(0, 0, item['container_display_name'])
+            response = show_proceed_screen(screen, item['container_display_name'])
+        else:
+            response = None
         env_settings = {}
         container_keys = []
         container_values = []
 
-        response = show_proceed_screen(screen, item['container_display_name'])
         if response is None:
+            print("doing container", file=f)  # TODO Remove
             for section, section_values in container_config.items():
                 if len(re.findall(r"^section_\d+", section)) == 1:
                     container_keys.append(section)
