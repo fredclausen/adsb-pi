@@ -1701,13 +1701,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--yaml', '-y',
         action='store_true',
-        help='Use .yaml instead of .yml for the docker-compose file'
+        help='Use .yaml instead of the default .yml for the docker-compose file'
     )
 
     parser.add_argument(
         '--auto', '-a',
         action='store_true',
-        help='Auto run any post-installation commands required by the container.'
+        help='Auto run any post-installation commands required by the container without prompting.'
     )
 
     args = parser.parse_args()
