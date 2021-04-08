@@ -45,10 +45,10 @@
         }
     },
     "categories": {
-        "required": "Required ADSB",
+        "required": "Required if running ADSB",
         "recommended": "Recommended ADSB SDR",
         "feeders": "ADSB Feeders",
-        "misc": "Miscellancious Non-ADSB SDR receivers",
+        "acars": "Required if Running ACARS/VDLM",
         "support": "Docker Support Tools"
     },
     "container_1": {
@@ -219,7 +219,7 @@
                     "env_name": "READSB_RTLSDR_PPM",
                     "display_name": "PPM Correction",
                     "user_description": "If your SDR requires PPM correction please input the value below.",
-                    "default_value": "",
+                    "default_value": "0",
                     "compose_required": false
                 }
             },
@@ -435,7 +435,7 @@
                     "default_value": "${USER_LAT}",
                     "compose_required": true,
                     "user_required": true,
-                    "advnaced": true
+                    "advanced": true
                 },
                 "option_9": {
                     "env_name": "READSB_LON",
@@ -821,7 +821,7 @@
         "config_version": 1.0,
         "category": "recommended",
         "container_name": "dump978",
-        "container_display_name": "dump978",
+        "container_display_name": "dump978 (US Only!)",
         "container_image": "mikenye/dump978:latest",
         "container_website": "https://github.com/mikenye/docker-dump978",
         "user_full_description": "This container sets up dump978 which is used to receive 978mhz UAT ADSB transmissions. US Only\n\nRequires a SDR to receive UAT",
@@ -883,7 +883,7 @@
                     "display_name": "SDR PPM Correction",
                     "user_description": "PPM correction for the SDR if required",
                     "env_name": "DUMP978_SDR_PPM",
-                    "default_value": "",
+                    "default_value": "0",
                     "user_required": false,
                     "compose_required": true
                 },
@@ -1726,7 +1726,7 @@
 
     "container_12": {
         "config_version": 1.0,
-        "category": "misc",
+        "category": "acars",
         "container_name": "acars_hub",
         "container_display_name": "ACARS Hub",
         "container_image": "fredclausen/acarshub:latest",

@@ -622,10 +622,20 @@ def config_container(screen, f):
                             section_index -= 2
                             run_section = False
                     elif 'depends_on' in section_values:
-                        if section_values['depends_on']['env_name'] in env_settings or section_values['depends_on']['env_name'] in section_responses:  # config file has a value set that should trigger running of this section
-                            if ('env_name_value' in section_values['depends_on'] and (env_settings[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value']))) or \
-                                    ('env_name_value' in section_values['depends_on'] and (section_responses[section_values['depends_on']['env_name']] == str(section_values['depends_on']['env_name_value']))):  # need to cast the json value to string because it may be a boolean
-                                run_section = True
+                        old_value = None
+                        for depends_section_key, depends_section_value in env_settings.items():
+                            for sub_section_key, sub_section_value in depends_section_value.items():
+                                print(sub_section_key, file=f)
+                                if sub_section_key == section_values['depends_on']['env_name']:
+                                    old_value = sub_section_value
+                                    continue
+                            if old_value is not None:
+                                continue
+
+                        if old_value is not None:  # config file has a value set that should trigger running of this section
+                            if 'env_name_value' in section_values['depends_on']:
+                                if old_value == str(section_values['depends_on']['env_name_value']):  # need to cast the json value to string because it may be a boolean
+                                    run_section = True
                             else:  # we need to grab the default value for the original variable and see if we need to run
                                 for key_depends, item_depends in container_config.items():
                                     if len(re.findall(r"^section_\d+", key_depends)) == 1:
@@ -646,10 +656,10 @@ def config_container(screen, f):
                                                                 default_value = item_depends_in['boolean_override_true']
                                                             else:
                                                                 default_value = "True"
-                                                    elif ('variable_type' in item_depends_in and item_depends_in['variable_type'] == "string") or 'variable_type' not in item_depends_in:
+                                                    else:
                                                         if 'default_value' in item_depends_in:
                                                             default_value = item_depends_in['default_value']
-                                                    if default_value == section_responses[section_values['depends_on']['env_name']]:
+                                                    if default_value == old_value:
                                                         run_section = True
                                                     continue
 
@@ -908,9 +918,12 @@ def config_container(screen, f):
                 output_container_config = collections.OrderedDict()
                 return
             else:
-                print(env_settings, file=f)
+                print("env_settings for ", item['container_name'], env_settings, file=f)  # TODO Remove
                 for env_key, env_item in env_settings.items():
-                    output_container_config[item['container_name']] = {k: v for k, v in env_item.items()}
+                    if item['container_name'] not in output_container_config:
+                        output_container_config[item['container_name']] = {k: v for k, v in env_item.items()}
+                    else:
+                        output_container_config[item['container_name']].update({k: v for k, v in env_item.items()})
                 num_containers += 1
         else:
             num_containers -= 1
@@ -1004,9 +1017,9 @@ def handle_groups(screen, option_values, option):
                 screen.addstr(4, 0, "Container Variable: {}".format(group['user_description']))
 
                 if 'variable_type' not in group or group['variable_type'] == "string":
-                    result = handle_string(screen, group, key, height, width)
+                    result = handle_string(screen, group, key)
                 elif group['variable_type'] == "multi-choice":
-                    result = handle_multi_choice(screen, group, key, height, width)
+                    result = handle_multi_choice(screen, group, key)
 
                 if result == -1:
                     sub_iterator = index - 1
@@ -1027,7 +1040,7 @@ def handle_groups(screen, option_values, option):
                     output.append(result)
 
         elif re.findall(r"^group_\d", key):
-            result = handle_groups(screen, group, key, height, width)
+            result = handle_groups(screen, group, key)
 
             if result == -1:
                 sub_iterator = index - 1
