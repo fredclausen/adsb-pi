@@ -168,7 +168,7 @@ def global_configs(screen):
                                     sub_iterator -= 1
 
                             options_index = sub_iterator
-                        elif response == 0:
+                        else:
                             section_responses[option_values['env_name']] = response
                     elif option_values['variable_type'] == "boolean":
                         previous = None
@@ -243,7 +243,7 @@ def global_configs(screen):
                                     sub_iterator -= 1
 
                             options_index = sub_iterator
-                        elif response == 0:
+                        else:
                             section_responses[option_values['env_name']] = response
                     elif option_values['variable_type'] == 'multi-choice':
                         previous = None
