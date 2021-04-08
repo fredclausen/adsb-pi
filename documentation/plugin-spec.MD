@@ -9,6 +9,7 @@ This document is designed to go over the Version 1 spec of the docker-file plugi
 * [Overview](#overview)
 * [Best Practices](best-practices)
 * [General Structure of the file](#general-structure)
+* [Categories](#categories)
 * [Global Variables](#global-variables)
 * [Container Config](#container-config)
   * [Recommends and Requirements](#recommends-and-requirements)
@@ -86,6 +87,24 @@ The plugin file will start out with the following items:
 | `user_full_description` | This will provide a long form, more complete description of what the container does, requirements, etc. | Yes | `String` |
 
 Addtionally, in this top level
+
+## Categories
+
+Containers are required to be grouped in to categories. To define the categories for the plugin, use the structure:
+
+```json
+    "categories": {
+        "required": "Required ADSB",
+        "recommended": "Recommended ADSB SDR",
+        "feeders": "ADSB Feeders",
+        "misc": "Miscellancious Non-ADSB SDR receivers",
+        "support": "Docker Support Tools"
+    }
+```
+
+The key is the name of a category that the container will refer to, and the key value is the string that will be displayed to the user.
+
+Under a container it is requisite to include the key `category` which refers to a key name defined in this section.
 
 ## Global Variables
 

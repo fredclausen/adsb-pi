@@ -303,13 +303,25 @@ def global_configs(screen):
 def select_containers(screen):
     global page
     global containers
+    global config
     curs_x = 1
-    curs_y = 2
+    curs_y = 3
 
     height, width = screen.getmaxyx()
     if height < 30 or width < 110:
         raise EnvironmentError("Window too small!")
 
+    # build the list of headers so we can skip
+    cat_header_indexes = []
+    cat_index = 1
+    index = 2
+    for cat_key, cat_item in config['categories'].items():
+        screen.addstr(index + cat_index, 0, "====={}=====".format(cat_item))
+        for container in containers:
+            if containers[container]['category'] == cat_key:
+                index += 1
+        cat_header_indexes.append(index + cat_index)
+        cat_index += 1
     clear_screen(screen)
     curses.noecho()
     curses.cbreak()
@@ -386,11 +398,12 @@ def select_containers(screen):
                                 show = True
                                 required_containers_index.append(containers[container]['index'])
                                 containers_to_show.append(containers[container]['container_display_name'])
-                    output += ", ".join(i for i in containers_to_show)
+                    output += ", ".join(i for i in containers_to_show) + "."
                     if show:
                         clear_screen(screen)
-                        output += ". Press (Y) to select these containers or (N) to skip."
                         screen.addstr(int(height // 2), int((width // 2) - (len(output) // 2) - len(output) % 2), output)
+                        output = "Press (Y) to select these containers or (N) to skip."
+                        screen.addstr(int(height // 2) + 1, int((width // 2) - (len(output) // 2) - len(output) % 2), output)
                         while True:
                             k = screen.getch()
 
@@ -410,11 +423,12 @@ def select_containers(screen):
                                 show = True
                                 recommended_containers_index.append(containers[container]['index'])
                                 containers_to_show.append(containers[container]['container_display_name'])
-                    output += ", ".join(i for i in containers_to_show)
+                    output += ", ".join(i for i in containers_to_show) + "."
                     if show:
                         clear_screen(screen)
-                        output += ". Press (Y) to select these containers or (N) to skip."
                         screen.addstr(int(height // 2), int((width // 2) - (len(output) // 2) - len(output) % 2), output)
+                        output = "Press (Y) to select these containers or (N) to skip."
+                        screen.addstr(int(height // 2) + 1, int((width // 2) - (len(output) // 2) - len(output) % 2), output)
                         while True:
                             k = screen.getch()
 
@@ -423,11 +437,15 @@ def select_containers(screen):
                             elif k == ord('y'):
                                 selected_containers.extend(recommended_containers_index)
                                 break
-
-        if curs_y > len(containers) + 1:
-            curs_y = len(containers) + 1
-        elif curs_y < 2:
-            curs_y = 2
+        while curs_y in cat_header_indexes:
+            if k == curses.KEY_DOWN:
+                curs_y += 1
+            elif k == curses.KEY_UP:
+                curs_y -= 1
+        if curs_y > len(containers) + len(config['categories']) + 1:
+            curs_y = len(containers) + len(config['categories']) + 1
+        elif curs_y < 3:
+            curs_y = 3
 
         prompt = "Please select the container(s) you wish to install"
         status_bar = "Press Space to (de)select a container | Up and Down Arrows to Navigate | Press 'n' or 'Enter' to Proceed | 'i' for container info | Press 'q' or Control + C to exit"
@@ -444,14 +462,25 @@ def select_containers(screen):
         screen.attroff(curses.color_pair(3))
         screen.move(curs_y, curs_x)
         index = 2
+        cat_index = 0
         if show_warning:
             screen.addstr(height - 2, 0, "Please select at least one container. If you want to exit the setup press 'q'")
-        for container in containers:
-            if containers[container]['index'] not in selected_containers:
-                screen.addstr(index, 0, "[ ] " + containers[container]['container_display_name'])
+
+        for cat_key, cat_item in config['categories'].items():
+            if len(cat_item) % 2 == 0:
+                padding = 1
             else:
-                screen.addstr(index, 0, "[X] " + containers[container]['container_display_name'])
-            index += 1
+                padding = 0
+
+            screen.addstr(index + cat_index, 0, "=" * (30 - int(len(cat_item) / 2)) + cat_item + "=" * (30 - int(len(cat_item) / 2) + padding))
+            cat_index += 1
+            for container in containers:
+                if containers[container]['category'] == cat_key:
+                    if containers[container]['index'] not in selected_containers:
+                        screen.addstr(index + cat_index, 0, "[ ] " + containers[container]['container_display_name'])
+                    else:
+                        screen.addstr(index + cat_index, 0, "[X] " + containers[container]['container_display_name'])
+                    index += 1
         screen.move(curs_y, curs_x)
         screen.refresh()
         k = screen.getch()
@@ -1317,11 +1346,14 @@ def get_containers():
     global config
     global containers
     index = 0
-    for key, item in config.items():
-        if len(re.findall(r"^container_\d+", key)):
-            item['index'] = index
-            index += 1
-            containers[item['container_name']] = item
+    cat_index = 0
+    for cat_key, cat_item in config['categories'].items():
+        cat_index += 1
+        for config_key, config_item in config.items():
+            if len(re.findall(r"^container_\d+", config_key)) and config_item['category'] == cat_key:
+                config_item['index'] = index + cat_index
+                index += 1
+                containers[config_item['container_name']] = config_item
 
 
 def write_compose(screen):
