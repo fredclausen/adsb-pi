@@ -150,7 +150,7 @@ Do you wish to continue?
 EOM
 )
     title="Welcome!"
-    if whiptail \
+    if TERM=ansi whiptail \
         --backtitle "$WHIPTAIL_BACKTITLE" \
         --title "$title" \
         --yesno "$msg" \
@@ -164,7 +164,7 @@ EOM
 
 function update_apt_repos() {
     logger "update_apt_repos" "Performing 'apt-get update'..."
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Performing 'apt-get update'..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Performing 'apt-get update'..." 8 78
     if apt-get update -y >> "$LOGFILE" 2>&1; then
         logger "update_apt_repos" "'apt-get update' was successful!"
     fi
@@ -173,14 +173,14 @@ function update_apt_repos() {
 function install_with_apt() {
     # $1 = package name
     logger "install_with_apt" "Installing package $1..."
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing package '$1'..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing package '$1'..." 8 78
     # Attempt download of docker script
     if apt-get install -y "$1" >> "$LOGFILE" 2>&1; then
         logger "install_with_apt" "Package $1 installed successfully!"
     else
         logger "install_with_apt" "ERROR: Could not install package $1 via apt-get :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Could not install package $1 via apt-get :-(" 8 78
         exit_failure
@@ -190,7 +190,7 @@ function install_with_apt() {
 function is_binary_installed() {
     # $1 = binary name
     # Check if binary is installed
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Checking if '$1' is installed..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Checking if '$1' is installed..." 8 78
     logger "is_binary_installed" "Checking if $1 is installed"
     if which "$1" >> "$LOGFILE" 2>&1; then
         # binary is already installed
@@ -202,10 +202,10 @@ function is_binary_installed() {
 
 function update_docker() {
     # Check to see if docker requires an update
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Checking if docker components require an update..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Checking if docker components require an update..." 8 78
     logger "update_docker" "Checking to see if docker components require an update"
     if [[ "$(apt-get -u --just-print upgrade | grep -c docker-ce)" -gt "0" ]]; then
-        whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker components require an update..." 8 78
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker components require an update..." 8 78
         logger "update_docker" "Docker components DO require an update"
         # Check if containers are running, if not, attempt to upgrade to latest version
         logger "update_docker" "Checking if containers are running"
@@ -213,7 +213,7 @@ function update_docker() {
             # Containers running, don't update
             logger "update_docker" "WARNING: Docker components require updating, but you have running containers. Not updating docker, you will need to do this manually."
             NEWT_COLORS='root=,yellow' \
-                whiptail \
+                TERM=ansi whiptail \
                     --backtitle "$WHIPTAIL_BACKTITLE" \
                     --title "Warning" \
                     --msgbox "Performing 'apt-get update'..." \
@@ -223,19 +223,19 @@ function update_docker() {
 
             # Containers not running, do update
             logger "update_docker" "Docker components require an update. Performing update..."
-            whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker components require an update. Performing update..." 8 78
+            TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker components require an update. Performing update..." 8 78
             if apt-get upgrade -y docker-ce >> "$LOGFILE" 2>&1; then
 
                 # Docker upgraded OK!
                 logger "update_docker" "Docker upgraded successfully!"
-                whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker upgraded successfully!" 8 78
+                TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker upgraded successfully!" 8 78
 
             else
 
                 # Docker upgrade failed
                 logger "update_docker" "ERROR: Problem updating docker :-("
                 NEWT_COLORS='root=,red' \
-                whiptail \
+                TERM=ansi whiptail \
                     --title "Error" \
                     --msgbox "Problem updating docker :-(" 8 78
                 exit_failure
@@ -245,7 +245,7 @@ function update_docker() {
 
     else
         logger "update_docker" "Docker components are up-to-date!"
-        whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker components are up-to-date!" 8 78
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker components are up-to-date!" 8 78
     fi
 }
 
@@ -253,7 +253,7 @@ function install_docker() {
 
     # Docker is not installed
     logger "install_docker" "Installing docker..."
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing docker..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing docker..." 8 78
 
     # Attempt download of docker script
     logger "install_docker" "Attempt download of get-docker.sh script"
@@ -262,7 +262,7 @@ function install_docker() {
     else
         logger "install_docker" "ERROR: Could not download get-docker.sh script from https://get.docker.com :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Could not download get-docker.sh script from https://get.docker.com :-(" 8 78
         exit_failure
@@ -272,11 +272,11 @@ function install_docker() {
     logger "install_docker" "Attempt to run get-docker.sh script"
     if sh /tmp/get-docker.sh >> "$LOGFILE" 2>&1; then
         logger "install_docker" "Docker installed successfully!"
-        whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker installed successfully!" 8 78
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Docker installed successfully!" 8 78
     else
         logger "install_docker" "ERROR: Problem running get-docker.sh installation script :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Problem running get-docker.sh installation script :-(" 8 78
         exit_failure
@@ -287,13 +287,13 @@ function get_latest_docker_compose_version() {
 
     # get latest version of docker-compose
     logger "get_latest_docker_compose_version" "Querying for latest version of docker-compose..."
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Finding latest version of docker-compose..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Finding latest version of docker-compose..." 8 78
 
     if docker pull "$IMAGE_DOCKER_COMPOSE" >> "$LOGFILE" 2>&1; then
     :
     else
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Failed to pull (download) $IMAGE_DOCKER_COMPOSE :-(" 8 78
         exit_failure
@@ -307,7 +307,7 @@ function get_latest_docker_compose_version() {
     else
         logger "get_latest_docker_compose_version" "ERROR: Problem getting latest docker-compose version :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Problem getting latest docker-compose version :-(" 8 78
         exit_failure
@@ -322,14 +322,14 @@ function update_docker_compose() {
 
     # docker_compose is already installed
     logger "update_docker_compose" "docker-compose is already installed, attempting to get version information:"
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose is already installed, attempting to get version..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose is already installed, attempting to get version..." 8 78
     if docker-compose version >> "$LOGFILE" 2>&1; then
         # do nothing
         :
     else
         logger "update_docker_compose" "ERROR: Problem getting docker-compose version :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Problem getting docker-compose version :-(" 8 78
         exit_failure
@@ -340,12 +340,12 @@ function update_docker_compose() {
     logger "update_docker_compose" "Checking version of installed docker-compose vs latest docker-compose"
     if [[ "$docker_compose_version" == "$docker_compose_version_latest" ]]; then
         logger "update_docker_compose" "docker-compose is the latest version!"
-        whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose is the latest version!" 8 78
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose is the latest version!" 8 78
     else
 
         # remove old versions of docker-compose
         logger "update_docker_compose" "Attempting to remove previous outdated versions of docker-compose..."
-        whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Attempting to remove previous outdated versions of docker-compose..." 8 78
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Attempting to remove previous outdated versions of docker-compose..." 8 78
         while which docker-compose >> "$LOGFILE" 2>&1; do
 
             # if docker-compose was installed via apt-get
@@ -357,7 +357,7 @@ function update_docker_compose() {
                 else
                     logger "update_docker_compose" "ERROR: Problem uninstalling outdated docker-compose :-("
                     NEWT_COLORS='root=,red' \
-                    whiptail \
+                    TERM=ansi whiptail \
                         --title "Error" \
                         --msgbox "Problem uninstalling outdated docker-compose :-(" 8 78
                     exit_failure
@@ -371,7 +371,7 @@ function update_docker_compose() {
                     else
                         logger "update_docker_compose" "ERROR: Problem uninstalling outdated docker-compose :-("
                         NEWT_COLORS='root=,red' \
-                        whiptail \
+                        TERM=ansi whiptail \
                             --title "Error" \
                             --msgbox "Problem uninstalling outdated docker-compose :-(" 8 78
                         exit_failure
@@ -385,7 +385,7 @@ function update_docker_compose() {
                 else
                     logger "update_docker_compose" "ERROR: Problem uninstalling outdated docker-compose :-("
                     NEWT_COLORS='root=,red' \
-                    whiptail \
+                    TERM=ansi whiptail \
                         --title "Error" \
                         --msgbox "Problem uninstalling outdated docker-compose :-(" 8 78
                     exit_failure
@@ -393,7 +393,7 @@ function update_docker_compose() {
             else
                 logger "update_docker_compose" "Unsupported docker-compose installation method detected."
                 NEWT_COLORS='root=,red' \
-                    whiptail \
+                    TERM=ansi whiptail \
                         --title "Error" \
                         --msgbox "Problem uninstalling outdated docker-compose :-(" 8 78
                 exit_failure
@@ -403,7 +403,7 @@ function update_docker_compose() {
         # Install current version of docker-compose as a container
         logger "update_docker_compose" "Installing docker-compose..."
         logger "update_docker_compose" "Attempting download of latest docker-compose container wrapper script"
-        whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Attempting installation of docker-compose container wrapper..." 8 78
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Attempting installation of docker-compose container wrapper..." 8 78
 
         # TODO - Change to official installer once it supports multi-arch
         # see: https://github.com/docker/compose/issues/6831
@@ -422,11 +422,11 @@ function update_docker_compose() {
                 docker_compose_version=$(docker-compose version | grep docker-compose | cut -d ',' -f 1 | rev | cut -d ' ' -f 1 | rev)
                 if [[ "$docker_compose_version" == "$docker_compose_version_latest" ]]; then
                     logger "update_docker_compose" "docker-compose installed successfully!"
-                    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose installed successfully!" 8 78
+                    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose installed successfully!" 8 78
                 else
                     logger "update_docker_compose" "ERROR: Issue running newly installed docker-compose :-("
                     NEWT_COLORS='root=,red' \
-                    whiptail \
+                    TERM=ansi whiptail \
                         --title "Error" \
                         --msgbox "Issue running newly installed docker-compose :-(" 8 78
                     exit_failure
@@ -434,7 +434,7 @@ function update_docker_compose() {
             else
                 logger "update_docker_compose" "ERROR: Problem chmodding docker-compose container wrapper script :-("
                 NEWT_COLORS='root=,red' \
-                    whiptail \
+                    TERM=ansi whiptail \
                         --title "Error" \
                         --msgbox "Problem chmodding docker-compose container wrapper script :-(" 8 78
                 exit_failure
@@ -442,7 +442,7 @@ function update_docker_compose() {
         else
             logger "update_docker_compose" "ERROR: Problem downloading docker-compose container wrapper script :-("
             NEWT_COLORS='root=,red' \
-                whiptail \
+                TERM=ansi whiptail \
                     --title "Error" \
                     --msgbox "Problem downloading docker-compose container wrapper script :-(" 8 78
             exit_failure
@@ -455,7 +455,7 @@ function install_docker_compose() {
     # Install current version of docker-compose as a container
     logger "install_docker_compose" "Installing docker-compose..."
     logger "install_docker_compose" "Attempting download of latest docker-compose container wrapper script"
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Attempting installation of docker-compose container wrapper..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Attempting installation of docker-compose container wrapper..." 8 78
 
     # TODO - Change to official installer once it supports multi-arch
     # see: https://github.com/docker/compose/issues/6831
@@ -473,11 +473,11 @@ function install_docker_compose() {
             # Make sure we can now run docker-compose and it is the latest version
             if docker-compose version >> "$LOGFILE" 2>&1; then
                 logger "install_docker_compose" "docker-compose installed successfully!"
-                whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose installed successfully!" 8 78
+                TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "docker-compose installed successfully!" 8 78
             else
                 logger "install_docker_compose" "ERROR: Issue running newly installed docker-compose :-("
                 NEWT_COLORS='root=,red' \
-                    whiptail \
+                    TERM=ansi whiptail \
                         --title "Error" \
                         --msgbox "Issue running newly installed docker-compose :-(" 8 78
                 exit_failure
@@ -485,7 +485,7 @@ function install_docker_compose() {
         else
             logger "install_docker_compose" "ERROR: Problem chmodding docker-compose container wrapper script :-("
             NEWT_COLORS='root=,red' \
-                whiptail \
+                TERM=ansi whiptail \
                     --title "Error" \
                     --msgbox "Problem chmodding docker-compose container wrapper script :-(" 8 78
             exit_failure
@@ -493,7 +493,7 @@ function install_docker_compose() {
     else
         logger "install_docker_compose" "ERROR: Problem downloading docker-compose container wrapper script :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Problem downloading docker-compose container wrapper script :-(" 8 78
         exit_failure
@@ -624,13 +624,13 @@ function unload_rtlsdr_kernel_modules() {
 
             msg="Module '$modulename' must be unloaded to continue. Is this OK?"
             title="Unload of kernel modules required"
-            if whiptail --backtitle "$WHIPTAIL_BACKTITLEBACKTITLE" --title "$title" --yesno "$msg" 7 80; then
+            if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLEBACKTITLE" --title "$title" --yesno "$msg" 7 80; then
                 if rmmod "$modulename"; then
                     logger "unload_rtlsdr_kernel_modules" "Module '$modulename' unloaded successfully!"
                 else
                     logger "unload_rtlsdr_kernel_modules" "ERROR: Could not unload module '$modulename' :-("
                     NEWT_COLORS='root=,red' \
-                        whiptail \
+                        TERM=ansi whiptail \
                             --title "Error" \
                             --msgbox "Could not unload module '$modulename' :-(" 8 78
                     exit_failure
@@ -742,14 +742,14 @@ function required_libs() {
     PACKAGES+=(libusb-1.0-0-dev)
     PACKAGES+=(libglib2.0-dev)
     logger "Installing any missing libraries"
-    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing packagse''..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing packagse''..." 8 78
     # Attempt download of docker script
-    if apt-get install -y "${KEPT_PACKAGES[@]}" >> "$LOGFILE" 2>&1; then
-        logger "required_libs" "Package " "${KEPT_PACKAGES[@]}" "installed successfully!"
+    if apt-get install -y "${PACKAGES[@]}" >> "$LOGFILE" 2>&1; then
+        logger "required_libs" "Package " "${PACKAGES[@]}" "installed successfully!"
     else
         logger "required_libs" "ERROR: Could not install packages via apt-get :-("
         NEWT_COLORS='root=,red' \
-            whiptail \
+            TERM=ansi whiptail \
                 --title "Error" \
                 --msgbox "Could not install package $PAC via apt-get :-(" 8 78
         exit_failure
@@ -793,7 +793,7 @@ msg="Please enter a path for the ADS-B docker project.\n"
 msg+="This is where the docker-compose.yml and .env file will be stored,\n"
 msg+="as well as all application data."
 title="Project Path"
-if PROJECTDIR=$(whiptail --backtitle "$WHIPTAIL_BACKTITLE" --inputbox "$msg" --title "$title" 9 78 "/opt/adsb" 3>&1 1>&2 2>&3); then
+if PROJECTDIR=$(TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --inputbox "$msg" --title "$title" 9 78 "/opt/adsb" 3>&1 1>&2 2>&3); then
     if [[ -d "$PROJECTDIR" ]]; then
         logger "main" "Project directory $PROJECTDIR already exists!"
     else
@@ -816,7 +816,7 @@ if [[ -e "$PREFSFILE" ]]; then
     source "$PREFSFILE"
     if [[ "$ADSB_DOCKER_INSTALL_ENVFILE_SCHEMA" -ne "$CURRENT_SCHEMA_VERSION" ]]; then
         logger "main" "Environment variable file $PREFSFILE was not created by this script!"
-        if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Environment variable file already exists!" --yesno "Existing environment variables file $PREFSFILE was not created by this script! Do you want this script to take a backup of this file and continue?" 10 78; then
+        if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Environment variable file already exists!" --yesno "Existing environment variables file $PREFSFILE was not created by this script! Do you want this script to take a backup of this file and continue?" 10 78; then
             BACKUPFILE="$PREFSFILE.backup.$(date -Iseconds)"
             cp -v "$PREFSFILE" "$BACKUPFILE" >> "$LOGFILE" 2>&1 || exit 1
             logger "main" "Backup of $PREFSFILE to $BACKUPFILE completed!"
@@ -833,7 +833,7 @@ if [[ -e "$COMPOSEFILE" ]]; then
     if ! grep -oP "$REGEX_PATTERN_COMPOSEFILE_SCHEMA_HEADER" "$COMPOSEFILE"; then
         logger "main" "Existing compose file $COMPOSEFILE was not created by this script!"
         echo ""
-        if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Existing compose file found" --yesno "Existing compose file $COMPOSEFILE was not created by this script! Do you want this script to backup the file and continue?" 10 78; then
+        if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Existing compose file found" --yesno "Existing compose file $COMPOSEFILE was not created by this script! Do you want this script to backup the file and continue?" 10 78; then
             BACKUPFILE="$COMPOSEFILE.backup.$(date -Iseconds)"
             cp -v "$COMPOSEFILE" "$BACKUPFILE" || exit 1
             logger "main" "Backup of $COMPOSEFILE to $BACKUPFILE completed!"
@@ -850,7 +850,7 @@ update_apt_repos
 msg="This script needs to verify some required libraries are installed. These are used for,:\n"
 msg+=" * Building RTL-SDR\n"
 msg+="Is it ok to install any missing libraries?"
-if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
     required_libs
 else
     exit_user_cancelled
@@ -861,7 +861,7 @@ fi
 #     msg="This script needs to install the 'curl' utility, which is used for:\n"
 #     msg+=" * Automatic submission of Planefinder sign-up form\n"
 #     msg+="Is it ok to install curl?"
-#     if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+#     if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
 #         install_with_apt curl
 #     else
 #         exit_user_cancelled
@@ -872,7 +872,7 @@ if ! is_binary_installed cmake; then
     msg="This script needs to install the 'cmake' utility, which is used for:\n"
     msg+=" * Compiling RTL-SDR\n"
     msg+="Is it ok to install cmake?"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
         install_with_apt cmake
     else
         exit_user_cancelled
@@ -883,7 +883,7 @@ if ! is_binary_installed git; then
     msg="This script needs to install the 'git' utility, which is used for:\n"
     msg+=" * Grabbing the RTL-SDR source code\n"
     msg+="Is it ok to install git"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
         install_with_apt git
     else
         exit_user_cancelled
@@ -897,7 +897,7 @@ if ! is_binary_installed python && ! is_binary_installed python3; then
     msg="This script needs to install python, which is used for:\n"
     msg+=" * Generate the docker-compose configuration files\n"
     msg+="Is it ok to install python?"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Python Installation" --yesno "$msg" 12 80; then
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Python Installation" --yesno "$msg" 12 80; then
         install_with_apt python3
     else
         exit_user_cancelled
@@ -908,7 +908,7 @@ if ! is_binary_installed docker; then
     msg="This script needs to install docker, which is used for:\n"
     msg+=" * Running the containers!\n"
     msg+="Is it ok to install docker?"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package docker" --yesno "$msg" 12 80; then
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package docker" --yesno "$msg" 12 80; then
         install_docker
     else
         exit_user_cancelled
@@ -922,7 +922,7 @@ if ! is_binary_installed docker-compose; then
     msg="This script needs to install docker-compose, which is used for:\n"
     msg+=" * Management and orchestration of containers!\n"
     msg+="Is it ok to install docker-compose?"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "docker-compose" --yesno "$msg" 12 80; then
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "docker-compose" --yesno "$msg" 12 80; then
         install_docker_compose
     else
         exit_user_cancelled
@@ -939,7 +939,7 @@ if ! is_binary_installed rtl_test; then
     msg="This script needs to compile and install RTL-SDR, which is used for:\n"
     msg+=" * Managing RTL-SDRs outside of docker!\n"
     msg+="Is it ok to install RTL-SDR? It will take a couple of minutes"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
         build_rtl_sdr
     else
         exit_user_cancelled
@@ -952,20 +952,20 @@ create_docker_compose_yml_file
 
 # start containers
 pushd "$PROJECTDIR" >> "$LOGFILE" 2>&1 || exit_user_cancelled
-whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Pulling (downloading) images..." 8 78
+TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Pulling (downloading) images..." 8 78
 if docker-compose pull >> "$LOGFILE" 2>&1; then
     :
 else
     docker-compose down >> "$LOGFILE" 2>&1 || true
     NEWT_COLORS='root=,red' \
-        whiptail \
+        TERM=ansi whiptail \
             --title "Error" \
             --msgbox "Failed to pull (download) images :-(" 8 78
     exit_failure
 fi
-whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Starting containers..." 8 78
+TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Starting containers..." 8 78
 if docker-compose up -d --remove-orphans >> "$LOGFILE" 2>&1; then
-    whiptail \
+    TERM=ansi whiptail \
         --clear \
         --backtitle "$WHIPTAIL_BACKTITLE" \
         --msgbox "Containers have been started!" \
@@ -974,7 +974,7 @@ if docker-compose up -d --remove-orphans >> "$LOGFILE" 2>&1; then
 else
     docker-compose down >> "$LOGFILE" 2>&1 || true
     NEWT_COLORS='root=,red' \
-        whiptail \
+        TERM=ansi whiptail \
             --title "Error" \
             --msgbox "Failed to start containers :-(" 8 78
     exit_failure
