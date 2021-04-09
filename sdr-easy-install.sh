@@ -54,19 +54,6 @@ LOGFILE="/tmp/adsb_docker_install.$(date -Iseconds).log"
 # Whiptail dialog globals
 WHIPTAIL_BACKTITLE="ADS-B Docker Easy Install"
 
-# Temp files - created in one dir
-TMPDIR_ADSB_DOCKER_INSTALL="$(mktemp -d --suffix=.adsb_docker_install.TMPDIR_ADSB_DOCKER_INSTALL)"
-TMPFILE_DOCKER_COMPOSE_SCRATCH="$TMPDIR_ADSB_DOCKER_INSTALL/TMPFILE_DOCKER_COMPOSE_SCRATCH"
-# TMPFILE_NEWPREFS will be defined later
-TMPFILE_NEWPREFS=
-
-# Temp dirs - created in above main temp dir
-TMPDIR_REPO_DOCKER_COMPOSE="$TMPDIR_ADSB_DOCKER_INSTALL/TMPDIR_REPO_DOCKER_COMPOSE"
-mkdir -p "$TMPDIR_REPO_DOCKER_COMPOSE"
-TMPDIR_REPO_RTLSDR="$TMPDIR_ADSB_DOCKER_INSTALL/TMPDIR_REPO_RTLSDR"
-mkdir -p "$TMPDIR_ADSB_DOCKER_INSTALL"
-mkdir -p "$TMPDIR_ADSB_DOCKER_INSTALL"
-
 # Container Images
 IMAGE_DOCKER_COMPOSE="linuxserver/docker-compose:latest"
 
@@ -82,14 +69,14 @@ RTLSDR_MODULES_TO_BLACKLIST+=(rtl2832_sdr)
 RTLSDR_MODULES_TO_BLACKLIST+=(dvb_usb_rtl28xxu)
 RTLSDR_MODULES_TO_BLACKLIST+=(rtl2832)
 
-# Default settings for .env file
-DATASOURCE_TYPE=
-FEED_ADSBX=
-FEED_FLIGHTAWARE=
-FEED_FLIGHTRADAR24=
-FEED_OPENSKY=
-FEED_PLANEFINDER=
-FEED_RADARBOX=
+# temp dir
+
+TMPDIR_ADSB_DOCKER_INSTALL="$(mktemp -d --suffix=.adsb_docker_install.TMPDIR_ADSB_DOCKER_INSTALL)"
+TMPDIR_REPO_RTLSDR="$TMPDIR_ADSB_DOCKER_INSTALL/TMPDIR_REPO_RTLSDR"
+mkdir -p "$TMPDIR_REPO_RTLSDR"
+
+# Branch of RTLSDR to build
+BRANCH_RTLSDR="ed0317e6a58c098874ac58b769cf2e609c18d9a5"
 
 # Cleanup function run on script exit (via trap)
 function cleanup() {
@@ -102,18 +89,6 @@ function cleanup() {
 
 
 ##### DEFINE FUNCTIONS #####
-
-function is_X_in_list_Y() {
-    local list="$2"
-    local item="$1"
-    if [[ "$list" =~ (^|[[:space:]])"$item"($|[[:space:]]) ]] ; then
-        # yes, list include item
-        result=0
-    else
-        result=1
-    fi
-    return $result
-}
 
 function logger() {
     # Logs messages to the console
@@ -697,7 +672,7 @@ function create_docker_compose_yml_file() {
 function show_post_deploy_help() {
 
     echo -e "\n\n"
-    echo -e "${LIGHTGREEN}Congratulations on your new Docker-based ADS-B deployment!${NOCOLOR}"
+    echo -e "${LIGHTGREEN}Congratulations on your new Docker-based SDR deployment!${NOCOLOR}"
     echo ""
     echo -e "${LIGHTBLUE}Deployment Info:${NOCOLOR}"
     echo -e " - The ${WHITE}project directory${NOCOLOR} is '${WHITE}$PROJECTDIR${NOCOLOR}'. You should cd into this directory before running any 'docker-compose' commands for your ADS-B containers."
@@ -738,7 +713,61 @@ function show_post_deploy_help() {
 function add_user_to_docker() {
     CURRENT_USER=$(sudo who am i | awk '{print $1}')
     logger "Adding user $CURRENT_USER to the docker user group"
-    usermod -aG docker "$CURRENT_USER"
+
+    if usermod -aG docker "$CURRENT_USER" >> "$LOGFILE" 2>&1; then
+        logger "Added user $CURRENT_USER to the docker group"
+    fi
+}
+
+function udev_rules() {
+    if [[ -e "/etc/udev/rules.d/rtl-sdr.rules" ]]; then
+        logger "UDEV Rules present"
+    else
+        logger "Adding in UDEV Rules"
+        wget -O /tmp/rtl-sdr.rules https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/osmocom-rtl-sdr.rules 2>&1
+        cp /tmp/rtl-sdr.rules /etc/udev/rules.d/ >> "$LOGFILE" 2>&1
+        udevadm control --reload-rules >> "$LOGFILE" 2>&1
+    fi
+}
+
+function required_libs() {
+    PACKAGES=()
+    PACKAGES+=(protobuf-c-compiler)
+    PACKAGES+=(libprotobuf-c-dev)
+    PACKAGES+=(libprotobuf-c1)
+    PACKAGES+=(librrd8)
+    PACKAGES+=(librrd-dev)
+    PACKAGES+=(libncurses5-dev)
+    PACKAGES+=(libusb-1.0-0)
+    PACKAGES+=(libusb-1.0-0-dev)
+    PACKAGES+=(libglib2.0-dev)
+    logger "Installing any missing libraries"
+    whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing packagse''..." 8 78
+    # Attempt download of docker script
+    if apt-get install -y "${KEPT_PACKAGES[@]}" >> "$LOGFILE" 2>&1; then
+        logger "required_libs" "Package " "${KEPT_PACKAGES[@]}" "installed successfully!"
+    else
+        logger "required_libs" "ERROR: Could not install packages via apt-get :-("
+        NEWT_COLORS='root=,red' \
+            whiptail \
+                --title "Error" \
+                --msgbox "Could not install package $PAC via apt-get :-(" 8 78
+        exit_failure
+    fi
+}
+
+function build_rtl_sdr() {
+    git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR" && \
+    CURRENT_DIR=$(pwd)
+    pushd "$TMPDIR_REPO_RTLSDR" || exit
+    git checkout "${BRANCH_RTLSDR}"
+    mkdir -p "$TMPDIR_REPO_RTLSDR/build"
+    pushd "$TMPDIR_REPO_RTLSDR/build" || exit
+    cmake ../ -DINSTALL_UDEV_RULES=ON -Wno-dev
+    make -Wstringop-truncation
+    make -Wstringop-truncation install
+    cp -v "$TMPDIR_REPO_RTLSDR/rtl-sdr.rules" "/etc/udev/rules.d/"
+    pushd "$CURRENT_DIR" || exit
 }
 
 ##### MAIN SCRIPT #####
@@ -818,23 +847,57 @@ fi
 update_apt_repos
 
 # Install required packages / prerequisites (curl, docker, temp container, docker-compose)
+msg="This script needs to verify some required libraries are installed. These are used for,:\n"
+msg+=" * Building RTL-SDR\n"
+msg+="Is it ok to install any missing libraries?"
+if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+    required_libs
+else
+    exit_user_cancelled
+fi
+
 # Get curl
-if ! is_binary_installed curl; then
-    msg="This script needs to install the 'curl' utility, which is used for:\n"
-    msg+=" * Automatic submission of Planefinder sign-up form\n"
-    msg+="Is it ok to install curl?"
+# if ! is_binary_installed curl; then
+#     msg="This script needs to install the 'curl' utility, which is used for:\n"
+#     msg+=" * Automatic submission of Planefinder sign-up form\n"
+#     msg+="Is it ok to install curl?"
+#     if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+#         install_with_apt curl
+#     else
+#         exit_user_cancelled
+#     fi
+# fi
+
+if ! is_binary_installed cmake; then
+    msg="This script needs to install the 'cmake' utility, which is used for:\n"
+    msg+=" * Compiling RTL-SDR\n"
+    msg+="Is it ok to install cmake?"
     if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
-        install_with_apt curl
+        install_with_apt cmake
     else
         exit_user_cancelled
     fi
 fi
-# Get expect
+
+if ! is_binary_installed git; then
+    msg="This script needs to install the 'git' utility, which is used for:\n"
+    msg+=" * Grabbing the RTL-SDR source code\n"
+    msg+="Is it ok to install git"
+    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+        install_with_apt git
+    else
+        exit_user_cancelled
+    fi
+fi
+
+
+
+# Get python
 if ! is_binary_installed python && ! is_binary_installed python3; then
     msg="This script needs to install python, which is used for:\n"
     msg+=" * Generate the docker-compose configuration files\n"
     msg+="Is it ok to install python?"
-    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Python Installation" --yesno "$msg" 12 80; then
         install_with_apt python3
     else
         exit_user_cancelled
@@ -871,6 +934,19 @@ fi
 add_user_to_docker
 
 unload_rtlsdr_kernel_modules
+
+if ! is_binary_installed rtl_test; then
+    msg="This script needs to compile and install RTL-SDR, which is used for:\n"
+    msg+=" * Managing RTL-SDRs outside of docker!\n"
+    msg+="Is it ok to install RTL-SDR? It will take a couple of minutes"
+    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
+        build_rtl_sdr
+    else
+        exit_user_cancelled
+    fi
+fi
+
+udev_rules
 
 create_docker_compose_yml_file
 
