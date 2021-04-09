@@ -13,7 +13,7 @@ try:
 except Exception:
     import urllib2
 
-SOFTWARE_VERSION = "0.5.0"
+SOFTWARE_VERSION = "0.7.0"
 page = 1
 config = collections.OrderedDict()
 containers = collections.OrderedDict()

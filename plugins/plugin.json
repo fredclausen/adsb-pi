@@ -1608,6 +1608,83 @@
     "container_11": {
         "config_version": 1.0,
         "category": "feeders",
+        "container_name": "planewatch",
+        "container_display_name": "Plane Watch",
+        "container_image": "planewatch/plane-watch",
+        "container_website": "https://github.com/plane-watch/docker-plane-watch",
+        "user_full_description": "plane.watch is a small group of friends and aviation enthusiasts who operate an ADS-B data collection and display service for the benefit of the general public. While we are primarily based in Australia, we welcome data contributions from all over the world. We are a non-commercial entity - no data is sold or filtered/blocked. It will require a share code. Please see the container's website for details.",
+        "container_config": {
+            "user_description": "This container is used to feed Plane Watch from a BEAST source of data like readsb",
+            "section_1": {
+                "option_1": {
+                    "display_name": "Time Zone",
+                    "user_description": "Your station's time zone. In standard UNIX format, ie \"America/Denver\"",
+                    "env_name": "TZ",
+                    "default_value": "${TIMEZONE}",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_2": {
+                    "display_name": "Beast HOST",
+                    "user_description": "Source for BEAST data",
+                    "env_name": "BEASTHOST",
+                    "default_value": "readsb",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_3": {
+                    "display_name": "Beast PORT",
+                    "user_description": "BEAST data port",
+                    "env_name": "BEASTPORT",
+                    "default_value": "30005",
+                    "user_required": false,
+                    "compose_required": true,
+                    "advanced": true
+                },
+                "option_4": {
+                    "display_name": "Plane Watch API Key",
+                    "user_description": "The API Key received from https://atc.plane.watch/",
+                    "env_name": "API_KEY",
+                    "default_value": "",
+                    "user_required": true,
+                    "compose_required": true,
+                    "env": true
+                },
+                "option_5": {
+                    "display_name": "Reduce Interval",
+                    "user_description": "How often beast data is transmitted for each tracked aircraft.",
+                    "env_name": "REDUCE_INTERVAL",
+                    "default_value": ".5",
+                    "user_required": true,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_6": {
+                    "display_name": "Destination Hostname",
+                    "user_description": "Allows changing the hostname that ADS-B data is fed to.",
+                    "env_name": "PW_FEED_DESTINATION_HOSTNAME",
+                    "default_value": "feed.push.plane.watch",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                },
+                "option_7": {
+                    "display_name": "Destination Port",
+                    "user_description": "Allows changing the TCP port that ADS-B data is fed to.",
+                    "env_name": "PW_FEED_DESTINATION_PORT",
+                    "default_value": "12345",
+                    "user_required": false,
+                    "compose_required": false,
+                    "advanced": true
+                }
+            }
+        }
+    },
+    "container_12": {
+        "config_version": 1.0,
+        "category": "feeders",
         "display_order": 6,
         "container_name": "radar_box",
         "container_display_name": "Radar Box Feeder",
@@ -1725,7 +1802,7 @@
         }
     },
 
-    "container_12": {
+    "container_13": {
         "config_version": 1.0,
         "category": "acars",
         "container_name": "acars_hub",
@@ -2006,7 +2083,7 @@
         }
     },
 
-    "container_13": {
+    "container_14": {
         "config_version": 1.0,
         "category": "support",
         "container_name": "autoheal",
@@ -2050,7 +2127,7 @@
             }
         }
     },
-    "container_14": {
+    "container_15": {
         "config_version": 1.0,
         "category": "support",
         "container_name": "watchtower",
