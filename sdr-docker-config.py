@@ -1485,7 +1485,8 @@ def write_compose(screen):
         with open(install_path + yaml_file + yaml_extension, "w") as compose:
             compose.write("version: '3.8'\n\n")
             # write the volumes first
-            compose.write("volumes:\n")
+            wrote_volumes = False
+
             for container_volumes in output_container_config:
                 if 'volumes' in containers[container_volumes]['container_config']:
                     for key, volume in containers[container_volumes]['container_config']['volumes'].items():
@@ -1494,6 +1495,9 @@ def write_compose(screen):
                                 volume_options = ""
                                 if 'volume_options' in volume:
                                     volume_options += "\n" + volume['volume_options']
+                                if not wrote_volumes:
+                                    compose.write("volumes:\n")
+                                    wrote_volumes = True
                                 compose.write(tab + volume['docker_volume_name'] + ":" + volume_options + "\n")
 
             compose.write("services:\n")
