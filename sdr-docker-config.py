@@ -186,7 +186,7 @@ def global_configs(screen):
                                 previous = False
                             else:
                                 previous = True
-                        response = handle_boolean(screen, option_values, options, previous)
+                        response = handle_boolean(screen, option_values, option_key, previous)
                         if response == -1:
                             sub_iterator = options_index - 1
                             while True:
@@ -227,7 +227,7 @@ def global_configs(screen):
                             elif os.path.isfile("/etc/timezone"):
                                 user_timezone = '/'.join(os.path.realpath('/etc/timezone').split('/')[-2:])
 
-                        response = handle_string(screen, option_values, options_key, user_timezone)
+                        response = handle_string(screen, option_values, option_key, user_timezone)
 
                         if response == -1:
                             sub_iterator = options_index - 1
