@@ -44,6 +44,7 @@ CURRENT_SCHEMA_VERSION=1
 # the OS version
 
 OS_ID=$(cat /etc/os-release | grep 'ID=raspbian')
+SERIALS=""
 
 # Regular Expressions
 REGEX_PATTERN_RTLSDR_RULES_IDVENDOR='ATTRS\{idVendor\}=="\K[0-9a-f]{4}'
@@ -725,33 +726,33 @@ function add_user_to_docker() {
 
 function udev_rules() {
     if [[ -e "/etc/udev/rules.d/rtl-sdr.rules" ]]; then
-        logger "UDEV Rules present"
+        logger "UDEV Rules present. Removing"
         rm /etc/udev/rules.d/rtl-sdr.rules >> "$LOGFILE" 2>&1
+    fi
+    logger "Adding in UDEV Rules"
+    wget -O /tmp/rtl-sdr.rules https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/osmocom-rtl-sdr.rules 2>&1
+    if [[ -e /tmp/rtl-sdr.rules ]]; then
+        logger "Downloaded UDEV rules"
     else
-        logger "Adding in UDEV Rules"
-        wget -O /tmp/rtl-sdr.rules https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/osmocom-rtl-sdr.rules 2>&1
-        if [[ -e /tmp/rtl-sdr.rules ]]; then
-            logger "Downloaded UDEV rules"
-        else
-            logger "UDEV rule download fail"
-            exit_failure
-        fi
-        if cp /tmp/rtl-sdr.rules /etc/udev/rules.d/ >> "$LOGFILE" 2>&1; then
-            logger "UDEV rule copy successful"
-        else
-            logger "UDEV rule copy failed"
-            exit_failure
-        fi
-        if udevadm control --reload-rules >> "$LOGFILE" 2>&1; then
-            logger "UDEV rules reloaded"
-        else
-            logger "UDEV rules reload failed"
-            exit_failure
-        fi
+        logger "UDEV rule download fail"
+        exit_failure
+    fi
+    if cp /tmp/rtl-sdr.rules /etc/udev/rules.d/ >> "$LOGFILE" 2>&1; then
+        logger "UDEV rule copy successful"
+    else
+        logger "UDEV rule copy failed"
+        exit_failure
+    fi
+    if udevadm control --reload-rules >> "$LOGFILE" 2>&1; then
+        logger "UDEV rules reloaded"
+    else
+        logger "UDEV rules reload failed"
+        exit_failure
     fi
 }
 
 function required_libs() {
+    # TODO: Ensure all of these packages are really necessary
     PACKAGES=()
     PACKAGES+=(build-essential)
     PACKAGES+=(pkg-config)
@@ -788,7 +789,7 @@ function required_libs() {
 }
 
 function build_rtl_sdr() {
-    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR...\n* * While this is building, please take a minute to disconnect all RTL-SDR devices" 8 78
     # adding library path
     echo "/usr/local/lib/" | tee /etc/ld.so.conf >> "$LOGFILE" 2>&1
     if git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR"  >> "$LOGFILE" 2>&1; then
@@ -830,25 +831,38 @@ function build_rtl_sdr() {
         exit_failure
     fi
 
+    list_of_serials
+    while [[ -n "$SERIALS" ]]; do
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --msgbox "Please disconnect all rtl-sdr devices and press enter" 8 78
+        list_of_serials
+    done
+
     udev_rules
 
-    # if cp -v "$TMPDIR_REPO_RTLSDR/rtl-sdr.rules" "/etc/udev/rules.d/" >> "$LOGFILE" 2>&1; then
-    #     logger "UDEV rule copy successful"
-    # else
-    #     logger "UDEV rule copy failed"
-    #     exit_failure
-    # fi
-
-    if udevadm control --reload-rules >> "$LOGFILE" 2>&1; then
-        logger "UDEV rules reloaded"
+    # reload the ld cache
+    if ldconfig >> "$LOGFILE" 2>&1; then
+        logger "ldcache successfully reloaded"
     else
-        logger "UDEV rules reload failed"
+        logger "ldcache reload failed."
+        exit_failure
     fi
 
-    # reload the ld cache
-    ldconfig >> "$LOGFILE" 2>&1
-
     pushd "$CURRENT_DIR" || exit_fail
+}
+
+function list_of_serials() {
+    SERIALS=""
+    RTL_TEST_OUTPUT=$(timeout 1s rtl_test -d 0 2>&1 | grep -P '^\s+\d+:\s+\S+?,\s+\S+?,\s+SN:\s+\S+?\s*$' || true)
+    IFS=$'\n'
+    for RTL_TEST_OUTPUT_LINE in $RTL_TEST_OUTPUT; do
+        # Unset variables in case any regexes fail
+        unset RTL_DEVICE_ID RTL_DEVICE_MAKE RTL_DEVICE_MODEL RTL_DEVICE_SERIAL
+
+        # Pull variables from output via regex
+        #RTL_DEVICE_NUMBER=$(echo "$RTL_TEST_OUTPUT_LINE" | grep -oP '^\s+\K\d+(?=:\s+\S+?,\s+\S+?,\s+SN:\s+\S+?\s*$)')
+        RTL_DEVICE_SERIAL=$(echo "$RTL_TEST_OUTPUT_LINE" | grep -oP '^\s+\d+:\s+\S+?,\s+\S+?,\s+SN:\s+\K\S+?(?=\s*$)')
+        SERIALS+="$RTL_DEVICE_SERIAL "
+    done
 }
 
 ##### MAIN SCRIPT #####
@@ -989,7 +1003,7 @@ if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesn
         msg="This script needs to compile and install RTL-SDR, which is used for:\n"
         msg+=" * Managing RTL-SDRs outside of docker!\n"
         msg+=" * This script will also assist you in changing the serial number(s) on your dongles, if desired\n"
-        msg+=" * This script will also use RTL-SDR to assist in container configuration"
+        msg+=" * This script will also use RTL-SDR to assist in container configuration\n"
         msg+="Is it ok to install RTL-SDR? It will take a couple of minutes"
         if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
             build_rtl_sdr

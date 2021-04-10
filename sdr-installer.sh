@@ -22,8 +22,8 @@ if [[ -e "sdr-easy-install.sh" ]]; then
     rm sdr-docker-config.py 2>&1 || exit
 fi
 
-wget "$INSTALL_SCRIPT" 2>&1 || exit
-wget "$INSTALL_YAML" 2>&1 || exit
+curl -fsSL "$INSTALL_SCRIPT" -o sdr-easy-install.sh 2>&1  || exit
+curl -fsSL "$INSTALL_YAML" -o sdr-docker.config.py 2>&1 || exit
 
 chmod +x sdr-easy-install.sh 2>&1 || exit
 sudo ./sdr-easy-install.sh 2>&1 || exit
