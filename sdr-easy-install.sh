@@ -757,6 +757,8 @@ function required_libs() {
     PACKAGES+=(libusb-1.0-0)
     PACKAGES+=(libusb-1.0-0-dev)
     PACKAGES+=(libglib2.0-dev)
+    PACKAGES+=(cmake)
+    PACKAGES+=(git)
     logger "Installing any missing libraries"
     TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing packagse''..." 8 78
     # Attempt download of docker script
@@ -906,50 +908,6 @@ fi
 update_apt_repos
 
 # Install required packages / prerequisites (curl, docker, temp container, docker-compose)
-msg="This script needs to verify some required libraries are installed. These are used for,:\n"
-msg+=" * Building RTL-SDR\n"
-msg+="Is it ok to install any missing libraries?"
-if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
-    required_libs
-else
-    exit_user_cancelled
-fi
-
-# Get curl
-# if ! is_binary_installed curl; then
-#     msg="This script needs to install the 'curl' utility, which is used for:\n"
-#     msg+=" * Automatic submission of Planefinder sign-up form\n"
-#     msg+="Is it ok to install curl?"
-#     if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
-#         install_with_apt curl
-#     else
-#         exit_user_cancelled
-#     fi
-# fi
-
-if ! is_binary_installed cmake; then
-    msg="This script needs to install the 'cmake' utility, which is used for:\n"
-    msg+=" * Compiling RTL-SDR\n"
-    msg+="Is it ok to install cmake?"
-    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
-        install_with_apt cmake
-    else
-        exit_user_cancelled
-    fi
-fi
-
-if ! is_binary_installed git; then
-    msg="This script needs to install the 'git' utility, which is used for:\n"
-    msg+=" * Grabbing the RTL-SDR source code\n"
-    msg+="Is it ok to install git"
-    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
-        install_with_apt git
-    else
-        exit_user_cancelled
-    fi
-fi
-
-
 
 # Get python
 if ! is_binary_installed python && ! is_binary_installed python3; then
@@ -994,18 +952,31 @@ add_user_to_docker
 
 unload_rtlsdr_kernel_modules
 
-if ! is_binary_installed rtl_test; then
-    msg="This script needs to compile and install RTL-SDR, which is used for:\n"
-    msg+=" * Managing RTL-SDRs outside of docker!\n"
-    msg+="Is it ok to install RTL-SDR? It will take a couple of minutes"
-    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
-        build_rtl_sdr
+msg="Is the type of SDR dongle you are using an RTL-SDR based dongle?\n"
+msg+="If you are unsure you most likely do have this."
+if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
+    msg="This script needs to verify some required packages are installed. These are used for,:\n"
+    msg+=" * Building RTL-SDR\n"
+    msg+="Is it ok to install any missing libraries and programs?"
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+        required_libs
     else
         exit_user_cancelled
     fi
+    udev_rules
+    if ! is_binary_installed rtl_test; then
+        msg="This script needs to compile and install RTL-SDR, which is used for:\n"
+        msg+=" * Managing RTL-SDRs outside of docker!\n"
+        msg+=" * This script will also assist you in changing the serial number(s) on your dongles, if desired\n"
+        msg+=" * This script will also use RTL-SDR to assist in container configuration"
+        msg+="Is it ok to install RTL-SDR? It will take a couple of minutes"
+        if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
+            build_rtl_sdr
+        else
+            exit_user_cancelled
+        fi
+    fi
 fi
-
-udev_rules
 
 create_docker_compose_yml_file
 
