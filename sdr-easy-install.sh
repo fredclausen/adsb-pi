@@ -664,9 +664,19 @@ function create_docker_compose_yml_file() {
     logger "create_docker_compose_yml_file" "Creating docker_compose.yml file"
 
     if is_binary_installed python3; then
-        python3 sdr-docker-config.py -i "$PROJECTDIR"
+        if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "$SERIALS"; then
+            logger "ran python3 yaml generator"
+        else
+            logger "failed to run python3 yaml"
+            exit_failure
+        fi
     elif is_binary_installed python; then
-        python sdr-docker-config.py -i "$PROJECTDIR"
+        if python sdr-docker-config.py -i "$PROJECTDIR" -s "$SERIALS"; then
+            logger "ran python2 yaml generator"
+        else
+            logger "failed to run python2 yaml"
+            exit_failure
+        fi
     fi
     logger "create_docker_compose_yml_file" "Adding definition to docker-compose.yml"
 }
@@ -848,9 +858,10 @@ function build_rtl_sdr() {
 }
 
 function list_of_serials() {
-    SERIALS=""
     RTL_TEST_OUTPUT=$(timeout 1s rtl_test -d 0 2>&1 | grep -P '^\s+\d+:\s+\S+?,\s+\S+?,\s+SN:\s+\S+?\s*$' || true)
     IFS=$'\n'
+    SERIALS=""
+    ARRAY_OF_SERIALS=()
     for RTL_TEST_OUTPUT_LINE in $RTL_TEST_OUTPUT; do
         # Unset variables in case any regexes fail
         unset RTL_DEVICE_ID RTL_DEVICE_MAKE RTL_DEVICE_MODEL RTL_DEVICE_SERIAL
@@ -884,6 +895,7 @@ function re_serialize_sdrs() {
 
         if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "Do you have another SDR you would like to change the serial number on?" 12 80; then
             TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --msgbox "Please disconnect all RTL SDR devices except the first device you want to change serial numbers on and press enter" 8 78
+            show_disconnect_sdr_msg
         else
             break
         fi
