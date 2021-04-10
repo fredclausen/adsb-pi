@@ -787,7 +787,9 @@ function required_libs() {
 }
 
 function build_rtl_sdr() {
-    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR'..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR..." 8 78
+    # adding library path
+    echo "/usr/local/lib/" > /etc/ld.so.conf >> "$LOGFILE" 2>&1
     if git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR"  >> "$LOGFILE" 2>&1; then
         logger "Cloned RTLSDR successfully"
     else
@@ -960,8 +962,9 @@ else
     update_docker_compose
 fi
 
+# Ensure the current user is in the docker group so they don't have to sudo to run docker commands
 add_user_to_docker
-
+# ensure kernel modules are unloaded
 unload_rtlsdr_kernel_modules
 
 msg="Is the type of SDR dongle you are using an RTL-SDR based dongle?\n"

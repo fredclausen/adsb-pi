@@ -15,15 +15,15 @@ INSTALL_YAML="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/in
 TERM=ansi whiptail --title "Working" --infobox "Downloading Install Files!" 8 78
 
 if [[ -e "sdr-easy-install.sh" ]]; then
-    rm sdr-easy-install.sh
+    rm sdr-easy-install.sh 2>&1 || exit
 fi
 
 if [[ -e "sdr-easy-install.sh" ]]; then
-    rm sdr-docker-config.py
+    rm sdr-docker-config.py 2>&1 || exit
 fi
 
 wget "$INSTALL_SCRIPT" 2>&1 || exit
 wget "$INSTALL_YAML" 2>&1 || exit
 
-chmod +x sdr-easy-install.sh
-sudo ./sdr-easy-install.sh
+chmod +x sdr-easy-install.sh 2>&1 || exit
+sudo ./sdr-easy-install.sh 2>&1 || exit
