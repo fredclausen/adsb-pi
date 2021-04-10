@@ -546,6 +546,7 @@ def config_container(screen, f):
     global advanced
     global output_container_config
     global global_vars
+    global system_serials
 
     height, width = screen.getmaxyx()
     if height < 30 or width < 110:
@@ -848,6 +849,33 @@ def config_container(screen, f):
                                             starting_value -= 1
                                         else:
                                             section_responses[option_values['env_name'].replace("[]", str(starting_value))] = response
+                                    elif option_values['variable_type'] == "serial":
+                                        previous = None
+                                        if option_values['env_name'].replace("[]", str(starting_value)) in section_responses:
+                                            previous = section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del section_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                        elif option_values['env_name'].replace("[]", str(starting_value)) in previous_responses:
+                                            previous = previous_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                            del previous_responses[option_values['env_name'].replace("[]", str(starting_value))]
+                                        response = handle_serial(screen, option_values, options, previous)
+
+                                        if response == -1:
+                                            sub_iterator = options_index - 1
+                                            while True:
+                                                if sub_iterator < 0:
+                                                    break
+
+                                                if advanced or (('disable_user_set' not in option_items[sub_iterator] or option_items[sub_iterator]['disable_user_set'] is False) and ('advanced' not in option_items[sub_iterator] or option_items[sub_iterator]['advanced'] is False)):
+                                                    sub_iterator -= 1
+                                                    break
+                                                else:
+                                                    sub_iterator -= 1
+
+                                            options_index = sub_iterator
+                                            starting_value -= 1
+                                        else:
+                                            system_serials[response]['used'] = True
+                                            section_responses[option_values['env_name'].replace("[]", str(starting_value))] = response
                             print("end of options loop. options_index", options_index, "starting value ", starting_value, file=f)
                             if options_index <= -1:
                                 run_section = False
@@ -1020,6 +1048,8 @@ def handle_groups(screen, option_values, option):
                     result = handle_string(screen, group, key)
                 elif group['variable_type'] == "multi-choice":
                     result = handle_multi_choice(screen, group, key)
+                elif group['variable_type'] == "serial":
+                    result = handle_serial(screen, group, key)
 
                 if result == -1:
                     sub_iterator = index - 1
@@ -1298,6 +1328,72 @@ def handle_multi_choice(screen, option_values, options, previous=None):
                     screen.attroff(curses.A_REVERSE)
                 else:
                     screen.addstr(8 + index, 0, item['user_text'])
+                index += 1
+            screen.refresh()
+            k = screen.getch()
+
+
+def handle_serial(screen, option_values, options, previous=None):
+    global system_serials
+    height, width = screen.getmaxyx()
+    if height < 30 or width < 110:
+        raise EnvironmentError("Window too small!")
+    if not len(system_serials):
+        return handle_string(screen, option_values, options, previous)
+    exit = False
+    found_good_serials = False
+    curses.noecho()
+    screen.addstr(7, 0, "Make your selection below")
+    selection = 0
+    if previous is not None:
+        for key, item in system_serials.items():
+            if key == previous:
+                selection = item['index']
+    else:
+        for key, item in system_serials.items():
+            if item['used'] == False:
+                selection = item['index']
+                found_good_serials = True
+                break
+
+    if not found_good_serials:
+        return handle_string(screen, option_values, options, previous)
+    curses.curs_set(0)
+    max_selection = len(system_serials)
+    k = ""
+
+    while not exit:
+        height, width = screen.getmaxyx()
+        if height < 30 or width < 110:
+            raise EnvironmentError("Window too small!")
+        if k == curses.KEY_UP:
+            selection -= 1
+            if selection < 0:
+                selection = max_selection - 1
+        elif k == curses.KEY_DOWN:
+            selection += 1
+            if selection > max_selection - 1:
+                selection = 0
+        elif k == curses.KEY_ENTER or k == 10 or k == ord("\r"):
+            index = 0
+            for key, item in system_serials.items():
+                if selection == item['index']:
+                    return key
+                index += 1
+        elif k == curses.KEY_PPAGE:
+            return -1
+        elif k == curses.KEY_NPAGE:
+            return -1
+        if not exit:
+            index = 0
+            for key, item in system_serials.items():
+                if item['used'] == False:
+                    if selection == item['index']:
+                        screen.attron(curses.A_REVERSE)
+                        screen.addstr(8 + index, 0, key)
+                        screen.attroff(curses.A_REVERSE)
+                    else:
+                        screen.addstr(8 + index, 0, key)
                 index += 1
             screen.refresh()
             k = screen.getch()
@@ -1795,12 +1891,14 @@ if __name__ == "__main__":
     if args.auto:
         auto_run_post_install = True
 
+    serial_index = 0
     for serial in [serial for serial  in (args.serials or [])]:
         if serial in system_serials:
             print("Duplicate serials detected! Aborting!")
             sys.exit(1)
 
-        system_serials[serial] = {"number": serial, "used": False, "container": None}
+        system_serials[serial] = {"number": serial, "used": False, "container": None, "index": serial_index}
+        serial_index += 1
 
     if args.install is not None:
         install_path = args.install

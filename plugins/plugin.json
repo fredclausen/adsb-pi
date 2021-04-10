@@ -205,7 +205,8 @@
                     "user_description": "The serial number for the RTL-SDR device that you receive ADSB on",
                     "default_value": "",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "variable_type": "serial"
                 },
                 "option_2": {
                     "env_name": "READSB_RTLSDR_ENABLE_AGC",
@@ -868,7 +869,8 @@
                     "env_name": "DUMP978_RTLSDR_DEVICE",
                     "default_value": "",
                     "user_required": true,
-                    "compose_required": true
+                    "compose_required": true,
+                    "variable_type": "serial"
                 },
                 "option_4": {
                     "display_name": "SDR Automatic Gain Control",
@@ -1960,7 +1962,7 @@
                         "field_combine": ",",
                         "option_1": {
                             "display_name": "Serial Number",
-                            "variable_type": "string",
+                            "variable_type": "serial",
                             "user_description": "Please input the serial number of the SDR",
                             "default_value": "",
                             "user_required": true
@@ -2010,7 +2012,8 @@
                         "display_name": "Serial Number",
                         "user_description": "Please input the serial number of the SDR",
                         "default_value": "",
-                        "user_required": true
+                        "user_required": true,
+                        "variable_type": "serial"
                     },
                     "option_2": {
                         "display_name": "PPM",
@@ -2024,8 +2027,14 @@
                     },
                     "option_4": {
                         "display_name": "Bandwidth",
-                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
-                        "default_value": "160"
+                        "user_description": "Please select the SDR bandwidth. Most common is 2.0M/S",
+                        "variable_type": "multi-choice",
+                        "multi_choice_options": {
+                            "option_1": { "user_text": "2.0 M/S (most common)",
+                                          "env_text": "160" },
+                            "option_2": { "user_text": "2.4 M/S",
+                                          "env_text": "192" }
+                        }
                     }
                 },
                 "option_1": {
@@ -2053,7 +2062,8 @@
                         "display_name": "Serial Number",
                         "user_description": "Please input the serial number of the SDR",
                         "default_value": "",
-                        "user_required": true
+                        "user_required": true,
+                        "variable_type": "serial"
                     },
                     "option_2": {
                         "display_name": "PPM",
@@ -2067,8 +2077,14 @@
                     },
                     "option_4": {
                         "display_name": "Bandwidth",
-                        "user_description": "Please input the bandwidth multiplier of the SDR. Default value of 160 is 2.0 MS/S (most likely correct for your SDR) or 192 for 2.4 M/S",
-                        "default_value": "160"
+                        "user_description": "Please select the SDR bandwidth. Most common is 2.0M/S",
+                        "variable_type": "multi-choice",
+                        "multi_choice_options": {
+                            "option_1": { "user_text": "2.0 M/S (most common)",
+                                          "env_text": "160" },
+                            "option_2": { "user_text": "2.4 M/S",
+                                          "env_text": "192" }
+                        }
                     }
                 },
                 "option_1": {
