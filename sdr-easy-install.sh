@@ -45,6 +45,7 @@ CURRENT_SCHEMA_VERSION=1
 
 OS_ID=$(cat /etc/os-release | grep 'ID=raspbian')
 SERIALS=""
+ARRAY_OF_SERIALS=()
 
 # Regular Expressions
 REGEX_PATTERN_RTLSDR_RULES_IDVENDOR='ATTRS\{idVendor\}=="\K[0-9a-f]{4}'
@@ -91,7 +92,6 @@ function cleanup() {
     # Cleanup of temp files/dirs
     rm -r "$TMPDIR_ADSB_DOCKER_INSTALL" > /dev/null 2>&1 || true
 }
-
 
 ##### DEFINE FUNCTIONS #####
 
@@ -649,17 +649,8 @@ function unload_rtlsdr_kernel_modules() {
     done
 }
 
-function set_rtlsdr_serial_to_00001090() {
-    echo ""
-    echo -e "${WHITE}===== RTL-SDR Serial ===== ${NOCOLOR}"
-    echo ""
-
-    # get current serial number of radio
-    docker run --rm -it --device="${RTLSDR_DEVICES[0]}":"${RTLSDR_DEVICES[0]}" --entrypoint rtl_eeprom mikenye/readsb # TODO: greppage
-
-    # set current serial number of radio
-    docker run --rm -it --device="${RTLSDR_DEVICES[0]}":"${RTLSDR_DEVICES[0]}" --entrypoint rtl_eeprom mikenye/readsb -s 00001090 # TODO: yessage
-
+function blacklist_serials() {
+     echo -e "blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2832_sdr\nblacklist rtl8xxxu" | tee /etc/modprobe.d/blacklist-rtl2832.conf >> "$LOGFILE" 2&>1
 }
 
 function create_docker_compose_yml_file() {
@@ -862,6 +853,34 @@ function list_of_serials() {
         #RTL_DEVICE_NUMBER=$(echo "$RTL_TEST_OUTPUT_LINE" | grep -oP '^\s+\K\d+(?=:\s+\S+?,\s+\S+?,\s+SN:\s+\S+?\s*$)')
         RTL_DEVICE_SERIAL=$(echo "$RTL_TEST_OUTPUT_LINE" | grep -oP '^\s+\d+:\s+\S+?,\s+\S+?,\s+SN:\s+\K\S+?(?=\s*$)')
         SERIALS+="$RTL_DEVICE_SERIAL "
+        ARRAY_OF_SERIALS+=("$RTL_DEVICE_SERIAL")
+    done
+}
+
+function show_disconnect_sdr_msg() {
+    list_of_serials
+    while [[ ${#ARRAY_OF_SERIALS[@]} -gt 1 ]]; do
+        TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --msgbox "Please disconnect all but ONE rtl-sdr device and press enter" 8 78
+        list_of_serials
+    done
+}
+
+function re_serialize_sdrs() {
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --msgbox "Please disconnect all RTL SDR devices except the first device you want to change serial numbers on and press enter" 8 78
+    show_disconnect_sdr_msg
+    while true; do
+        unset NEW_SERIAL
+        if NEW_SERIAL=$(TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --inputbox "Please input the first serial number. Please remember each should be unique. After pressing enter you will be prompted to write the serial. Press 'y' and enter." --title "Set SDR serial number" 9 78 "" 3>&1 1>&2 2>&3); then
+            rtl_eeprom -s "$NEW_SERIAL"
+        else
+            exit_user_cancelled
+        fi
+
+        if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "Do you have another SDR you would like to change the serial number on?" 12 80; then
+            TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --msgbox "Please disconnect all RTL SDR devices except the first device you want to change serial numbers on and press enter" 8 78
+        else
+            break
+        fi
     done
 }
 
@@ -984,8 +1003,9 @@ fi
 
 # Ensure the current user is in the docker group so they don't have to sudo to run docker commands
 add_user_to_docker
-# ensure kernel modules are unloaded
+# ensure kernel modules are unloaded and blacklisted
 unload_rtlsdr_kernel_modules
+blacklist_serials
 
 msg="Is the type of SDR dongle you are using an RTL-SDR based dongle?\n"
 msg+="If you are unsure you most likely do have this."
@@ -998,7 +1018,7 @@ if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesn
     else
         exit_user_cancelled
     fi
-    udev_rules
+
     if ! is_binary_installed rtl_test; then
         msg="This script needs to compile and install RTL-SDR, which is used for:\n"
         msg+=" * Managing RTL-SDRs outside of docker!\n"
@@ -1011,8 +1031,18 @@ if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesn
             exit_user_cancelled
         fi
     fi
+
+    msg="If you would like this script can re-serialize your SDR's serial numbers.\n"
+    msg+="Each SDR you have plugged in should have a unique serial number so that the containers can uniquely identify the hardware\n"
+    msg+="Even if you have a single SDR plugged in it is still ideal to change the serial number from the default. This avoids potential issues.\n"
+    msg+="Would you like to change the serial number(s) on your SDR(s)?"
+    if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
+        re_serialize_sdrs
+    fi
 fi
 
+TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Connect all SDRs" --msgbox "Please connect all of the SDR(s) you intend to use on this system now\nIf you previously changed the serial please disconnect and reconnect those devices. Press enter when done" 8 78
+list_of_serials
 create_docker_compose_yml_file
 
 # start containers
