@@ -650,7 +650,13 @@ function unload_rtlsdr_kernel_modules() {
 }
 
 function blacklist_serials() {
-     echo -e "blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2832_sdr\nblacklist rtl8xxxu" | tee /etc/modprobe.d/blacklist-rtl2832.conf >> "$LOGFILE" 2&>1
+    logger "creating blacklist"
+    if echo -e "blacklist dvb_usb_rtl28xxu\nblacklist rtl2832\nblacklist rtl2832_sdr\nblacklist rtl8xxxu" | tee /etc/modprobe.d/blacklist-rtl2832.conf >> "$LOGFILE" 2>&1; then
+        logger "blacklist created"
+    else
+        logger "blacklist creation failed."
+        exit_failure
+    fi
 }
 
 function create_docker_compose_yml_file() {
