@@ -26,7 +26,7 @@ auto_run_post_install = False
 
 volumes = False
 output_container_config = collections.OrderedDict()
-
+system_serials = collections.OrderedDict()
 
 def init(screen):
     # Create the curses enviornment
@@ -1779,6 +1779,14 @@ if __name__ == "__main__":
         help='Auto run any post-installation commands required by the container without prompting.'
     )
 
+    parser.add_argument(
+        '--serials', '-s',
+        type=str,
+        help="List of SDR serial numbers",
+        nargs="+",
+        required=False
+    )
+
     args = parser.parse_args()
 
     if args.yaml:
@@ -1786,6 +1794,13 @@ if __name__ == "__main__":
 
     if args.auto:
         auto_run_post_install = True
+
+    for serial in [serial for serial  in (args.serials or [])]:
+        if serial in system_serials:
+            print("Duplicate serials detected! Aborting!")
+            sys.exit(1)
+
+        system_serials[serial] = {"number": serial, "used": False, "container": None}
 
     if args.install is not None:
         install_path = args.install
