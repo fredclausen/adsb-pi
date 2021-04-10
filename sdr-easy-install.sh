@@ -664,14 +664,14 @@ function create_docker_compose_yml_file() {
     logger "create_docker_compose_yml_file" "Creating docker_compose.yml file"
 
     if is_binary_installed python3; then
-        if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "$SERIALS"; then
+        if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}"; then
             logger "ran python3 yaml generator"
         else
             logger "failed to run python3 yaml"
             exit_failure
         fi
     elif is_binary_installed python; then
-        if python sdr-docker-config.py -i "$PROJECTDIR" -s "$SERIALS"; then
+        if python sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}"; then
             logger "ran python2 yaml generator"
         else
             logger "failed to run python2 yaml"
