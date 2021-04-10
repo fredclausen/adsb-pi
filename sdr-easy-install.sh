@@ -665,6 +665,7 @@ function create_docker_compose_yml_file() {
     PLUGIN=()
     if [[ -e "plugin.json" ]]; then
         PLUGIN=("-f" "plugin.json")
+    fi
     if is_binary_installed python3; then
         if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}"; then
             logger "ran python3 yaml generator"
