@@ -726,6 +726,7 @@ function add_user_to_docker() {
 function udev_rules() {
     if [[ -e "/etc/udev/rules.d/rtl-sdr.rules" ]]; then
         logger "UDEV Rules present"
+        rm /etc/udev/rules.d/rtl-sdr.rules >> "$LOGFILE" 2>&1
     else
         logger "Adding in UDEV Rules"
         wget -O /tmp/rtl-sdr.rules https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/osmocom-rtl-sdr.rules 2>&1
@@ -789,7 +790,7 @@ function required_libs() {
 function build_rtl_sdr() {
     TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR..." 8 78
     # adding library path
-    echo "/usr/local/lib/" > /etc/ld.so.conf >> "$LOGFILE" 2>&1
+    echo "/usr/local/lib/" | tee /etc/ld.so.conf >> "$LOGFILE" 2>&1
     if git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR"  >> "$LOGFILE" 2>&1; then
         logger "Cloned RTLSDR successfully"
     else
@@ -829,18 +830,23 @@ function build_rtl_sdr() {
         exit_failure
     fi
 
-    if cp -v "$TMPDIR_REPO_RTLSDR/rtl-sdr.rules" "/etc/udev/rules.d/" >> "$LOGFILE" 2>&1; then
-        logger "UDEV rule copy successful"
-    else
-        logger "UDEV rule copy failed"
-        exit_failure
-    fi
+    udev_rules
+
+    # if cp -v "$TMPDIR_REPO_RTLSDR/rtl-sdr.rules" "/etc/udev/rules.d/" >> "$LOGFILE" 2>&1; then
+    #     logger "UDEV rule copy successful"
+    # else
+    #     logger "UDEV rule copy failed"
+    #     exit_failure
+    # fi
 
     if udevadm control --reload-rules >> "$LOGFILE" 2>&1; then
         logger "UDEV rules reloaded"
     else
         logger "UDEV rules reload failed"
     fi
+
+    # reload the ld cache
+    ldconfig >> "$LOGFILE" 2>&1
 
     pushd "$CURRENT_DIR" || exit_fail
 }
