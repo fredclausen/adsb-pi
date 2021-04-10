@@ -515,14 +515,14 @@ def container_info(screen=None, container=None):
             return
 
 
-def exit_app():
+def exit_app(exit_code=0):
     global exit_message
     curses.nocbreak()
     curses.echo()
     curses.endwin()
     if exit_message is not None:
         print(exit_message)
-    sys.exit(0)
+    sys.exit(exit_code)
 
 
 def clear_screen(screen):
@@ -1942,14 +1942,14 @@ if __name__ == "__main__":
                 exit_app()
 
     except KeyboardInterrupt:
-        exit_app()
+        exit_app(exit_code=1)
     except ValueError as e:
         print("Duplicate key detected: ", e)
-        exit_app()
+        exit_app(exit_code=3)
     except EnvironmentError as e:
         print(e)
-        exit_app()
+        exit_app(exit_code=3)
     except Exception as e:
         print("Exception: ", e, repr(e))
         traceback.print_exc()
-        exit_app()
+        exit_app(exit_code=2)
