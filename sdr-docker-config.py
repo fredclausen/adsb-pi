@@ -1894,7 +1894,7 @@ if __name__ == "__main__":
     serial_index = 0
     for serial in [serial for serial  in (args.serials or [])]:
         if serial in system_serials:
-            print("Duplicate serials detected! Aborting!")
+            print("Duplicate serials detected! Aborting! Input {}".format(sys.argv))
             sys.exit(1)
 
         system_serials[serial] = {"number": serial, "used": False, "container": None, "index": serial_index}

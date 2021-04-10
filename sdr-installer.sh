@@ -11,7 +11,7 @@ fi
 
 INSTALL_SCRIPT="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/sdr-easy-install.sh"
 INSTALL_YAML="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/sdr-docker-config.py"
-PLUGIN="https://github.com/fredclausen/sdr-docker-config/blob/install-script/plugins/plugin.json"
+PLUGIN="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/blob/install-script/plugins/plugin.json"
 
 TERM=ansi whiptail --title "Working" --infobox "Downloading Install Files!" 8 78
 
