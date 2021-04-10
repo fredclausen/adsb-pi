@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2028,SC1090,SC2016
+# shellcheck disable=SC2028,SC1090,SC2016,SC2002
 
 # Disabled shellcheck check notes:
 #   - SC1090: Can't follow non-constant source. Use a directive to specify location.
@@ -40,6 +40,10 @@ WHITE='\033[1;37m'
 
 # Version of this script's schema
 CURRENT_SCHEMA_VERSION=1
+
+# the OS version
+
+OS_ID=$(cat /etc/os-release | grep 'ID=raspbian')
 
 # Regular Expressions
 REGEX_PATTERN_RTLSDR_RULES_IDVENDOR='ATTRS\{idVendor\}=="\K[0-9a-f]{4}'
@@ -748,6 +752,8 @@ function udev_rules() {
 
 function required_libs() {
     PACKAGES=()
+    PACKAGES+=(build-essential)
+    PACKAGES+=(pkg-config)
     PACKAGES+=(protobuf-c-compiler)
     PACKAGES+=(libprotobuf-c-dev)
     PACKAGES+=(libprotobuf-c1)
@@ -757,10 +763,16 @@ function required_libs() {
     PACKAGES+=(libusb-1.0-0)
     PACKAGES+=(libusb-1.0-0-dev)
     PACKAGES+=(libglib2.0-dev)
+    PACKAGES+=(libmp3lame-dev)
+    PACKAGES+=(libshout3-dev)
+    PACKAGES+=(libconfig++-dev)
+    if [[ -z "$OS_ID" ]]; then
+        PACKAGES+=(libraspberrypi-dev)
+    fi
     PACKAGES+=(cmake)
     PACKAGES+=(git)
     logger "Installing any missing libraries"
-    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing packagse''..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Installing packages..." 8 78
     # Attempt download of docker script
     if apt-get install -y "${PACKAGES[@]}" >> "$LOGFILE" 2>&1; then
         logger "required_libs" "Package " "${PACKAGES[@]}" "installed successfully!"
@@ -775,7 +787,7 @@ function required_libs() {
 }
 
 function build_rtl_sdr() {
-    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Performing 'apt-get update'..." 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR'..." 8 78
     if git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR"  >> "$LOGFILE" 2>&1; then
         logger "Cloned RTLSDR successfully"
     else
