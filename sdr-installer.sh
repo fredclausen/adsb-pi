@@ -1,5 +1,7 @@
 #!/bin/bash
 #shellcheck disable=SC2128,SC1102
+
+# sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/sdr-installer.sh)"
 command_line="$(printf %q "$BASH_SOURCE")$((($#)) && printf ' %q' "$@")"
 
 if [[ $EUID -ne 0 ]]; then

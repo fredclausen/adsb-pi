@@ -52,7 +52,7 @@ REGEX_PATTERN_COMPOSEFILE_SCHEMA_HEADER='^\s*#\s*ADSB_DOCKER_INSTALL_ENVFILE_SCH
 LOGFILE="/tmp/adsb_docker_install.$(date -Iseconds).log"
 
 # Whiptail dialog globals
-WHIPTAIL_BACKTITLE="ADS-B Docker Easy Install"
+WHIPTAIL_BACKTITLE="SDR Easy Install"
 
 # Container Images
 IMAGE_DOCKER_COMPOSE="linuxserver/docker-compose:latest"
@@ -725,8 +725,24 @@ function udev_rules() {
     else
         logger "Adding in UDEV Rules"
         wget -O /tmp/rtl-sdr.rules https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/osmocom-rtl-sdr.rules 2>&1
-        cp /tmp/rtl-sdr.rules /etc/udev/rules.d/ >> "$LOGFILE" 2>&1
-        udevadm control --reload-rules >> "$LOGFILE" 2>&1
+        if [[ -e /tmp/rtl-sdr.rules ]]; then
+            logger "Downloaded UDEV rules"
+        else
+            logger "UDEV rule download fail"
+            exit_failure
+        fi
+        if cp /tmp/rtl-sdr.rules /etc/udev/rules.d/ >> "$LOGFILE" 2>&1; then
+            logger "UDEV rule copy successful"
+        else
+            logger "UDEV rule copy failed"
+            exit_failure
+        fi
+        if udevadm control --reload-rules >> "$LOGFILE" 2>&1; then
+            logger "UDEV rules reloaded"
+        else
+            logger "UDEV rules reload failed"
+            exit_failure
+        fi
     fi
 }
 
@@ -757,17 +773,60 @@ function required_libs() {
 }
 
 function build_rtl_sdr() {
-    git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR" && \
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Performing 'apt-get update'..." 8 78
+    if git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR"  >> "$LOGFILE" 2>&1; then
+        logger "Cloned RTLSDR successfully"
+    else
+        logger "RTLSDR clone failed"
+        exit_failure
+    fi
     CURRENT_DIR=$(pwd)
-    pushd "$TMPDIR_REPO_RTLSDR" || exit
-    git checkout "${BRANCH_RTLSDR}"
-    mkdir -p "$TMPDIR_REPO_RTLSDR/build"
-    pushd "$TMPDIR_REPO_RTLSDR/build" || exit
-    cmake ../ -DINSTALL_UDEV_RULES=ON -Wno-dev
-    make -Wstringop-truncation
-    make -Wstringop-truncation install
-    cp -v "$TMPDIR_REPO_RTLSDR/rtl-sdr.rules" "/etc/udev/rules.d/"
-    pushd "$CURRENT_DIR" || exit
+    pushd "$TMPDIR_REPO_RTLSDR" >> "$LOGFILE" 2>&1 || exit_failure
+    if git checkout "${BRANCH_RTLSDR}" >> "$LOGFILE" 2>&1; then
+        logger "Cloned RTLSDR branch successfully"
+    else
+        logger "RTLSDR branch clone failed"
+        exit_failure
+    fi
+
+    mkdir -p "$TMPDIR_REPO_RTLSDR/build" >> "$LOGFILE" 2>&1 || exit_failure
+    pushd "$TMPDIR_REPO_RTLSDR/build" >> "$LOGFILE" 2>&1 || exit_failure
+
+    if cmake ../ -DINSTALL_UDEV_RULES=ON -Wno-dev >> "$LOGFILE" 2>&1; then
+        logger "RTLSDR cmake successful"
+    else
+        logger "RTLSDR cmake failed"
+        exit_failure
+    fi
+
+    if make -Wstringop-truncation >> "$LOGFILE" 2>&1; then
+        logger "RTLSDR make stage 1 successful"
+    else
+        logger "RTLSDR make stage 1 failed"
+        exit_failure
+    fi
+
+    if make -Wstringop-truncation install >> "$LOGFILE" 2>&1; then
+        logger "RTLSDR make stage 2 successful"
+    else
+        logger "RTLSDR make stage 2 failed"
+        exit_failure
+    fi
+
+    if cp -v "$TMPDIR_REPO_RTLSDR/rtl-sdr.rules" "/etc/udev/rules.d/" >> "$LOGFILE" 2>&1; then
+        logger "UDEV rule copy successful"
+    else
+        logger "UDEV rule copy failed"
+        exit_failure
+    fi
+
+    if udevadm control --reload-rules >> "$LOGFILE" 2>&1; then
+        logger "UDEV rules reloaded"
+    else
+        logger "UDEV rules reload failed"
+    fi
+
+    pushd "$CURRENT_DIR" || exit_fail
 }
 
 ##### MAIN SCRIPT #####
