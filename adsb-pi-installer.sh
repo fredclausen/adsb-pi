@@ -66,8 +66,7 @@ IMAGE_DOCKER_COMPOSE="linuxserver/docker-compose:latest"
 # URLs
 URL_REPO_RTLSDR="git://git.osmocom.org/rtl-sdr"
 
-# List of RTL-SRD devices (will be populated by script)
-RTLSDR_DEVICES=()
+USING_RTLSDR=""
 
 # List of kernel modules to blacklist on the host
 RTLSDR_MODULES_TO_BLACKLIST=()
@@ -1031,6 +1030,7 @@ blacklist_serials
 msg="Is the type of SDR dongle you are using an RTL-SDR based dongle?\n"
 msg+="If you are unsure you most likely do have this."
 if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesno "$msg" 12 80; then
+    USING_RTLSDR="true"
     msg="This script needs to verify some required packages are installed. These are used for,:\n"
     msg+=" * Building RTL-SDR\n"
     msg+="Is it ok to install any missing libraries and programs?"
@@ -1063,7 +1063,9 @@ if TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "RTL-SDR" --yesn
 fi
 
 TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Connect all SDRs" --msgbox "Please connect all of the SDR(s) you intend to use on this system now\nIf you previously changed the serial please disconnect and reconnect those devices. Press enter when done" 8 78
-list_of_serials
+if [[ -n "$USING_RTLSDR" ]]; then
+    list_of_serials
+fi
 create_docker_compose_yml_file
 
 # start containers

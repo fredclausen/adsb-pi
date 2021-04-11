@@ -1390,10 +1390,10 @@ def handle_serial(screen, option_values, options, previous=None):
                 if item['used'] == False:
                     if selection == item['index']:
                         screen.attron(curses.A_REVERSE)
-                        screen.addstr(8 + index, 0, key)
+                        screen.addstr(8 + index, 0, "SDR: " + key)
                         screen.attroff(curses.A_REVERSE)
                     else:
-                        screen.addstr(8 + index, 0, key)
+                        screen.addstr(8 + index, 0, "SDR: " + key)
                 index += 1
             screen.refresh()
             k = screen.getch()
