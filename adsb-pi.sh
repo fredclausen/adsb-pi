@@ -21,7 +21,7 @@ if [[ -e "plugin.json" ]]; then
     rm plugin.json 2>&1 || exit
 fi
 
-curl -fsSL "$INSTALL_SCRIPT" -o adsb-pi.sh 2>&1  || exit
+curl -fsSL "$INSTALL_SCRIPT" -o adsb-pi-installer.sh 2>&1  || exit
 curl -fsSL "$INSTALL_YAML" -o sdr-docker-config.py 2>&1 || exit
 curl -fsSL "$PLUGIN" -o plugin.json 2>&1 || exit
 
