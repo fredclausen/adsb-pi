@@ -58,7 +58,7 @@ REGEX_PATTERN_COMPOSEFILE_SCHEMA_HEADER='^\s*#\s*ADSB_DOCKER_INSTALL_ENVFILE_SCH
 LOGFILE="/tmp/adsb_docker_install.$(date -Iseconds).log"
 
 # Whiptail dialog globals
-WHIPTAIL_BACKTITLE="SDR Easy Install"
+WHIPTAIL_BACKTITLE="ADSB Pi Install"
 
 # Container Images
 IMAGE_DOCKER_COMPOSE="linuxserver/docker-compose:latest"
@@ -78,7 +78,9 @@ RTLSDR_MODULES_TO_BLACKLIST+=(rtl2832)
 
 TMPDIR_ADSB_DOCKER_INSTALL="$(mktemp -d --suffix=.adsb_docker_install.TMPDIR_ADSB_DOCKER_INSTALL)"
 TMPDIR_REPO_RTLSDR="$TMPDIR_ADSB_DOCKER_INSTALL/TMPDIR_REPO_RTLSDR"
+TMPDIR_YAML="$TMPDIR_ADSB_DOCKER_INSTALL/YAML"
 mkdir -p "$TMPDIR_REPO_RTLSDR"
+mkdir -p "$TMPDIR_YAML"
 
 # Branch of RTLSDR to build
 BRANCH_RTLSDR="ed0317e6a58c098874ac58b769cf2e609c18d9a5"
@@ -141,14 +143,15 @@ function welcome_msg() {
    o/\  \              / ___ \| |_| |___) |_____| |_) |
       \__\            /_/   \_\____/|____/      |____/
 
-Welcome to the SDR Easy Install Script! This will:
+Welcome to the ADSB Pi Install Script! This will:
 
-  1. Configure a source of ADS-B data (SDR or network)
-  2. Install docker & docker-compose
-  3. Prompt you for your feeder settings
-  4. Create docker-compose.yml & .env files with your settings
-  5. Deploy containers for feeding services you choose
-     (and supporting containers)
+  1.  Configure a source of ADS-B data (SDR or network)
+  2.  Install docker & docker-compose
+  3.  Install any system packages necessary for the install
+  4.  Walk you through setting up all of the services you'd like to install
+  5.  Create docker-compose.yml & .env files with your settings
+  6a. If some services require addtional information or setup, accomplish that
+  6b. Deploy the services you chose
 
 Do you wish to continue?
 EOM
@@ -666,14 +669,14 @@ function create_docker_compose_yml_file() {
         PLUGIN=("-f" "plugin.json")
     fi
     if is_binary_installed python3; then
-        if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}"; then
+        if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}" -n -t "$TMPDIR_YAML"; then
             logger "ran python3 yaml generator"
         else
             logger "failed to run python3 yaml"
             exit_failure
         fi
     elif is_binary_installed python; then
-        if python sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}"; then
+        if python sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}" -n -t "$TMPDIR_YAML"; then
             logger "ran python2 yaml generator"
         else
             logger "failed to run python2 yaml"
@@ -798,9 +801,9 @@ function required_libs() {
 }
 
 function build_rtl_sdr() {
-    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR...\n* * While this is building, please take a minute to disconnect all RTL-SDR devices" 8 78
+    TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Building RTL-SDR...\n * While this is building, please take a minute to disconnect all RTL-SDR devices" 8 78
     # adding library path
-    echo "/usr/local/lib/" | tee /etc/ld.so.conf >> "$LOGFILE" 2>&1
+    # echo "/usr/local/lib/" | tee /etc/ld.so.conf >> "$LOGFILE" 2>&1
     if git clone git://git.osmocom.org/rtl-sdr.git "$TMPDIR_REPO_RTLSDR"  >> "$LOGFILE" 2>&1; then
         logger "Cloned RTLSDR successfully"
     else
@@ -848,7 +851,7 @@ function build_rtl_sdr() {
 
     udev_rules
 
-    # reload the ld cache
+    reload the ld cache
     if ldconfig >> "$LOGFILE" 2>&1; then
         logger "ldcache successfully reloaded"
     else
@@ -1081,6 +1084,7 @@ else
             --msgbox "Failed to pull (download) images :-(" 8 78
     exit_failure
 fi
+
 TERM=ansi whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Working..." --infobox "Starting containers..." 8 78
 if docker-compose up -d --remove-orphans >> "$LOGFILE" 2>&1; then
     TERM=ansi whiptail \

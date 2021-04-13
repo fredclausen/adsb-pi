@@ -13,7 +13,7 @@ try:
 except Exception:
     import urllib2
 
-SOFTWARE_VERSION = "0.7.1"
+SOFTWARE_VERSION = "0.7.2"
 page = 1
 config = collections.OrderedDict()
 containers = collections.OrderedDict()
@@ -21,8 +21,10 @@ global_vars = collections.OrderedDict()
 advanced = False
 exit_message = None
 install_path = "/opt/adsb/"
+temp_path = "/opt/adsb/temp/"
 yaml_extension = ".yml"
 auto_run_post_install = False
+as_installer = False
 
 volumes = False
 output_container_config = collections.OrderedDict()
@@ -47,7 +49,14 @@ def init(screen):
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     screen.attron(curses.color_pair(2))
 
-    welcome = "WELCOME TO SDR DOCKER CONFIG version {}".format(SOFTWARE_VERSION)
+    welcome = "WELCOME TO ADSB PI CONFIG version {}".format(SOFTWARE_VERSION)
+    logo_1 = "  __"
+    logo_2 = "  \  \     _ _            _    ____  ____        ____"
+    logo_3 = "   \**\ ___\/ \          / \  |  _ \/ ___|      | __ )"
+    logo_4 = "  X*#####*+^^\_\        / _ \ | | | \___ \ _____|  _ \\"
+    logo_5 = "   o/\  \              / ___ \| |_| |___) |_____| |_) |"
+    logo_6 = "      \__\            /_/   \_\____/|____/      |____/"
+
     help_string = "This utility will walk you through setting up containers that will recieve, display, and feed ADSB data."
     help_string_next = "As well as containers that can receive and/or display ACARS/VDLM and airband VHF communications"
     status_bar = "Press 'n' or 'Enter' to Proceed | Press 'q' or Control + C to exit"
@@ -56,9 +65,18 @@ def init(screen):
 
     # show text
 
-    screen.addstr(int(height // 2 - 3), int((width // 2) - (len(welcome) // 2) - len(welcome) % 2), welcome)
-    screen.addstr(int(height // 2), int((width // 2) - (len(help_string) // 2) - len(help_string) % 2), help_string)
-    screen.addstr(int(height // 2 + 1), int((width // 2) - (len(help_string_next) // 2) - len(help_string_next) % 2), help_string_next)
+    screen.addstr(int(height // 2 - 8), int((width // 2) - (len(welcome) // 2) - len(welcome) % 2), welcome)
+
+    screen.addstr(int(height // 2 - 6), int((width // 2) - (len(logo_4) // 2) - len(logo_4) % 2), logo_1)
+    screen.addstr(int(height // 2 - 5), int((width // 2) - (len(logo_4) // 2) - len(logo_4) % 2), logo_2)
+    screen.addstr(int(height // 2 - 4), int((width // 2) - (len(logo_4) // 2) - len(logo_4) % 2), logo_3)
+    screen.addstr(int(height // 2 - 3), int((width // 2) - (len(logo_4) // 2) - len(logo_4) % 2), logo_4)
+    screen.addstr(int(height // 2 - 2), int((width // 2) - (len(logo_4) // 2) - len(logo_4) % 2), logo_5)
+    screen.addstr(int(height // 2 - 1), int((width // 2) - (len(logo_4) // 2) - len(logo_4) % 2), logo_6)
+
+
+    screen.addstr(int(height // 2 + 3), int((width // 2) - (len(help_string) // 2) - len(help_string) % 2), help_string)
+    screen.addstr(int(height // 2 + 4), int((width // 2) - (len(help_string_next) // 2) - len(help_string_next) % 2), help_string_next)
 
     # show status bar
     if len(status_bar) > width - 1:
@@ -874,7 +892,8 @@ def config_container(screen, f):
                                             options_index = sub_iterator
                                             starting_value -= 1
                                         else:
-                                            system_serials[response]['used'] = True
+                                            if response in system_serials:
+                                                system_serials[response]['used'] = True
                                             section_responses[option_values['env_name'].replace("[]", str(starting_value))] = response
                             print("end of options loop. options_index", options_index, "starting value ", starting_value, file=f)
                             if options_index <= -1:
@@ -1481,6 +1500,7 @@ def write_compose(screen):
     global containers
     global exit_message
     global install_path
+    global temp_path
     global global_vars
     global yaml_extension
     global auto_run_post_install
@@ -1490,8 +1510,11 @@ def write_compose(screen):
     ports_output = []
     installed_containers = []
     addtional_setup_required = []
+    addtional_setup_required_container_ids = []
+    container_templates = {}  # used to store each container's full config in case we have to write any temp files
     post_run_commands = []  # tuple with container name, desription, command string
     exit_message = ""
+    tab = "  "
 
     try:
         if not os.path.isdir(install_path):
@@ -1577,7 +1600,6 @@ def write_compose(screen):
                     screen.refresh()
                     k = screen.getch()
 
-        tab = "  "
         with open(install_path + yaml_file + yaml_extension, "w") as compose:
             compose.write("version: '3.8'\n\n")
             # write the volumes first
@@ -1598,6 +1620,7 @@ def write_compose(screen):
 
             compose.write("services:\n")
             for container in output_container_config:
+                container_string = ""
                 installed_containers.append(containers[container]['container_display_name'])
                 if 'post_install_actions' in containers[container]:
                     post_run_commands.append((containers[container]['container_display_name'], containers[container]['post_install_user_description'], containers[container]['post_install_actions']))
@@ -1607,23 +1630,35 @@ def write_compose(screen):
                 compose.write(tab + tab + "container_name: " + container + "\n")
                 compose.write(tab + tab + "restart: always\n")
 
+                container_string += tab + container + ":\n"
+                container_string += tab + tab + "image: " + containers[container]['container_image'] + '\n'
+                container_string += tab + tab + "tty: true\n"
+                container_string += tab + tab + "container_name: " + container + "\n"
+                container_string += tab + tab + "restart: always\n"
+
                 if 'requires' in containers[container]:
                     did_write = False
                     for required_key, required_item in containers[container]['requires'].items():
                         if required_item in output_container_config:
                             if not did_write:
                                 compose.write(tab + tab + "depends_on:\n")
+                                container_string += tab + tab + "depends_on:\n"
                                 did_write = True
                             compose.write(tab + tab + tab + "- " + required_item + "\n")
+                            container_string += tab + tab + tab + "- " + required_item + "\n"
                 if 'devices' in containers[container]['container_config']:
                     compose.write(tab + tab + "devices:\n")
+                    container_string += tab + tab + "devices:\n"
                     for device, device_config in containers[container]['container_config']['devices'].items():
                         if device == 'usb' and device_config is True:
                             compose.write(tab + tab + tab + "- /dev/bus/usb:/dev/bus/usb\n")
+                            container_string += tab + tab + tab + "- /dev/bus/usb:/dev/bus/usb\n"
                         else:
                             compose.write(tab + tab + tab + "- " + device_config['host_device_path'] + ":" + device_config['container_device_path'] + "\n")
+                            container_string += tab + tab + tab + "- " + device_config['host_device_path'] + ":" + device_config['container_device_path'] + "\n"
                 if 'ports' in containers[container]['container_config']:
                     compose.write(tab + tab + "ports:\n")
+                    container_string += tab + tab + "ports:\n"
                     for port, port_config in containers[container]['container_config']['ports'].items():
                         if 'exclude' not in port_config or port_config['exclude'] is not False:
                             if 'description' in port_config:
@@ -1636,7 +1671,9 @@ def write_compose(screen):
                             ports.append(host_port)
                             ports_output.append((containers[container]['container_display_name'], host_port, description))
                             compose.write(tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n")
+                            container_string += tab + tab + tab + "- " + str(host_port) + ":" + str(port_config['container_port']) + "\n"
                 compose.write(tab + tab + "environment:\n")
+                container_string += tab + tab + "environment:\n"
                 for variable, value in output_container_config[container].items():
                     try:
                         bypass_yaml = ""
@@ -1654,6 +1691,7 @@ def write_compose(screen):
                                             if 'addtional_setup_required' in option_item and value == option_item['default_value']:
                                                 if containers[container]['container_display_name'] not in addtional_setup_required:
                                                     addtional_setup_required.append(containers[container]['container_display_name'])
+                                                    addtional_setup_required_container_ids.append(container)
                                             if 'bypass_yaml' in option_item and option_item['bypass_yaml'] is True:
                                                 bypass_yaml = "'"
                                                 if 'replace_characters' in option_item:
@@ -1662,8 +1700,10 @@ def write_compose(screen):
                                             continue
                         if not add_to_env:
                             compose.write(tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=" + str(output_string) + "{}\n".format(bypass_yaml))
+                            container_string += tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=" + str(output_string) + "{}\n".format(bypass_yaml)
                         else:
                             compose.write(tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=${" + container.upper() + "_" + variable.upper() + "}" + "{}\n".format(bypass_yaml))
+                            container_string += tab + tab + tab + "- {}".format(bypass_yaml) + variable + "=${" + container.upper() + "_" + variable.upper() + "}" + "{}\n".format(bypass_yaml)
                             if container.upper() + "_" + variable.upper() not in global_vars:
                                 global_vars[container.upper() + "_" + variable.upper()] = str(output_string)
                     except Exception as e:
@@ -1709,6 +1749,7 @@ def write_compose(screen):
                                             output_template += str(containers[container]['container_config']['ports'][sub_template_item['port']]['container_port'])
                         if len(output_template) > 0:
                             compose.write(tab + tab + tab + "- " + template_item['env_name_out'] + "=" + output_template + "\n")
+                            container_string += tab + tab + tab + "- " + template_item['env_name_out'] + "=" + output_template + "\n"
 
                 if 'volumes' in containers[container]['container_config']:
                     volumes_strings = []
@@ -1732,6 +1773,7 @@ def write_compose(screen):
                             compose.write(line)
 
                     exit = False
+                container_templates[container] = container_string
             with open(install_path + env_file, "w") as env:
                 for env_key, env_item in global_vars.items():
                     env.write(env_key + "=" + env_item + "\n")
@@ -1830,9 +1872,6 @@ def write_compose(screen):
                     screen.addstr(container_index, 0, name + ": " + str(item) + " " + port_description)
                     container_index += 1
 
-            if len(addtional_setup_required):
-                exit_message += "\nSome containers require addtional setup. Please review the www.sdrdockerconfig.com website (link for each container is above) for specifics on what each container needs\n"
-
             exit_message += "\nPlease see the www.sdrdockerconfig.com tutorial section for next steps. Once all pre-requisites have been met you can 'cd {}' and run 'docker-compose up -d' to start all of the containers".format(install_path)
             curses.curs_set(0)
             k = ""
@@ -1842,6 +1881,18 @@ def write_compose(screen):
                     exit = True
                 else:
                     k = screen.getch()
+
+        if len(addtional_setup_required):
+            exit_message += "\nSome containers require addtional setup. Please review the www.adsb-pi.com website (link for each container is above) for specifics on what each container needs\n"
+            if not os.path.isdir(install_path):
+                os.makedirs(install_path)
+            for container in addtional_setup_required_container_ids:
+                with open(temp_path + container + yaml_extension, "w") as compose:
+                    compose.write("version: '3.8'\n\n")
+                    compose.write("services:\n")
+                    if 'readsb' in container_templates:
+                        compose.write(container_templates['readsb'])
+                    compose.write(container_templates[container])
     except Exception as e:
         print(e)
 
@@ -1849,6 +1900,7 @@ def write_compose(screen):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate docker-compose yaml file')
 
+    # Argument to override the plugin file. By default it should download it from the interwebs
     parser.add_argument(
         '--files', '-f',
         type=str,
@@ -1856,6 +1908,7 @@ if __name__ == "__main__":
         required=False,
     )
 
+    # Override the default install path. Default is /opt/adsb
     parser.add_argument(
         '--install', '-i',
         type=str,
@@ -1863,24 +1916,47 @@ if __name__ == "__main__":
         required=False,
     )
 
+    # To appease everyone default extension for YAML was changed to yml. However, you can override that
     parser.add_argument(
         '--yaml', '-y',
         action='store_true',
         help='Use .yaml instead of the default .yml for the docker-compose file'
     )
 
+    # If set any plugins that auto-execute setup will run without asking the user
     parser.add_argument(
         '--auto', '-a',
         action='store_true',
         help='Auto run any post-installation commands required by the container without prompting.'
     )
 
+    # List of SDR serials. If present, the script will use those for any 'serial' vars. If absent, the user will have to input serials
     parser.add_argument(
         '--serials', '-s',
         type=str,
         help="List of SDR serial numbers",
         nargs="+",
         required=False
+    )
+
+    # directory to store temp docker-compose files in. These will be used if the containers require 'additional setup'
+    parser.add_argument(
+        '--temp', '-t',
+        type=str,
+        help="Directory to write the temporary docker-compose files to",
+        required=False
+    )
+
+    # arguement to tell the script that it is being run as part of the install suite
+    # This will change the output of write_compose from informing the user that containers need addt'l config
+    # To writing temp compose files so that the installer can run those temp config files
+    # This will also have the installer dump the output text that normally would be displayed on the command line to a temporary file
+    # That the installer script can cat out and display to the user in the summary
+
+    parser.add_argument(
+        '--as-installer', '-n',
+        action='store_true',
+        help="Set this flag if being run as part of the installer"
     )
 
     args = parser.parse_args()
@@ -1890,6 +1966,15 @@ if __name__ == "__main__":
 
     if args.auto:
         auto_run_post_install = True
+
+    if args.as_installer:
+        as_installer = True
+
+    if args.temp:
+        temp_path = args.temp
+
+        if not temp_path.endswith("/") or not install_path.endswith("\\"):
+            temp_path += "/"
 
     serial_index = 0
     for serial in [serial for serial  in (args.serials or [])]:

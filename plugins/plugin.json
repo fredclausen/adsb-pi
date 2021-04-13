@@ -444,7 +444,7 @@
                     "user_description": "Site Longitude",
                     "display_name": "Longitude",
                     "default_value": "${USER_LON}",
-                    "compose_required": false,
+                    "compose_required": true,
                     "user_required": true,
                     "advanced": true
                 },

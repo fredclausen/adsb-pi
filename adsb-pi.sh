@@ -1,19 +1,19 @@
 #!/bin/bash
 #shellcheck disable=SC2128,SC1102
 
-# sudo /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/adsb-pi.sh)"
+# sudo /bin/bash -c "$(curl -fsSL http://adsb-pi.com/install-script)"
 
-INSTALL_SCRIPT="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/adsb-pi.sh"
-INSTALL_YAML="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/sdr-docker-config.py"
-PLUGIN="https://raw.githubusercontent.com/fredclausen/sdr-docker-config/install-script/plugins/plugin.json"
+INSTALL_SCRIPT="http://adsb-pi.com/system-install-script"
+INSTALL_YAML="http://adsb-pi.com/yaml-generator"
+PLUGIN="http://adsb-pi.com/plugin"
 
 TERM=ansi whiptail --title "Working" --infobox "Downloading Install Files!" 8 78
 
-if [[ -e "sdr-easy-install.sh" ]]; then
-    rm sdr-easy-install.sh 2>&1 || exit
+if [[ -e "adsb-pi-installer.sh" ]]; then
+    rm adsb-pi-installer.sh 2>&1 || exit
 fi
 
-if [[ -e "sdr-easy-install.sh" ]]; then
+if [[ -e "sdr-docker-config.sh" ]]; then
     rm sdr-docker-config.py 2>&1 || exit
 fi
 
@@ -25,5 +25,5 @@ curl -fsSL "$INSTALL_SCRIPT" -o adsb-pi.sh 2>&1  || exit
 curl -fsSL "$INSTALL_YAML" -o sdr-docker-config.py 2>&1 || exit
 curl -fsSL "$PLUGIN" -o plugin.json 2>&1 || exit
 
-chmod +x adsb-pi.sh 2>&1 || exit
-sudo ./adsb-pi.sh 2>&1 || exit
+chmod +x adsb-pi-installer.sh 2>&1 || exit
+sudo ./adsb-pi-installer.sh 2>&1 || exit
