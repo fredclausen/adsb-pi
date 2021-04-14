@@ -1995,10 +1995,10 @@ if __name__ == "__main__":
         else:
             # open the file. Using try/except so that the correct libraries are used
             try:
-                config = json.loads(urllib.request.urlopen("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json").read().decode(), object_pairs_hook=raise_on_duplicate_keys)
+                config = json.loads(urllib.request.urlopen("http://adsb-pi.com/plugin").read().decode(), object_pairs_hook=raise_on_duplicate_keys)
             except Exception:
                 try:
-                    config = json.loads(urllib2.urlopen(urllib2.Request("https://raw.githubusercontent.com/fredclausen/sdr-docker-config/main/plugins/plugin.json")).read().decode(), object_pairs_hook=raise_on_duplicate_keys)
+                    config = json.loads(urllib2.urlopen(urllib2.Request("http://adsb-pi.com/plugin")).read().decode(), object_pairs_hook=raise_on_duplicate_keys)
                 except Exception:
                     pass
 
