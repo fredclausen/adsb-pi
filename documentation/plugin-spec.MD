@@ -396,7 +396,7 @@ Below is the configuration for an environment variable in a section, also known 
 | `env_name` | The name of the ENV variable that will be in the docker-compose file. If the variable is used for looping (see [section](#section) above), the placeholder `[]` is used for the incrementing character in the variable name. | Yes | `Standard docker ENV naming conventions` | None |
 | `disable_user_set` | Set this option to disable allowing the user to change this variable. Use of this means the variable, with it's default value, will be included in the docker-compose output. | No | `boolean` | `false` |
 | `default_value` | The default value of the enviornment variable. Will (potentially) be used if the user provides no change to the option. Is displayed to the user. | Yes, `variable_type` is not `multi_choice_options` | `Formatting per container spec for the variable` | None |
-| `variable_type` | This sets the type of variable. | No | `boolean`, `string` or `multi-choice` | `string` |
+| `variable_type` | This sets the type of variable. | No | `boolean`, `string`, `serial` (see notes below) or `multi-choice` (see notes below) | `string` |
 | `boolean_override_true` and `boolean_override_false` | By default the output for any variable set to boolean will be `TRUE` or `FALSE` depending on what is appropriate. However, if your container uses a different value (ie, a blank string) to represent the `TRUE` and/or `FALSE` state, you can override the output for that selection type. | No | `Formatting per container spec for the variable` | `true` and `false` respectively |
 | `multi_choice_options` | A JSON list of user options that can be selected for the variable. Will be presented to the user via a dropdown menu. See below for formatting of the variable. | Yes, if `variable_type` is set to `multi-choice` | `JSON List` | Blank |
 | `user_required` | This is used to indicate the user is required to provide unique input. If `advanced` is set to `true` the user will be required to provide input **ONLY** if the user is in `advanced` configuration mode. | No | `true` or `false` | `false` |
@@ -404,6 +404,10 @@ Below is the configuration for an environment variable in a section, also known 
 | `advanced` | If this flag is set, the option will be presented to the user only if they've selected advanced configuration mode. | No | `boolean` | `false` |
 | `additional_setup_required` | If this is set, and the user inputs the default value, the user will be informed that the container requires additional setup | No | `boolean` | `false` |
 | `env` | If this flag is set the variable will be written to the .env file with the appropriate formatting of the variable in the `yaml` file and the name of the variable will have the container name prepended to it. | No | `boolean` | `false` |
+
+If variable type is `serial` and the program has been provided with a list of serials available, the user will be shown those options. Once the user has selected a serial, any subsequent variables that are also `serial` will not have that number available to them.
+
+If no serials have been made available the user will be prompted to enter a serial number.
 
 The `multi_choice_options` list should be formatted as follows
 
