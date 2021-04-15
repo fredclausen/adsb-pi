@@ -669,7 +669,7 @@ function create_docker_compose_yml_file() {
         EXTRA_ARGS+=("-f" "plugin.json")
     fi
 
-    if [[ ${#ARRAY_OF_SERIALS[@]} -gt 1 ]]; then
+    if [[ ${#ARRAY_OF_SERIALS[@]} -gt 0 ]]; then
         EXTRA_ARGS+=("-s" "${ARRAY_OF_SERIALS[@]}")
     fi
 
