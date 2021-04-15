@@ -664,19 +664,24 @@ function blacklist_serials() {
 function create_docker_compose_yml_file() {
 
     logger "create_docker_compose_yml_file" "Creating docker_compose.yml file"
-    PLUGIN=()
+    EXTRA_ARGS=()
     if [[ -e "plugin.json" ]]; then
-        PLUGIN=("-f" "plugin.json")
+        EXTRA_ARGS+=("-f" "plugin.json")
     fi
+
+    if [[ ${#ARRAY_OF_SERIALS[@]} -gt 1 ]]; then
+        EXTRA_ARGS+=("-s" "${ARRAY_OF_SERIALS[@]}")
+    fi
+
     if is_binary_installed python3; then
-        if python3 sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}" -n -t "$TMPDIR_YAML"; then
+        if python3 sdr-docker-config.py -i "$PROJECTDIR" "${EXTRA_ARGS[@]}" -n -t "$TMPDIR_YAML"; then
             logger "ran python3 yaml generator"
         else
             logger "failed to run python3 yaml"
             exit_failure
         fi
     elif is_binary_installed python; then
-        if python sdr-docker-config.py -i "$PROJECTDIR" -s "${ARRAY_OF_SERIALS[@]}" "${PLUGIN[@]}" -n -t "$TMPDIR_YAML"; then
+        if python sdr-docker-config.py -i "$PROJECTDIR" -s "${EXTRA_ARGS[@]}" -n -t "$TMPDIR_YAML"; then
             logger "ran python2 yaml generator"
         else
             logger "failed to run python2 yaml"
@@ -780,7 +785,7 @@ function required_libs() {
     PACKAGES+=(libmp3lame-dev)
     PACKAGES+=(libshout3-dev)
     PACKAGES+=(libconfig++-dev)
-    if [[ -z "$OS_ID" ]]; then
+    if [[ -n "$OS_ID" ]]; then
         PACKAGES+=(libraspberrypi-dev)
     fi
     PACKAGES+=(cmake)
@@ -851,7 +856,7 @@ function build_rtl_sdr() {
 
     udev_rules
 
-    reload the ld cache
+    # reload the ld cache
     if ldconfig >> "$LOGFILE" 2>&1; then
         logger "ldcache successfully reloaded"
     else
