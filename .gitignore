@@ -114,3 +114,4 @@ output.txt
 data/*
 plugins/plugin_testing.json
 .env.backup*
+test.py

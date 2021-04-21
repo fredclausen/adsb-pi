@@ -1048,7 +1048,7 @@
                 "option_1": {
                     "display_name": "BEAST Host",
                     "user_description": "The host for BEAST data",
-                    "env_name": "BEAST_HOST",
+                    "env_name": "BEASTHOST",
                     "default_value": "readsb",
                     "user_required": false,
                     "disable_user_set": true,
@@ -1057,7 +1057,7 @@
                 "option_2": {
                     "display_name": "BEAST Port",
                     "user_description": "The host for BEAST data",
-                    "env_name": "BEAST_PORT",
+                    "env_name": "BEASTPORT",
                     "default_value": "30005",
                     "user_required": false,
                     "disable_user_set": true,
