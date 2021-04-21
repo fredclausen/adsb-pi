@@ -990,6 +990,18 @@ update_apt_repos
 
 # Install required packages / prerequisites (curl, docker, temp container, docker-compose)
 
+# Get expect
+if ! is_binary_installed expect; then
+    msg="This script needs to install the 'expect' utility, which is used for:\n"
+    msg+=" * Automatic completion of feeder sign-up tasks\n"
+    msg+="Is it ok to install expect?"
+    if whiptail --backtitle "$WHIPTAIL_BACKTITLE" --title "Package installation" --yesno "$msg" 12 80; then
+        install_with_apt expect
+    else
+        exit_user_cancelled
+    fi
+fi
+
 # Get python
 if ! is_binary_installed python && ! is_binary_installed python3; then
     msg="This script needs to install python, which is used for:\n"
